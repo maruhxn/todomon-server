@@ -1,8 +1,13 @@
 package com.maruhxn.todomon.global.config;
 
 import com.maruhxn.todomon.global.auth.application.TodomonOAuth2UserService;
+import com.maruhxn.todomon.global.auth.filter.JwtExceptionFilter;
+import com.maruhxn.todomon.global.auth.filter.JwtVerificationFilter;
+import com.maruhxn.todomon.global.auth.handler.JwtAccessDeniedHandler;
+import com.maruhxn.todomon.global.auth.handler.JwtLogoutSuccessHandler;
 import com.maruhxn.todomon.global.auth.handler.OAuth2EntryPoint;
 import com.maruhxn.todomon.global.auth.handler.OAuth2LoginSuccessHandler;
+import com.maruhxn.todomon.global.common.PermitAllUrls;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
@@ -16,11 +21,13 @@ import org.springframework.security.config.annotation.web.configurers.FormLoginC
 import org.springframework.security.config.annotation.web.configurers.HttpBasicConfigurer;
 import org.springframework.security.config.annotation.web.configurers.RememberMeConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Configuration
@@ -32,6 +39,10 @@ public class SecurityConfig {
     private final TodomonOAuth2UserService todomonOAuth2UserService;
     private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
     private final OAuth2EntryPoint oAuth2EntryPoint;
+    private final JwtVerificationFilter jwtVerificationFilter;
+    private final JwtExceptionFilter jwtExceptionFilter;
+    private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
+    private final JwtLogoutSuccessHandler jwtLogoutSuccessHandler;
 
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
@@ -59,9 +70,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authz -> {
                     authz.requestMatchers("/").permitAll();
                     authz.requestMatchers(PathRequest.toH2Console()).permitAll();
-//                    Arrays.stream(PermitAllUrls.values()).forEach(url -> {
-//                        authz.requestMatchers(url.getMethod(), url.getUrl()).permitAll();
-//                    });
+                    Arrays.stream(PermitAllUrls.values()).forEach(url -> {
+                        authz.requestMatchers(url.getMethod(), url.getUrl()).permitAll();
+                    });
                     authz.anyRequest().authenticated();
                 })
                 .oauth2Login(oauth2 ->
@@ -72,19 +83,19 @@ public class SecurityConfig {
                                 )
                                 .successHandler(oAuth2LoginSuccessHandler)
                 )
-//                .logout(logout ->
-//                        logout
-//                                .clearAuthentication(true)
-//                                .invalidateHttpSession(true)
-//                                .logoutUrl("/api/auth/logout")
-//                                .logoutSuccessHandler(jwtLogoutSuccessHandler)
-//                )
-//                .addFilterBefore(jwtVerificationFilter, OAuth2AuthorizationRequestRedirectFilter.class)
-//                .addFilterBefore(jwtExceptionFilter, JwtVerificationFilter.class)
+                .logout(logout ->
+                        logout
+                                .clearAuthentication(true)
+                                .invalidateHttpSession(true)
+                                .logoutUrl("/api/auth/logout")
+                                .logoutSuccessHandler(jwtLogoutSuccessHandler)
+                )
+                .addFilterBefore(jwtVerificationFilter, OAuth2AuthorizationRequestRedirectFilter.class)
+                .addFilterBefore(jwtExceptionFilter, JwtVerificationFilter.class)
                 .exceptionHandling(exceptionHandling ->
                         exceptionHandling
-                                .authenticationEntryPoint(oAuth2EntryPoint));
-//                                .accessDeniedHandler(jwtAccessDeniedHandler));
+                                .authenticationEntryPoint(oAuth2EntryPoint)
+                                .accessDeniedHandler(jwtAccessDeniedHandler));
 
         return http.build();
     }

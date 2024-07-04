@@ -1,6 +1,7 @@
 package com.maruhxn.todomon.global.auth.model;
 
 import com.maruhxn.todomon.domain.member.domain.Member;
+import com.maruhxn.todomon.global.auth.model.provider.OAuth2Provider;
 import com.maruhxn.todomon.global.auth.model.provider.OAuth2ProviderUser;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -25,8 +26,12 @@ public class TodomonOAuth2User implements OAuth2User {
         this.attributes = oAuth2ProviderUser.getAttributes();
     }
 
-    public static OAuth2User of(Member member, OAuth2ProviderUser oAuth2ProviderUser) {
+    public static TodomonOAuth2User of(Member member, OAuth2ProviderUser oAuth2ProviderUser) {
         return new TodomonOAuth2User(member, oAuth2ProviderUser);
+    }
+
+    public static TodomonOAuth2User of(Member member) {
+        return new TodomonOAuth2User(member);
     }
 
     @Override
@@ -45,5 +50,25 @@ public class TodomonOAuth2User implements OAuth2User {
     @Override
     public String getName() {
         return this.member.getUsername();
+    }
+
+    public Long getId() {
+        return this.member.getId();
+    }
+
+    public Member getMember() {
+        return this.member;
+    }
+
+    public String getEmail() {
+        return this.member.getEmail();
+    }
+
+    public OAuth2Provider getProvider() {
+        return this.member.getProvider();
+    }
+
+    public Role getRole() {
+        return this.member.getRole();
     }
 }

@@ -20,6 +20,11 @@ public class MemberService {
 
     private final MemberRepository memberRepository;
 
+    public Member findMemberByEmail(String email) {
+        return memberRepository.findByEmail(email)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_MEMBER));
+    }
+
     public Member createOrUpdate(OAuth2ProviderUser oAuth2ProviderUser) {
         Member member = null;
         Optional<Member> optionalMember = memberRepository.findByEmail(oAuth2ProviderUser.getEmail());
