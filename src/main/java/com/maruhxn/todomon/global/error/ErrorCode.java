@@ -19,6 +19,7 @@ public enum ErrorCode {
 
     /* NOT FOUND 404 */
     NOT_FOUND_RESOURCE("요청하신 자원이 존재하지 않습니다."),
+    NOT_FOUND_MEMBER("멤버 정보를 찾을 수 없습니다."),
 
     /* UNPROCESSABLE CONTENT 422 */
     EXISTING_RESOURCE("이미 존재하는 리소스입니다."),
