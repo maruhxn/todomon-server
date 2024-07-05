@@ -41,7 +41,7 @@ public class MemberService {
         return member;
     }
 
-    public Member registerByOAuth2(OAuth2ProviderUser oAuth2ProviderUser) {
+    private Member registerByOAuth2(OAuth2ProviderUser oAuth2ProviderUser) {
         Role role = oAuth2ProviderUser.getEmail().equals("maruhan1016@gmail.com")
                 ? Role.ROLE_ADMIN
                 : Role.ROLE_USER;
