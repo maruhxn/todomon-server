@@ -7,7 +7,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 @Entity
 @Getter
@@ -18,10 +18,10 @@ public class RepeatInfo extends BaseEntity {
     @Column(length = 8, nullable = false)
     private Frequency frequency;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "repeat_interval") // interval은 일부 데이터베이스에서 예약어로 취급
     private Integer interval = 1; // 반복 일정의 빈도 = 반복되는 이벤트가 얼마나 자주 발생하는지를 나타냄
 
-    private LocalDateTime until; // 반복이 끝나는 날짜 지정. 이 날짜까지 이벤트가 반복 -> count와 공존 불가능
+    private LocalDate until; // 반복이 끝나는 날짜 지정. 이 날짜까지 이벤트가 반복 -> count와 공존 불가능
 
     @Column(length = 20)
     private String byDay;
@@ -33,7 +33,7 @@ public class RepeatInfo extends BaseEntity {
     private Todo todo;
 
     @Builder
-    public RepeatInfo(Frequency frequency, Integer interval, LocalDateTime until, String byDay, Integer byMonthDay, Integer count) {
+    public RepeatInfo(Frequency frequency, Integer interval, LocalDate until, String byDay, Integer byMonthDay, Integer count) {
         this.frequency = frequency;
         this.interval = interval;
         this.until = until;
