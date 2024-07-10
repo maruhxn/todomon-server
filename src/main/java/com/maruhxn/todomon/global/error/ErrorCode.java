@@ -23,6 +23,7 @@ public enum ErrorCode {
     NOT_FOUND_RESOURCE("요청하신 자원이 존재하지 않습니다."),
     NOT_FOUND_MEMBER("멤버 정보가 존재하지 않습니다."),
     NOT_FOUND_REFRESH_TOKEN("Refresh Token 정보가 존재하지 않습니다."),
+    NOT_FOUND_TODO("할 일 정보가 존재하지 않습니다."),
 
     /* UNPROCESSABLE CONTENT 422 */
     EXISTING_RESOURCE("이미 존재하는 리소스입니다."),
