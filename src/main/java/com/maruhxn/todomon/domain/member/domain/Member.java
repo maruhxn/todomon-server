@@ -72,4 +72,8 @@ public class Member extends BaseEntity {
     public void addScheduledReward(long reward) {
         this.scheduledReward += reward;
     }
+
+    public void subtractScheduledReward(long reward) {
+        this.scheduledReward -= reward;
+    }
 }

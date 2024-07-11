@@ -28,4 +28,8 @@ public class Diligence extends BaseEntity {
     public void increaseGauge(double gauge) {
         this.gauge += gauge;
     }
+
+    public void decreaseGauge(double gauge) {
+        this.gauge -= gauge;
+    }
 }

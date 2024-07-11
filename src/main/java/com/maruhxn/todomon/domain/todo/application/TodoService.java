@@ -23,6 +23,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static com.maruhxn.todomon.global.common.Constants.*;
+
 /**
  * create, update 시 입력받는 startAt, endAt에 대한 유효성 검증 필요
  */
@@ -51,12 +53,12 @@ public class TodoService {
             todo.setRepeatInfo(repeatInfo);
             repeatInfoRepository.save(repeatInfo);
         }
-
         todoRepository.save(todo);
 
         if (repeatInfo != null) {
             createTodoInstances(todo);
         }
+
     }
 
     private void createTodoInstances(Todo todo) {
@@ -72,7 +74,15 @@ public class TodoService {
             case MONTHLY -> instances.addAll(generateMonthlyInstances(todo, startAt, endAt, repeatInfo));
         }
 
-        todoInstanceRepository.saveAll(instances);
+        if (instances.size() > 1) { // 최소 반복 횟수를 넘지 못하면 인스턴스를 생성하지 않고, 단일 투두로 처리
+            todoInstanceRepository.saveAll(instances);
+            LocalDateTime repeatStartAt = instances.get(0).getStartAt();
+            LocalDateTime repeatEndAt = instances.get(instances.size() - 1).getEndAt();
+            todo.update(UpdateTodoReq.builder()
+                    .startAt(repeatStartAt)
+                    .endAt(repeatEndAt)
+                    .build());
+        }
     }
 
     private List<TodoInstance> generateMonthlyInstances(Todo todo, LocalDateTime startAt, LocalDateTime endAt, RepeatInfo repeatInfo) {
@@ -176,61 +186,95 @@ public class TodoService {
         }
     }
 
-//    /**
-//     * 반복 정보가 있는 경우 -> 해당 반복을 수행할 때마다 일관성 게이지가 오름, 보상은 그대로 + 반복 종료일까지 모든 투두를 수행했을 경우 "누적된" 보상의 지급
-//     * 반복 정보가 없는 단일 Todo의 경우 -> 단순 상태 업데이트 및 보상 지급
-//     *
-//     * @param todoId
-//     * @param req
-//     */
-//    public void updateStatusAndReward(Long todoId, UpdateTodoStatusReq req) {
-//        Todo findTodo = todoRepository.findById(todoId)
-//                .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_TODO));
-//
-//        if (findTodo.getRepeatInfo() == null) {
-//            // 반복 정보가 없는 단일 todo의 경우 -> 단순 상태 업데이트 및 보상 지급
-//            findTodo.updateIsDone(req.isDone());
-//            rewardUserForSingleTodoCompletion(findTodo);
-//        } else {
-//            updateRepeatInfoAndRewardUser(findTodo);
-//        }
-//    }
-//
-//    /**
-//     * 단일 Todo의 경우 보상 로직
-//     *
-//     * @param todo
-//     */
-//    private void rewardUserForSingleTodoCompletion(Todo todo) {
-//        // 유저 일관성 게이지 업데이트
-//        // 보상 지급
-//    }
-//
-//    private void updateRepeatInfoAndRewardUser(Todo todo) {
-//        RepeatInfo repeatInfo = todo.getRepeatInfo();
-//        boolean allRepeatsCompleted = checkIfAllRepeatsCompleted(todo, repeatInfo);
-//
-//        if (allRepeatsCompleted) {
-//            rewardUserForAllRepeatsCompletion(todo, repeatInfo);
-//        }
-//    }
-//
-//    // 반복 종료일까지 설정한 모든 todo를 수행했는지 체크
-//    private boolean checkIfAllRepeatsCompleted(Todo todo, RepeatInfo repeatInfo) {
-//        // Logic to check if all repeats of the todo until endDate are completed
-//        // Example: Query database to count completed repeats
-//        // Compare with expected number of repeats based on repeatType and endDate
-//        return false; // Placeholder logic
-//    }
-//
-//    // 반복 설정된 투두를 모두 수행했을 시 추가 보상 지급 로직
-//    private void rewardUserForAllRepeatsCompletion(Todo todo, RepeatInfo repeatInfo) {
-//
-//    }
-//
-//
-//    public void deleteTodo(Long todoId) {
-//
-//    }
+    /**
+     * 반복 정보가 있는 경우 -> 해당 반복을 수행할 때마다 일관성 게이지가 오름, 보상은 그대로 + 반복 종료일까지 모든 투두를 수행했을 경우 "누적된" 보상의 지급
+     * 반복 정보가 없는 단일 Todo의 경우 -> 단순 상태 업데이트 및 보상 지급
+     *
+     * @param todoId
+     * @param member
+     * @param req
+     */
+    public void updateStatusAndReward(Long todoId, Member member, UpdateTodoStatusReq req) {
+        if (req.isInstance()) {
+            TodoInstance todoInstance = todoInstanceRepository.findById(todoId)
+                    .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_TODO));
+            if (req.isDone()) {
+                todoInstance.updateIsDone(true);
+                rewardForInstance(todoInstance, member);
+            } else {
+                withdrawRewardForInstance(todoInstance, member);
+                todoInstance.updateIsDone(false);
+            }
+        } else {
+            Todo findTodo = todoRepository.findById(todoId)
+                    .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_TODO));
+            // 반복 정보가 없는 단일 todo의 경우 -> 단순 상태 업데이트 및 보상 지급
+            findTodo.updateIsDone(req.isDone());
+            if (req.isDone()) {
+                reward(member, 1);
+            } else {
+                withdrawReward(member, 1);
+            }
+        }
+    }
+
+    private void withdrawRewardForInstance(TodoInstance todoInstance, Member member) {
+        withdrawReward(member, 1);
+        List<TodoInstance> todoInstances = todoInstanceRepository.findAllByTodo_Id(todoInstance.getTodo().getId());
+        if (checkAlreadyRewardedForAllCompleted(todoInstances)) { // 이미 모든 인스턴스가 완료되어 보상을 받았는지 확인
+            withdrawReward(member, todoInstances.size());
+        }
+    }
+
+    private boolean checkAlreadyRewardedForAllCompleted(List<TodoInstance> todoInstances) {
+        for (TodoInstance todoInstance : todoInstances) {
+            if (!todoInstance.isDone()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private void withdrawReward(Member member, int leverage) {
+        member.getDiligence().decreaseGauge(GAUGE_INCREASE_RATE * leverage);
+        member.subtractScheduledReward((long) (REWARD_UNIT * leverage * REWARD_LEVERAGE_RATE));
+    }
+
+    // 단일 일정에 대한 보상 로직
+    private void reward(Member member, int leverage) {
+        // 유저 일관성 게이지 업데이트
+        member.getDiligence().increaseGauge(GAUGE_INCREASE_RATE * leverage);
+        // 보상 지급
+        member.addScheduledReward((long) (REWARD_UNIT * leverage * REWARD_LEVERAGE_RATE));
+    }
+
+    // 반복 일정에 대한 보상 로직
+    private void rewardForInstance(TodoInstance todoInstance, Member member) {
+        // 각 인스턴스가 수행되면 보상 지급
+        reward(member, 1);
+
+        if (todoInstance.getEndAt().equals(todoInstance.getOriginalEndAt())) { // 마지막 인스턴스를 수행 완료 시
+            List<TodoInstance> todoInstances = todoInstanceRepository.findAllByTodo_Id(todoInstance.getTodo().getId());
+            // 모든 인스턴스 수행 완료 여부 확인
+            if (checkIfAllRepeatsCompleted(todoInstances)) {
+                reward(member, todoInstances.size());
+            }
+        }
+    }
+
+    // 반복 종료일까지 설정한 모든 todo를 수행했는지 체크
+    private boolean checkIfAllRepeatsCompleted(List<TodoInstance> todoInstances) {
+        int notCompletedInstancesSize = todoInstances.stream()
+                .filter(instance -> !instance.isDone())
+                .toList().size();
+        return notCompletedInstancesSize == 0;
+    }
+
+
+    public void deleteTodo(Long todoId) {
+        Todo findTodo = todoRepository.findById(todoId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_TODO));
+        todoRepository.delete(findTodo);
+    }
 
 }

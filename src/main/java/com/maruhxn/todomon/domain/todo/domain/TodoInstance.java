@@ -56,4 +56,8 @@ public class TodoInstance extends BaseEntity {
                 .originalEndAt(todo.getEndAt())
                 .build();
     }
+
+    public void updateIsDone(boolean isDone) {
+        this.isDone = isDone;
+    }
 }

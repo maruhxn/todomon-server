@@ -2,6 +2,7 @@ package com.maruhxn.todomon.domain.todo.dto.request;
 
 import com.maruhxn.todomon.domain.todo.domain.Frequency;
 import com.maruhxn.todomon.domain.todo.domain.RepeatInfo;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AccessLevel;
@@ -22,6 +23,7 @@ public class RepeatInfoItem {
     private String byDay;
     private Integer byMonthDay;
     private LocalDate until;
+    @Min(value = 2, message = "최소 반복 횟수는 2번입니다.")
     private Integer count;
 
     @Builder
