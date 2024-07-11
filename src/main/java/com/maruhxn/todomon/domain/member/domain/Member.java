@@ -4,10 +4,7 @@ import com.maruhxn.todomon.global.auth.model.Role;
 import com.maruhxn.todomon.global.auth.model.provider.OAuth2Provider;
 import com.maruhxn.todomon.global.auth.model.provider.OAuth2ProviderUser;
 import com.maruhxn.todomon.global.common.BaseEntity;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -39,6 +36,14 @@ public class Member extends BaseEntity {
     @ColumnDefault("3")
     private Integer petHouseSize = 3;
 
+    @ColumnDefault("0")
+    private Long starPoint = 0L;
+
+    private Long scheduledReward = 0L;
+
+    @OneToOne(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private Diligence diligence;
+
     @Builder
     public Member(String username, String email, OAuth2Provider provider, String providerId, String profileImageUrl, Role role) {
         this.username = username;
@@ -52,5 +57,19 @@ public class Member extends BaseEntity {
     public void updateByOAuth2Info(OAuth2ProviderUser oAuth2ProviderUser) {
         this.username = oAuth2ProviderUser.getUsername();
         this.profileImageUrl = oAuth2ProviderUser.getProfileImageUrl();
+    }
+
+    public void initDiligence() {
+        Diligence diligence = new Diligence();
+        this.diligence = diligence;
+        diligence.setMember(this);
+    }
+
+    public void initScheduledReward() {
+        this.scheduledReward = 0L;
+    }
+
+    public void addScheduledReward(long reward) {
+        this.scheduledReward += reward;
     }
 }

@@ -76,10 +76,10 @@ public class Todo extends BaseEntity {
     public void update(UpdateTodoReq req) {
         if (StringUtils.hasText(req.getContent())) this.content = req.getContent();
         if (req.getStartAt() != null) this.startAt = req.getStartAt();
-        if (req.getEndAt() != null) this.startAt = req.getEndAt();
+        if (req.getEndAt() != null) this.endAt = req.getEndAt();
         if (req.getIsAllDay() != null) {
             this.isAllDay = req.getIsAllDay();
-            updateToAllDay();
+            if (this.isAllDay) updateToAllDay();
         }
     }
 }
