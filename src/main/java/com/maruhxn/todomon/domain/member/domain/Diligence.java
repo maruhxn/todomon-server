@@ -27,9 +27,14 @@ public class Diligence extends BaseEntity {
 
     public void increaseGauge(double gauge) {
         this.gauge += gauge;
+        while (this.gauge >= 100) { // 게이지가 100 이상이 될 경우, 레벨이 증가한다.
+            this.level++;
+            this.gauge -= 100;
+        }
     }
 
     public void decreaseGauge(double gauge) {
         this.gauge -= gauge;
+        if (this.gauge < 0) this.gauge = 0; // 게이지의 최소값은 0이다. 레벨이 떨어지지는 않는다.
     }
 }
