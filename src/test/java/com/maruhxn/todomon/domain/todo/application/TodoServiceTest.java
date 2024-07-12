@@ -11,6 +11,7 @@ import com.maruhxn.todomon.domain.todo.domain.TodoInstance;
 import com.maruhxn.todomon.domain.todo.dto.request.CreateTodoReq;
 import com.maruhxn.todomon.domain.todo.dto.request.RepeatInfoItem;
 import com.maruhxn.todomon.domain.todo.dto.request.UpdateTodoReq;
+import com.maruhxn.todomon.domain.todo.dto.request.UpdateTodoStatusReq;
 import com.maruhxn.todomon.global.auth.model.Role;
 import com.maruhxn.todomon.global.auth.model.provider.OAuth2Provider;
 import com.maruhxn.todomon.util.IntegrationTestSupport;
@@ -22,8 +23,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
+import static com.maruhxn.todomon.global.common.Constants.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("[Service] - TodoService")
@@ -69,6 +72,9 @@ class TodoServiceTest extends IntegrationTestSupport {
         todoService.create(member, req);
 
         // then
+        Todo todo = todoRepository.findAll().get(0);
+        assertThat(todo.getStartAt()).isEqualTo(LocalDateTime.of(2024, 7, 10, 7, 0));
+        assertThat(todo.getEndAt()).isEqualTo(LocalDateTime.of(2024, 7, 14, 8, 0));
         List<TodoInstance> all = todoInstanceRepository.findAll();
         assertThat(all).hasSize(3);
         assertThat(all.get(2).getStartAt()).isEqualTo(LocalDateTime.of(2024, 7, 14, 7, 0));
@@ -270,10 +276,13 @@ class TodoServiceTest extends IntegrationTestSupport {
         todoService.create(member, req);
 
         // then
+        Todo todo = todoRepository.findAll().get(0);
         List<TodoInstance> all = todoInstanceRepository.findAll();
         assertThat(all).hasSize(2);
         assertThat(all.get(0).getStartAt()).isEqualTo(LocalDateTime.of(2024, 10, 31, 7, 0));
         assertThat(all.get(1).getStartAt()).isEqualTo(LocalDateTime.of(2024, 12, 31, 7, 0));
+        assertThat(todo.getStartAt()).isEqualTo(all.get(0).getStartAt());
+        assertThat(todo.getEndAt()).isEqualTo(all.get(1).getEndAt());
     }
 
     @Test
@@ -319,6 +328,252 @@ class TodoServiceTest extends IntegrationTestSupport {
         assertThat(todoInstanceRepository.findAll()).hasSize(2);
     }
 
+    @Test
+    @DisplayName("단일 일정 완료 처리")
+    void completeSingleTodoAndReward() {
+        // given
+        LocalDateTime startAt = LocalDateTime.of(2024, 7, 7, 7, 0);
+        Todo todo = Todo.builder()
+                .content("테스트")
+                .startAt(startAt)
+                .endAt(LocalDateTime.of(2024, 7, 7, 8, 0))
+                .isAllDay(false)
+                .writer(member)
+                .build();
+        todoRepository.save(todo);
+
+        UpdateTodoStatusReq req = UpdateTodoStatusReq.builder()
+                .isDone(true)
+                .isInstance(false)
+                .build();
+
+        // when
+        todoService.updateStatusAndReward(todo.getId(), member, req);
+
+        // then
+        assertThat(todo.isDone()).isTrue();
+        assertThat(member.getDiligence().getGauge()).isEqualTo(GAUGE_INCREASE_RATE);
+        assertThat(member.getScheduledReward()).isEqualTo(10L);
+    }
+
+    @Test
+    @DisplayName("단일 일정 취소 처리")
+    void cancelSingleTodoAndWithdraw() {
+        // given
+        LocalDateTime startAt = LocalDateTime.of(2024, 7, 7, 7, 0);
+        Todo todo = Todo.builder()
+                .content("테스트")
+                .startAt(startAt)
+                .endAt(LocalDateTime.of(2024, 7, 7, 8, 0))
+                .isAllDay(false)
+                .writer(member)
+                .build();
+        todoRepository.save(todo);
+        todo.updateIsDone(true);
+        member.getDiligence().increaseGauge(40);
+        member.addScheduledReward(100L);
+
+        UpdateTodoStatusReq req = UpdateTodoStatusReq.builder()
+                .isDone(false)
+                .isInstance(false)
+                .build();
+
+        // when
+        todoService.updateStatusAndReward(todo.getId(), member, req);
+
+        // then
+        assertThat(todo.isDone()).isFalse();
+        assertThat(member.getDiligence().getGauge()).isEqualTo(39.9);
+        assertThat(member.getScheduledReward()).isEqualTo(90L);
+    }
+
+    @Test
+    @DisplayName("반복 일정 완료 처리")
+    void completeRepeatedTodoAndReward() {
+        // given
+        LocalDateTime startAt = LocalDateTime.of(2024, 7, 7, 7, 0);
+        LocalDateTime endAt = LocalDateTime.of(2024, 7, 7, 8, 0);
+        Todo todo = Todo.builder()
+                .content("테스트")
+                .startAt(startAt)
+                .endAt(endAt)
+                .isAllDay(false)
+                .writer(member)
+                .build();
+        RepeatInfo repeatInfo = RepeatInfo.builder()
+                .frequency(Frequency.DAILY)
+                .interval(1)
+                .until(LocalDate.from(startAt.plusDays(3)))
+                .build();
+        todo.setRepeatInfo(repeatInfo);
+        todoRepository.save(todo);
+
+        UpdateTodoStatusReq req = UpdateTodoStatusReq.builder()
+                .isDone(true)
+                .isInstance(true)
+                .build();
+
+        List<TodoInstance> todoInstances = generateDailyTodoInstances(startAt, endAt, repeatInfo, todo);
+        // when
+        todoService.updateStatusAndReward(todoInstances.get(0).getId(), member, req);
+
+        // then
+        assertThat(todoInstanceRepository.findAll()).hasSize(4);
+        assertThat(todoInstances.get(0).isDone()).isTrue();
+        assertThat(member.getDiligence().getGauge()).isEqualTo(GAUGE_INCREASE_RATE);
+        assertThat(member.getScheduledReward()).isEqualTo(10L);
+    }
+
+    @Test
+    @DisplayName("일간 반복 일정 전체 완료 처리")
+    void completeAllRepeatedTodoAndReward() {
+        // given
+        LocalDateTime startAt = LocalDateTime.of(2024, 7, 7, 7, 0);
+        LocalDateTime endAt = LocalDateTime.of(2024, 7, 7, 8, 0);
+        Todo todo = Todo.builder()
+                .content("테스트")
+                .startAt(startAt)
+                .endAt(endAt)
+                .isAllDay(false)
+                .writer(member)
+                .build();
+        RepeatInfo repeatInfo = RepeatInfo.builder()
+                .frequency(Frequency.DAILY)
+                .interval(1)
+                .until(LocalDate.from(startAt.plusDays(3)))
+                .build();
+        todo.setRepeatInfo(repeatInfo);
+        todoRepository.save(todo);
+
+        UpdateTodoStatusReq req = UpdateTodoStatusReq.builder()
+                .isDone(true)
+                .isInstance(true)
+                .build();
+
+        List<TodoInstance> todoInstances = generateDailyTodoInstances(startAt, endAt, repeatInfo, todo);
+        int size = todoInstances.size();
+        for (int i = 0; i < size; i++) {
+            if (i != size - 1) {
+                todoInstances.get(i).updateIsDone(true);
+            }
+        }
+
+        // when
+        todoService.updateStatusAndReward(todoInstances.get(size - 1).getId(), member, req);
+
+        // then
+        assertThat(todo.isDone()).isTrue();
+        assertThat(todoInstanceRepository.findAll()).hasSize(4);
+        assertThat(todoInstances.get(size - 1).isDone()).isTrue();
+        assertThat(member.getDiligence().getGauge()).isEqualTo(GAUGE_INCREASE_RATE * (size + 1));
+        assertThat(member.getScheduledReward()).isEqualTo((long) (REWARD_UNIT * REWARD_LEVERAGE_RATE * (size + 1)));
+    }
+
+    @Test
+    @DisplayName("반복 일정 취소 처리")
+    void cancelRepeatedTodoAndWithdraw() {
+        // given
+        LocalDateTime startAt = LocalDateTime.of(2024, 7, 7, 7, 0);
+        LocalDateTime endAt = LocalDateTime.of(2024, 7, 7, 8, 0);
+        Todo todo = Todo.builder()
+                .content("테스트")
+                .startAt(startAt)
+                .endAt(endAt)
+                .isAllDay(false)
+                .writer(member)
+                .build();
+        RepeatInfo repeatInfo = RepeatInfo.builder()
+                .frequency(Frequency.DAILY)
+                .interval(1)
+                .until(LocalDate.from(startAt.plusDays(3)))
+                .build();
+        todo.setRepeatInfo(repeatInfo);
+        todoRepository.save(todo);
+
+        UpdateTodoStatusReq req = UpdateTodoStatusReq.builder()
+                .isDone(false)
+                .isInstance(true)
+                .build();
+
+        List<TodoInstance> todoInstances = generateDailyTodoInstances(startAt, endAt, repeatInfo, todo);
+        TodoInstance firstInstance = todoInstances.get(0);
+        firstInstance.updateIsDone(true);
+        todoInstanceRepository.save(firstInstance);
+        member.getDiligence().increaseGauge(40);
+        member.addScheduledReward(100L);
+        // when
+        todoService.updateStatusAndReward(firstInstance.getId(), member, req);
+
+        // then
+        assertThat(firstInstance.isDone()).isFalse();
+        assertThat(member.getDiligence().getGauge()).isEqualTo(39.9);
+        assertThat(member.getScheduledReward()).isEqualTo(90L);
+    }
+
+    @Test
+    @DisplayName("전체 완료되었던 일간 반복 일정 부분 취소 처리")
+    void cancelAllRepeatedTodoAndWithdraw() {
+        // given
+        LocalDateTime startAt = LocalDateTime.of(2024, 7, 7, 7, 0);
+        LocalDateTime endAt = LocalDateTime.of(2024, 7, 7, 8, 0);
+        Todo todo = Todo.builder()
+                .content("테스트")
+                .startAt(startAt)
+                .endAt(endAt)
+                .isAllDay(false)
+                .writer(member)
+                .build();
+        RepeatInfo repeatInfo = RepeatInfo.builder()
+                .frequency(Frequency.DAILY)
+                .interval(1)
+                .until(LocalDate.from(startAt.plusDays(3)))
+                .build();
+        todo.setRepeatInfo(repeatInfo);
+        todoRepository.save(todo);
+
+        UpdateTodoStatusReq req = UpdateTodoStatusReq.builder()
+                .isDone(false)
+                .isInstance(true)
+                .build();
+
+        List<TodoInstance> todoInstances = generateDailyTodoInstances(startAt, endAt, repeatInfo, todo);
+        int size = todoInstances.size();
+        todoInstances.forEach(todoInstance -> todoInstance.updateIsDone(true));
+        todo.updateIsDone(true);
+        todoInstanceRepository.saveAll(todoInstances);
+        member.getDiligence().increaseGauge(40);
+        member.addScheduledReward(100L);
+        // when
+        todoService.updateStatusAndReward(todoInstances.get(2).getId(), member, req);
+
+        // then
+        assertThat(todo.isDone()).isFalse();
+        assertThat(todoInstances.get(2).isDone()).isFalse();
+        assertThat(member.getDiligence().getGauge()).isEqualTo(40 - GAUGE_INCREASE_RATE * (size + 1));
+        assertThat(member.getScheduledReward()).isEqualTo((long) (100L - REWARD_UNIT * (size + 1) * REWARD_LEVERAGE_RATE));
+    }
+
+    private List<TodoInstance> generateDailyTodoInstances(LocalDateTime startAt, LocalDateTime endAt, RepeatInfo repeatInfo, Todo todo) {
+        List<TodoInstance> instances = new ArrayList<>();
+        LocalDateTime currentStart = startAt;
+        LocalDateTime currentEnd = endAt;
+
+        while (currentStart.isBefore(repeatInfo.getUntil().plusDays(1).atStartOfDay())) {
+            instances.add(TodoInstance.of(todo, currentStart, currentEnd));
+            currentStart = currentStart.plusDays(repeatInfo.getInterval());
+            currentEnd = currentEnd.plusDays(repeatInfo.getInterval());
+        }
+        List<TodoInstance> todoInstances = todoInstanceRepository.saveAll(instances);
+        LocalDateTime repeatStartAt = instances.get(0).getStartAt();
+        LocalDateTime repeatEndAt = instances.get(instances.size() - 1).getEndAt();
+        todo.update(UpdateTodoReq.builder()
+                .startAt(repeatStartAt)
+                .endAt(repeatEndAt)
+                .build());
+
+        return todoInstances;
+    }
+
     private Member createMember() {
         member = Member.builder()
                 .username("tester")
@@ -328,6 +583,7 @@ class TodoServiceTest extends IntegrationTestSupport {
                 .role(Role.ROLE_USER)
                 .profileImageUrl("profileImageUrl")
                 .build();
+        member.initDiligence();
         return memberRepository.save(member);
     }
 }
