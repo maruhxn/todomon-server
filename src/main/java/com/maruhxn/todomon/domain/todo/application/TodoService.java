@@ -53,11 +53,13 @@ public class TodoService {
             todo.setRepeatInfo(repeatInfo);
             repeatInfoRepository.save(repeatInfo);
         }
+
         todoRepository.save(todo);
 
         if (repeatInfo != null) {
             createTodoInstances(todo);
         }
+
 
     }
 
@@ -222,6 +224,7 @@ public class TodoService {
         withdrawReward(member, 1);
         List<TodoInstance> todoInstances = todoInstanceRepository.findAllByTodo_Id(todoInstance.getTodo().getId());
         if (checkAlreadyRewardedForAllCompleted(todoInstances)) { // 이미 모든 인스턴스가 완료되어 보상을 받았는지 확인
+            todoInstance.getTodo().updateIsDone(false);
             withdrawReward(member, todoInstances.size());
         }
     }
@@ -253,10 +256,11 @@ public class TodoService {
         // 각 인스턴스가 수행되면 보상 지급
         reward(member, 1);
 
-        if (todoInstance.getEndAt().equals(todoInstance.getOriginalEndAt())) { // 마지막 인스턴스를 수행 완료 시
+        if (todoInstance.getEndAt().equals(todoInstance.getTodo().getEndAt())) { // 마지막 인스턴스를 수행 완료 시
             List<TodoInstance> todoInstances = todoInstanceRepository.findAllByTodo_Id(todoInstance.getTodo().getId());
             // 모든 인스턴스 수행 완료 여부 확인
             if (checkIfAllRepeatsCompleted(todoInstances)) {
+                todoInstance.getTodo().updateIsDone(true);
                 reward(member, todoInstances.size());
             }
         }
