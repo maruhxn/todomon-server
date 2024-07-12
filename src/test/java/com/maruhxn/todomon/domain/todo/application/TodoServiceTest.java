@@ -15,6 +15,7 @@ import com.maruhxn.todomon.domain.todo.dto.request.UpdateTodoStatusReq;
 import com.maruhxn.todomon.global.auth.model.Role;
 import com.maruhxn.todomon.global.auth.model.provider.OAuth2Provider;
 import com.maruhxn.todomon.util.IntegrationTestSupport;
+import com.maruhxn.todomon.util.TestTodoFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -23,7 +24,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 import static com.maruhxn.todomon.global.common.Constants.*;
@@ -31,6 +31,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("[Service] - TodoService")
 class TodoServiceTest extends IntegrationTestSupport {
+
+    @Autowired
+    TestTodoFactory testTodoFactory;
 
     @Autowired
     MemberRepository memberRepository;
@@ -289,21 +292,17 @@ class TodoServiceTest extends IntegrationTestSupport {
     @DisplayName("todo를 수정한다.")
     void update() {
         // given
-        LocalDateTime startAt = LocalDateTime.of(2024, 7, 7, 7, 0);
-        Todo todo = Todo.builder()
-                .content("테스트")
-                .startAt(startAt)
-                .endAt(LocalDateTime.of(2024, 7, 7, 8, 0))
-                .isAllDay(false)
-                .writer(member)
-                .build();
-        RepeatInfo repeatInfo = RepeatInfo.builder()
-                .frequency(Frequency.DAILY)
-                .interval(1)
-                .until(LocalDate.from(startAt.plusDays(3)))
-                .build();
-        todo.setRepeatInfo(repeatInfo);
-        todoRepository.save(todo);
+        Todo todo = testTodoFactory.createRepeatedTodo(
+                LocalDateTime.of(2024, 7, 7, 7, 0),
+                LocalDateTime.of(2024, 7, 7, 8, 0),
+                false,
+                member,
+                RepeatInfo.builder()
+                        .frequency(Frequency.DAILY)
+                        .interval(1)
+                        .until(LocalDate.from(LocalDateTime.of(2024, 7, 10, 7, 0)))
+                        .build()
+        );
 
         UpdateTodoReq req = UpdateTodoReq.builder()
                 .content("수정됨")
@@ -332,15 +331,17 @@ class TodoServiceTest extends IntegrationTestSupport {
     @DisplayName("단일 일정 완료 처리")
     void completeSingleTodoAndReward() {
         // given
-        LocalDateTime startAt = LocalDateTime.of(2024, 7, 7, 7, 0);
-        Todo todo = Todo.builder()
-                .content("테스트")
-                .startAt(startAt)
-                .endAt(LocalDateTime.of(2024, 7, 7, 8, 0))
-                .isAllDay(false)
-                .writer(member)
-                .build();
-        todoRepository.save(todo);
+        Todo todo = testTodoFactory.createRepeatedTodo(
+                LocalDateTime.of(2024, 7, 7, 7, 0),
+                LocalDateTime.of(2024, 7, 7, 8, 0),
+                false,
+                member,
+                RepeatInfo.builder()
+                        .frequency(Frequency.DAILY)
+                        .interval(1)
+                        .until(LocalDate.from(LocalDateTime.of(2024, 7, 10, 7, 0)))
+                        .build()
+        );
 
         UpdateTodoStatusReq req = UpdateTodoStatusReq.builder()
                 .isDone(true)
@@ -360,15 +361,17 @@ class TodoServiceTest extends IntegrationTestSupport {
     @DisplayName("단일 일정 취소 처리")
     void cancelSingleTodoAndWithdraw() {
         // given
-        LocalDateTime startAt = LocalDateTime.of(2024, 7, 7, 7, 0);
-        Todo todo = Todo.builder()
-                .content("테스트")
-                .startAt(startAt)
-                .endAt(LocalDateTime.of(2024, 7, 7, 8, 0))
-                .isAllDay(false)
-                .writer(member)
-                .build();
-        todoRepository.save(todo);
+        Todo todo = testTodoFactory.createRepeatedTodo(
+                LocalDateTime.of(2024, 7, 7, 7, 0),
+                LocalDateTime.of(2024, 7, 7, 8, 0),
+                false,
+                member,
+                RepeatInfo.builder()
+                        .frequency(Frequency.DAILY)
+                        .interval(1)
+                        .until(LocalDate.from(LocalDateTime.of(2024, 7, 10, 7, 0)))
+                        .build()
+        );
         todo.updateIsDone(true);
         member.getDiligence().increaseGauge(40);
         member.addScheduledReward(100L);
@@ -391,29 +394,23 @@ class TodoServiceTest extends IntegrationTestSupport {
     @DisplayName("반복 일정 완료 처리")
     void completeRepeatedTodoAndReward() {
         // given
-        LocalDateTime startAt = LocalDateTime.of(2024, 7, 7, 7, 0);
-        LocalDateTime endAt = LocalDateTime.of(2024, 7, 7, 8, 0);
-        Todo todo = Todo.builder()
-                .content("테스트")
-                .startAt(startAt)
-                .endAt(endAt)
-                .isAllDay(false)
-                .writer(member)
-                .build();
-        RepeatInfo repeatInfo = RepeatInfo.builder()
-                .frequency(Frequency.DAILY)
-                .interval(1)
-                .until(LocalDate.from(startAt.plusDays(3)))
-                .build();
-        todo.setRepeatInfo(repeatInfo);
-        todoRepository.save(todo);
+        Todo todo = testTodoFactory.createRepeatedTodo(
+                LocalDateTime.of(2024, 7, 7, 7, 0),
+                LocalDateTime.of(2024, 7, 7, 8, 0),
+                false,
+                member,
+                RepeatInfo.builder()
+                        .frequency(Frequency.DAILY)
+                        .interval(1)
+                        .until(LocalDate.from(LocalDateTime.of(2024, 7, 10, 7, 0)))
+                        .build()
+        );
+        List<TodoInstance> todoInstances = todoInstanceRepository.findAllByTodo_Id(todo.getId());
 
         UpdateTodoStatusReq req = UpdateTodoStatusReq.builder()
                 .isDone(true)
                 .isInstance(true)
                 .build();
-
-        List<TodoInstance> todoInstances = generateDailyTodoInstances(startAt, endAt, repeatInfo, todo);
         // when
         todoService.updateStatusAndReward(todoInstances.get(0).getId(), member, req);
 
@@ -428,29 +425,24 @@ class TodoServiceTest extends IntegrationTestSupport {
     @DisplayName("일간 반복 일정 전체 완료 처리")
     void completeAllRepeatedTodoAndReward() {
         // given
-        LocalDateTime startAt = LocalDateTime.of(2024, 7, 7, 7, 0);
-        LocalDateTime endAt = LocalDateTime.of(2024, 7, 7, 8, 0);
-        Todo todo = Todo.builder()
-                .content("테스트")
-                .startAt(startAt)
-                .endAt(endAt)
-                .isAllDay(false)
-                .writer(member)
-                .build();
-        RepeatInfo repeatInfo = RepeatInfo.builder()
-                .frequency(Frequency.DAILY)
-                .interval(1)
-                .until(LocalDate.from(startAt.plusDays(3)))
-                .build();
-        todo.setRepeatInfo(repeatInfo);
-        todoRepository.save(todo);
+        Todo todo = testTodoFactory.createRepeatedTodo(
+                LocalDateTime.of(2024, 7, 7, 7, 0),
+                LocalDateTime.of(2024, 7, 7, 8, 0),
+                false,
+                member,
+                RepeatInfo.builder()
+                        .frequency(Frequency.DAILY)
+                        .interval(1)
+                        .until(LocalDate.from(LocalDateTime.of(2024, 7, 10, 7, 0)))
+                        .build()
+        );
+        List<TodoInstance> todoInstances = todoInstanceRepository.findAllByTodo_Id(todo.getId());
 
         UpdateTodoStatusReq req = UpdateTodoStatusReq.builder()
                 .isDone(true)
                 .isInstance(true)
                 .build();
 
-        List<TodoInstance> todoInstances = generateDailyTodoInstances(startAt, endAt, repeatInfo, todo);
         int size = todoInstances.size();
         for (int i = 0; i < size; i++) {
             if (i != size - 1) {
@@ -473,29 +465,24 @@ class TodoServiceTest extends IntegrationTestSupport {
     @DisplayName("반복 일정 취소 처리")
     void cancelRepeatedTodoAndWithdraw() {
         // given
-        LocalDateTime startAt = LocalDateTime.of(2024, 7, 7, 7, 0);
-        LocalDateTime endAt = LocalDateTime.of(2024, 7, 7, 8, 0);
-        Todo todo = Todo.builder()
-                .content("테스트")
-                .startAt(startAt)
-                .endAt(endAt)
-                .isAllDay(false)
-                .writer(member)
-                .build();
-        RepeatInfo repeatInfo = RepeatInfo.builder()
-                .frequency(Frequency.DAILY)
-                .interval(1)
-                .until(LocalDate.from(startAt.plusDays(3)))
-                .build();
-        todo.setRepeatInfo(repeatInfo);
-        todoRepository.save(todo);
+        Todo todo = testTodoFactory.createRepeatedTodo(
+                LocalDateTime.of(2024, 7, 7, 7, 0),
+                LocalDateTime.of(2024, 7, 7, 8, 0),
+                false,
+                member,
+                RepeatInfo.builder()
+                        .frequency(Frequency.DAILY)
+                        .interval(1)
+                        .until(LocalDate.from(LocalDateTime.of(2024, 7, 10, 7, 0)))
+                        .build()
+        );
+        List<TodoInstance> todoInstances = todoInstanceRepository.findAllByTodo_Id(todo.getId());
 
         UpdateTodoStatusReq req = UpdateTodoStatusReq.builder()
                 .isDone(false)
                 .isInstance(true)
                 .build();
 
-        List<TodoInstance> todoInstances = generateDailyTodoInstances(startAt, endAt, repeatInfo, todo);
         TodoInstance firstInstance = todoInstances.get(0);
         firstInstance.updateIsDone(true);
         todoInstanceRepository.save(firstInstance);
@@ -514,29 +501,24 @@ class TodoServiceTest extends IntegrationTestSupport {
     @DisplayName("전체 완료되었던 일간 반복 일정 부분 취소 처리")
     void cancelAllRepeatedTodoAndWithdraw() {
         // given
-        LocalDateTime startAt = LocalDateTime.of(2024, 7, 7, 7, 0);
-        LocalDateTime endAt = LocalDateTime.of(2024, 7, 7, 8, 0);
-        Todo todo = Todo.builder()
-                .content("테스트")
-                .startAt(startAt)
-                .endAt(endAt)
-                .isAllDay(false)
-                .writer(member)
-                .build();
-        RepeatInfo repeatInfo = RepeatInfo.builder()
-                .frequency(Frequency.DAILY)
-                .interval(1)
-                .until(LocalDate.from(startAt.plusDays(3)))
-                .build();
-        todo.setRepeatInfo(repeatInfo);
-        todoRepository.save(todo);
+        Todo todo = testTodoFactory.createRepeatedTodo(
+                LocalDateTime.of(2024, 7, 7, 7, 0),
+                LocalDateTime.of(2024, 7, 7, 8, 0),
+                false,
+                member,
+                RepeatInfo.builder()
+                        .frequency(Frequency.DAILY)
+                        .interval(1)
+                        .until(LocalDate.from(LocalDateTime.of(2024, 7, 10, 7, 0)))
+                        .build()
+        );
+        List<TodoInstance> todoInstances = todoInstanceRepository.findAllByTodo_Id(todo.getId());
 
         UpdateTodoStatusReq req = UpdateTodoStatusReq.builder()
                 .isDone(false)
                 .isInstance(true)
                 .build();
 
-        List<TodoInstance> todoInstances = generateDailyTodoInstances(startAt, endAt, repeatInfo, todo);
         int size = todoInstances.size();
         todoInstances.forEach(todoInstance -> todoInstance.updateIsDone(true));
         todo.updateIsDone(true);
@@ -551,27 +533,6 @@ class TodoServiceTest extends IntegrationTestSupport {
         assertThat(todoInstances.get(2).isDone()).isFalse();
         assertThat(member.getDiligence().getGauge()).isEqualTo(40 - GAUGE_INCREASE_RATE * (size + 1));
         assertThat(member.getScheduledReward()).isEqualTo((long) (100L - REWARD_UNIT * (size + 1) * REWARD_LEVERAGE_RATE));
-    }
-
-    private List<TodoInstance> generateDailyTodoInstances(LocalDateTime startAt, LocalDateTime endAt, RepeatInfo repeatInfo, Todo todo) {
-        List<TodoInstance> instances = new ArrayList<>();
-        LocalDateTime currentStart = startAt;
-        LocalDateTime currentEnd = endAt;
-
-        while (currentStart.isBefore(repeatInfo.getUntil().plusDays(1).atStartOfDay())) {
-            instances.add(TodoInstance.of(todo, currentStart, currentEnd));
-            currentStart = currentStart.plusDays(repeatInfo.getInterval());
-            currentEnd = currentEnd.plusDays(repeatInfo.getInterval());
-        }
-        List<TodoInstance> todoInstances = todoInstanceRepository.saveAll(instances);
-        LocalDateTime repeatStartAt = instances.get(0).getStartAt();
-        LocalDateTime repeatEndAt = instances.get(instances.size() - 1).getEndAt();
-        todo.update(UpdateTodoReq.builder()
-                .startAt(repeatStartAt)
-                .endAt(repeatEndAt)
-                .build());
-
-        return todoInstances;
     }
 
     private Member createMember() {
