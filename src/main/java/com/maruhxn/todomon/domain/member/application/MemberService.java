@@ -54,6 +54,7 @@ public class MemberService {
                 .profileImageUrl(oAuth2ProviderUser.getProfileImageUrl())
                 .role(role)
                 .build();
+        member.initDiligence();
 
         memberRepository.save(member);
         return member;
