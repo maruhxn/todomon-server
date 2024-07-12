@@ -34,7 +34,7 @@ public class Todo extends BaseEntity {
     @ColumnDefault("1")
     private boolean isAllDay = false;
 
-    @JoinColumn(name = "writer_id")
+    @JoinColumn(name = "writer_id", referencedColumnName = "id")
     @ManyToOne(fetch = FetchType.LAZY)
     private Member writer;
 

@@ -33,17 +33,12 @@ public class TodoInstance extends BaseEntity {
     @ColumnDefault("1")
     private boolean isAllDay = false;
 
-    private LocalDateTime originalStartAt; // 반복 일정의 원래 시작 시간을 추적하는 데 사용
-    private LocalDateTime originalEndAt;
-
     @Builder
-    public TodoInstance(Todo todo, LocalDateTime startAt, LocalDateTime endAt, boolean isAllDay, LocalDateTime originalStartAt, LocalDateTime originalEndAt) {
+    public TodoInstance(Todo todo, LocalDateTime startAt, LocalDateTime endAt, boolean isAllDay) {
         this.todo = todo;
         this.startAt = startAt;
         this.endAt = endAt;
         this.isAllDay = isAllDay;
-        this.originalStartAt = originalStartAt;
-        this.originalEndAt = originalEndAt;
     }
 
     public static TodoInstance of(Todo todo, LocalDateTime startAt, LocalDateTime endAt) {
@@ -52,8 +47,6 @@ public class TodoInstance extends BaseEntity {
                 .startAt(startAt)
                 .endAt(endAt)
                 .isAllDay(todo.isAllDay())
-                .originalStartAt(todo.getStartAt())
-                .originalEndAt(todo.getEndAt())
                 .build();
     }
 
