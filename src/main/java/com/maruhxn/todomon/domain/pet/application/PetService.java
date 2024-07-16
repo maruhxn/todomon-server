@@ -34,4 +34,20 @@ public class PetService {
         member.addPet(pet);
         petRepository.save(pet);
     }
+
+
+    public void feed(Long petId, Member member, FeedReq req) {
+        Pet findPet = petRepository.findById(petId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_PET));
+
+        if (req.getFoodCnt() > member.getFoodCnt()) {
+            throw new BadRequestException(ErrorCode.OVER_FOOD_CNT);
+        }
+
+        // 요청 먹이 수만큼 펫 게이지 올리기
+        findPet.increaseGauge(req.getFoodCnt() * PET_GAUGE_INCREASE_RATE);
+
+        // 멤버의 소지 먹이 수 감소
+        member.decreaseFoodCnt(req.getFoodCnt());
+    }
 }

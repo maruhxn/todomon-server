@@ -76,6 +76,10 @@ public class Member extends BaseEntity {
         diligence.setMember(this);
     }
 
+    public void addFood(int foodCnt) {
+        this.foodCnt += foodCnt;
+    }
+
     public void initScheduledReward() {
         this.scheduledReward = 0L;
     }
