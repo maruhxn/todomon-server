@@ -13,8 +13,7 @@ public enum Rarity {
     UNIQUE("#fdf950"),
     EPIC("#3b9ea8"),
     LEGEND("#af5fc1"),
-    MYTH("#ef333f"),
-    CUSTOM("#000000");
+    MYTH("#ef333f");
 
     private final String color;
     private static final Random RANDOM = new Random();
