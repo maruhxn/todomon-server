@@ -22,6 +22,8 @@ public class Pet extends BaseEntity {
     @Lob
     private String appearance;
 
+    private String color;
+
     @ColumnDefault("0")
     private int evolutionCnt = 0;
 
@@ -39,8 +41,9 @@ public class Pet extends BaseEntity {
     private Member member;
 
     @Builder
-    public Pet(String name, Rarity rarity, PetType petType) {
+    public Pet(String name, String color, Rarity rarity, PetType petType) {
         this.name = name != null ? name : petType.getName();
+        this.color = color != null ? color : rarity.getColor();
         this.rarity = rarity;
         this.petType = petType;
         this.appearance = petType.getEvolutionStage(0).getForm();

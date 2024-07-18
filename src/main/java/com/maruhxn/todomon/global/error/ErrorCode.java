@@ -21,6 +21,7 @@ public enum ErrorCode {
 
     /* FORBIDDEN 403 */
     FORBIDDEN("권한이 없습니다."),
+    NOT_SUBSCRIPTION("구독하지 않은 이용자입니다. 해당 서비스를 이용하려면 유료 플랜을 구독해주세요."),
 
     /* NOT FOUND 404 */
     NOT_FOUND_RESOURCE("요청하신 자원이 존재하지 않습니다."),

@@ -10,9 +10,11 @@ import lombok.NoArgsConstructor;
 public class CreatePetReq {
 
     private String name;
+    private String color;
 
     @Builder
-    public CreatePetReq(String name) {
+    public CreatePetReq(String name, String color) {
         this.name = name;
+        this.color = color;
     }
 }

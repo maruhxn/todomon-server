@@ -49,6 +49,9 @@ public class Member extends BaseEntity {
     @ColumnDefault("0")
     private Long foodCnt = 0L;
 
+    @ColumnDefault("0")
+    private boolean isSubscribed = false;
+
     @OneToOne(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     private Diligence diligence;
 
@@ -63,6 +66,10 @@ public class Member extends BaseEntity {
         this.providerId = providerId;
         this.profileImageUrl = profileImageUrl;
         this.role = role;
+    }
+
+    public void updateIsSubscribed(boolean isSubscribed) {
+        this.isSubscribed = isSubscribed;
     }
 
     public void updateByOAuth2Info(OAuth2ProviderUser oAuth2ProviderUser) {

@@ -11,6 +11,7 @@ import com.maruhxn.todomon.global.error.ErrorCode;
 import com.maruhxn.todomon.global.error.exception.BadRequestException;
 import com.maruhxn.todomon.global.error.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,16 +24,39 @@ public class PetService {
     private final PetRepository petRepository;
 
     public void create(Member member, CreatePetReq req) {
-        if (member.getPetHouseSize() <= member.getPets().size())
-            throw new BadRequestException(ErrorCode.NO_SPACE_PET_HOUSE);
+        validateMemberSubscription(member, req);
+        validatePetHouseSpace(member);
+
         // 펫 랜덤 생성
-        Pet pet = Pet.builder()
-                .name(req.getName())
-                .rarity(Rarity.getRandomRarity()) // 랜덤
-                .petType(PetType.getRandomPetType()) // 랜덤
-                .build();
+        Pet pet = createPet(member, req);
         member.addPet(pet);
         petRepository.save(pet);
+    }
+
+    private void validateMemberSubscription(Member member, CreatePetReq req) {
+        if (!member.isSubscribed() && req != null) {
+            throw new AccessDeniedException(ErrorCode.NOT_SUBSCRIPTION.getMessage());
+        }
+    }
+
+    private void validatePetHouseSpace(Member member) {
+        if (member.getPetHouseSize() <= member.getPets().size()) {
+            throw new BadRequestException(ErrorCode.NO_SPACE_PET_HOUSE);
+        }
+    }
+
+    private Pet createPet(Member member, CreatePetReq req) {
+        Pet.PetBuilder petBuilder = Pet.builder()
+                .rarity(Rarity.getRandomRarity()) // 랜덤
+                .petType(PetType.getRandomPetType()); // 랜덤
+
+        if (member.isSubscribed() && req != null) {
+            petBuilder
+                    .name(req.getName())
+                    .color(req.getColor());
+        }
+
+        return petBuilder.build();
     }
 
 
