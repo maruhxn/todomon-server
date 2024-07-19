@@ -53,4 +53,13 @@ public class PetController {
     ) {
         petService.feed(petId, todomonOAuth2User.getMember(), req);
     }
+
+    @DeleteMapping("/{petId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deletePet(
+            @AuthenticationPrincipal TodomonOAuth2User todomonOAuth2User,
+            @PathVariable("petId") Long petId
+    ) {
+        petService.deletePet(petId);
+    }
 }

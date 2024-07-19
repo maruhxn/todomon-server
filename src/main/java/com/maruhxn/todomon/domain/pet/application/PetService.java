@@ -100,4 +100,11 @@ public class PetService {
         // 멤버의 소지 먹이 수 감소
         member.decreaseFoodCnt(req.getFoodCnt());
     }
+
+    public void deletePet(Long petId) {
+        Pet findPet = petRepository.findById(petId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_PET));
+
+        petRepository.delete(findPet);
+    }
 }
