@@ -1,5 +1,6 @@
 package com.maruhxn.todomon.domain.member.domain;
 
+import com.maruhxn.todomon.domain.pet.domain.CollectedPet;
 import com.maruhxn.todomon.domain.pet.domain.Pet;
 import com.maruhxn.todomon.global.auth.model.Role;
 import com.maruhxn.todomon.global.auth.model.provider.OAuth2Provider;
@@ -57,6 +58,9 @@ public class Member extends BaseEntity {
 
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
     private List<Pet> pets = new ArrayList<>();
+
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
+    private List<CollectedPet> collectedPets = new ArrayList<>();
 
     @Builder
     public Member(String username, String email, OAuth2Provider provider, String providerId, String profileImageUrl, Role role) {
