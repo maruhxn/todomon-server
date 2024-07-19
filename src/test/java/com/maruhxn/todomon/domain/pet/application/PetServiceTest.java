@@ -2,7 +2,9 @@ package com.maruhxn.todomon.domain.pet.application;
 
 import com.maruhxn.todomon.domain.member.dao.MemberRepository;
 import com.maruhxn.todomon.domain.member.domain.Member;
+import com.maruhxn.todomon.domain.pet.dao.CollectedPetRepository;
 import com.maruhxn.todomon.domain.pet.dao.PetRepository;
+import com.maruhxn.todomon.domain.pet.domain.CollectedPet;
 import com.maruhxn.todomon.domain.pet.domain.Pet;
 import com.maruhxn.todomon.domain.pet.domain.PetType;
 import com.maruhxn.todomon.domain.pet.domain.Rarity;
@@ -37,6 +39,9 @@ class PetServiceTest extends IntegrationTestSupport {
     @Autowired
     MemberRepository memberRepository;
 
+    @Autowired
+    CollectedPetRepository collectedPetRepository;
+
     Member member;
 
     @BeforeEach
@@ -59,6 +64,7 @@ class PetServiceTest extends IntegrationTestSupport {
                 .first()
                 .extracting("level", "gauge", "evolutionCnt")
                 .containsExactly(1, 0.0, 0);
+        assertThat(member.getCollectedPets()).hasSize(1);
     }
 
     @Test
@@ -194,6 +200,14 @@ class PetServiceTest extends IntegrationTestSupport {
         member.addFood(10);
         petRepository.save(pet);
 
+        CollectedPet collectedPet = CollectedPet.builder()
+                .rarity(pet.getRarity())
+                .evolutionCnt(pet.getEvolutionCnt())
+                .petType(pet.getPetType())
+                .build();
+        collectedPet.setMember(member);
+        collectedPetRepository.save(collectedPet);
+
         FeedReq req = new FeedReq(10);
 
         // when
@@ -204,6 +218,7 @@ class PetServiceTest extends IntegrationTestSupport {
         assertThat(pet)
                 .extracting("level", "gauge", "evolutionCnt")
                 .containsExactly(30, 0.0, 1);
+        assertThat(member.getCollectedPets()).hasSize(2);
     }
 
     @Test
