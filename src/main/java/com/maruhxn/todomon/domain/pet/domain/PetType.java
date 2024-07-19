@@ -10,29 +10,24 @@ import java.util.Random;
 public enum PetType {
 
     DOG(
-            "강아지",
             new EvolutionStage("강아지", "\uD83D\uDC36"),
             new EvolutionStage("개", "\uD83D\uDC15"),
             new EvolutionStage("푸들", "\uD83D\uDC29")
     ),
     HORSE(
-            "말",
             new EvolutionStage("조랑말", "\uD83D\uDC34"),
             new EvolutionStage("말", "\uD83D\uDC0E"),
             new EvolutionStage("유니콘", "\uD83E\uDD84")
     ),
     CAT(
-            "고양이",
             new EvolutionStage("새끼 고양이", "\uD83D\uDC31"),
             new EvolutionStage("고양이", "🐈"),
             new EvolutionStage("검은 고양이", "\uD83D\uDC08\u200D⬛")
     );
 
-    private final String name;
     private final EvolutionStage[] evolutionStages;
 
-    PetType(String name, EvolutionStage... evolutionStages) {
-        this.name = name;
+    PetType(EvolutionStage... evolutionStages) {
         this.evolutionStages = evolutionStages;
     }
 

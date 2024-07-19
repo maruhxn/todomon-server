@@ -42,7 +42,7 @@ public class Pet extends BaseEntity {
 
     @Builder
     public Pet(String name, String color, Rarity rarity, PetType petType) {
-        this.name = name != null ? name : petType.getName();
+        this.name = name != null ? name : petType.getEvolutionStage(0).getName();
         this.color = color != null ? color : rarity.getColor();
         this.rarity = rarity;
         this.petType = petType;
@@ -57,6 +57,7 @@ public class Pet extends BaseEntity {
     }
 
     private void evolution() {
+        this.name = !this.name.equals(petType.getEvolutionStage(this.evolutionCnt).getName()) ? this.name : petType.getEvolutionStage(this.evolutionCnt + 1).getName();
         this.evolutionCnt++;
         this.appearance = petType.getEvolutionStage(this.evolutionCnt).getForm();
     }
