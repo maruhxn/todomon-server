@@ -29,6 +29,7 @@ public enum ErrorCode {
     NOT_FOUND_REFRESH_TOKEN("Refresh Token 정보가 존재하지 않습니다."),
     NOT_FOUND_TODO("할 일 정보가 존재하지 않습니다."),
     NOT_FOUND_PET("펫 정보가 존재하지 않습니다."),
+    NOT_FOUND_FOLLOW("팔로우 정보가 존재하지 않습니다."),
 
     /* UNPROCESSABLE CONTENT 422 */
     EXISTING_RESOURCE("이미 존재하는 리소스입니다."),
