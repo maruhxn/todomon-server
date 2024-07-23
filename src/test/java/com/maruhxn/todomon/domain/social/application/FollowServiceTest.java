@@ -34,7 +34,7 @@ class FollowServiceTest extends IntegrationTestSupport {
         Member tester2 = createMember("tester2");
 
         // when
-        followService.sendFollowRequest(tester1.getId(), tester2.getId());
+        followService.sendFollowRequest(tester1, tester2.getId());
 
         // then
         assertThat(followRepository.findAll())
@@ -104,7 +104,7 @@ class FollowServiceTest extends IntegrationTestSupport {
         followRepository.save(follow);
 
         // when
-        followService.unfollow(tester1.getId(), tester2.getId());
+        followService.unfollow(tester1, tester2.getId());
 
         // then
         assertThat(followRepository.findById(follow.getId())).isEmpty();
