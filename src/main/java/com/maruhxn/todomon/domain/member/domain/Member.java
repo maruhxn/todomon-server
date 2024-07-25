@@ -50,6 +50,9 @@ public class Member extends BaseEntity {
     private Long scheduledReward = 0L;
 
     @ColumnDefault("0")
+    private Long dailyAchievementCnt = 0L;
+
+    @ColumnDefault("0")
     private Long foodCnt = 0L;
 
     @ColumnDefault("0")
@@ -138,5 +141,13 @@ public class Member extends BaseEntity {
     public void addCollection(CollectedPet collectedPet) {
         this.collectedPets.add(collectedPet);
         collectedPet.setMember(this);
+    }
+
+    public void addDailyAchievementCnt(int cnt) {
+        this.dailyAchievementCnt += cnt;
+    }
+
+    public void resetDailyAchievement() {
+        this.dailyAchievementCnt = 0L;
     }
 }

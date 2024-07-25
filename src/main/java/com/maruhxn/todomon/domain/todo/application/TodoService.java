@@ -245,6 +245,8 @@ public class TodoService {
 
     // 단일 일정에 대한 보상 로직
     private void reward(Member member, int leverage) {
+        // 일간 달성 수 1 증가
+        member.addDailyAchievementCnt(1);
         // 유저 일관성 게이지 업데이트
         member.getDiligence().increaseGauge(GAUGE_INCREASE_RATE * leverage);
         // 보상 지급
