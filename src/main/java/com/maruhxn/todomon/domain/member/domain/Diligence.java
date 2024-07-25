@@ -25,10 +25,14 @@ public class Diligence extends BaseEntity {
         this.member = member;
     }
 
+    public void levelUp(int level) {
+        this.level += level;
+    }
+
     public void increaseGauge(double gauge) {
         this.gauge += gauge;
         while (this.gauge >= 100) { // 게이지가 100 이상이 될 경우, 레벨이 증가한다.
-            this.level++;
+            levelUp(1);
             this.gauge -= 100;
         }
     }

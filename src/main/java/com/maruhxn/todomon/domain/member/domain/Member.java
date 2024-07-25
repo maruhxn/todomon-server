@@ -134,4 +134,9 @@ public class Member extends BaseEntity {
         this.pets.add(pet);
         pet.setOwner(this);
     }
+
+    public void addCollection(CollectedPet collectedPet) {
+        this.collectedPets.add(collectedPet);
+        collectedPet.setMember(this);
+    }
 }

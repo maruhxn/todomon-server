@@ -36,8 +36,15 @@ public class CollectedPet extends BaseEntity {
         this.appearance = petType.getEvolutionStage(evolutionCnt).getForm();
     }
 
+    public static CollectedPet of(Pet pet) {
+        return CollectedPet.builder()
+                .rarity(pet.getRarity())
+                .evolutionCnt(pet.getEvolutionCnt())
+                .petType(pet.getPetType())
+                .build();
+    }
+
     public void setMember(Member member) {
         this.member = member;
-        member.getCollectedPets().add(this);
     }
 }
