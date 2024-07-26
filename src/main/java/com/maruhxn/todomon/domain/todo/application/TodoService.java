@@ -239,6 +239,7 @@ public class TodoService {
     }
 
     private void withdrawReward(Member member, int leverage) {
+        member.addDailyAchievementCnt(-1);
         member.getDiligence().decreaseGauge(GAUGE_INCREASE_RATE * leverage);
         member.subtractScheduledReward((long) (REWARD_UNIT * leverage * REWARD_LEVERAGE_RATE));
     }
