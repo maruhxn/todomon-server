@@ -53,7 +53,7 @@ public class MemberQueryRepository {
                 .join(todoAchievementHistory.member, member)
                 .where(todoAchievementHistory.date.eq(yesterday))
                 .groupBy(member.id)
-                .orderBy(todoAchievementHistory.cnt.sum().desc(), todoAchievementHistory.createdAt.max().desc(), member.createdAt.asc())
+                .orderBy(todoAchievementHistory.cnt.sum().desc(), todoAchievementHistory.createdAt.max().asc(), member.createdAt.asc())
                 .limit(10)
                 .fetch();
     }
@@ -75,7 +75,7 @@ public class MemberQueryRepository {
                 .join(todoAchievementHistory.member, member)
                 .where(todoAchievementHistory.date.between(startOfLastWeek, endOfLastWeek))
                 .groupBy(member.id)
-                .orderBy(todoAchievementHistory.cnt.sum().desc(), todoAchievementHistory.createdAt.max().desc(), member.createdAt.asc())
+                .orderBy(todoAchievementHistory.cnt.sum().desc(), todoAchievementHistory.createdAt.max().asc(), member.createdAt.asc())
                 .limit(10)
                 .fetch();
     }
