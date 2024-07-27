@@ -200,12 +200,8 @@ class PetServiceTest extends IntegrationTestSupport {
         member.addFood(10);
         petRepository.save(pet);
 
-        CollectedPet collectedPet = CollectedPet.builder()
-                .rarity(pet.getRarity())
-                .evolutionCnt(pet.getEvolutionCnt())
-                .petType(pet.getPetType())
-                .build();
-        collectedPet.setMember(member);
+        CollectedPet collectedPet = CollectedPet.of(pet);
+        member.addCollection(collectedPet);
         collectedPetRepository.save(collectedPet);
 
         FeedReq req = new FeedReq(10);

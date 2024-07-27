@@ -35,5 +35,8 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### ADDITIONAL ###
 application*.yml
 memo/*
+/src/main/generated/

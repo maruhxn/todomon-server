@@ -239,12 +239,15 @@ public class TodoService {
     }
 
     private void withdrawReward(Member member, int leverage) {
+        member.addDailyAchievementCnt(-1);
         member.getDiligence().decreaseGauge(GAUGE_INCREASE_RATE * leverage);
         member.subtractScheduledReward((long) (REWARD_UNIT * leverage * REWARD_LEVERAGE_RATE));
     }
 
     // 단일 일정에 대한 보상 로직
     private void reward(Member member, int leverage) {
+        // 일간 달성 수 1 증가
+        member.addDailyAchievementCnt(1);
         // 유저 일관성 게이지 업데이트
         member.getDiligence().increaseGauge(GAUGE_INCREASE_RATE * leverage);
         // 보상 지급

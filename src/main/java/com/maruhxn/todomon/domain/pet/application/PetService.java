@@ -47,12 +47,8 @@ public class PetService {
                             /* 아무 작업도 수행 X */
                         },
                         () -> {
-                            CollectedPet collectedPet = CollectedPet.builder()
-                                    .rarity(pet.getRarity())
-                                    .petType(pet.getPetType())
-                                    .evolutionCnt(pet.getEvolutionCnt())
-                                    .build();
-                            collectedPet.setMember(member);
+                            CollectedPet collectedPet = CollectedPet.of(pet);
+                            member.addCollection(collectedPet);
                             collectedPetRepository.save(collectedPet);
                         }
                 );

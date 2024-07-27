@@ -2,6 +2,9 @@ package com.maruhxn.todomon.domain.member.domain;
 
 import com.maruhxn.todomon.domain.pet.domain.CollectedPet;
 import com.maruhxn.todomon.domain.pet.domain.Pet;
+import com.maruhxn.todomon.domain.social.domain.Follow;
+import com.maruhxn.todomon.domain.social.domain.StarTransaction;
+import com.maruhxn.todomon.domain.todo.domain.TodoAchievementHistory;
 import com.maruhxn.todomon.global.auth.model.Role;
 import com.maruhxn.todomon.global.auth.model.provider.OAuth2Provider;
 import com.maruhxn.todomon.global.auth.model.provider.OAuth2ProviderUser;
@@ -48,6 +51,9 @@ public class Member extends BaseEntity {
     private Long scheduledReward = 0L;
 
     @ColumnDefault("0")
+    private Long dailyAchievementCnt = 0L;
+
+    @ColumnDefault("0")
     private Long foodCnt = 0L;
 
     @ColumnDefault("0")
@@ -56,11 +62,30 @@ public class Member extends BaseEntity {
     @OneToOne(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     private Diligence diligence;
 
-    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Pet> pets = new ArrayList<>();
 
-    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CollectedPet> collectedPets = new ArrayList<>();
+
+    // 팔로워
+    @OneToMany(mappedBy = "followee", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Follow> followers = new ArrayList<>();
+
+    // 팔로잉
+    @OneToMany(mappedBy = "follower", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Follow> followings = new ArrayList<>();
+
+    // 보낸 star
+    @OneToMany(mappedBy = "sender", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<StarTransaction> sentStars;
+
+    // 받은 star
+    @OneToMany(mappedBy = "receiver", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<StarTransaction> receivedStars;
+
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TodoAchievementHistory> todoAchievementHistories;
 
     @Builder
     public Member(String username, String email, OAuth2Provider provider, String providerId, String profileImageUrl, Role role) {
@@ -107,9 +132,26 @@ public class Member extends BaseEntity {
         this.foodCnt -= foodCnt;
     }
 
+    public void addStar(int starCnt) {
+        this.starPoint += starCnt;
+    }
+
     /* 연관관계 메서드 */
     public void addPet(Pet pet) {
         this.pets.add(pet);
         pet.setOwner(this);
+    }
+
+    public void addCollection(CollectedPet collectedPet) {
+        this.collectedPets.add(collectedPet);
+        collectedPet.setMember(this);
+    }
+
+    public void addDailyAchievementCnt(int cnt) {
+        this.dailyAchievementCnt += cnt;
+    }
+
+    public void resetDailyAchievement() {
+        this.dailyAchievementCnt = 0L;
     }
 }
