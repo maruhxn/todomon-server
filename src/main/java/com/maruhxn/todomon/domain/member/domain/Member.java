@@ -4,6 +4,7 @@ import com.maruhxn.todomon.domain.pet.domain.CollectedPet;
 import com.maruhxn.todomon.domain.pet.domain.Pet;
 import com.maruhxn.todomon.domain.social.domain.Follow;
 import com.maruhxn.todomon.domain.social.domain.StarTransaction;
+import com.maruhxn.todomon.domain.todo.domain.TodoAchievementHistory;
 import com.maruhxn.todomon.global.auth.model.Role;
 import com.maruhxn.todomon.global.auth.model.provider.OAuth2Provider;
 import com.maruhxn.todomon.global.auth.model.provider.OAuth2ProviderUser;
@@ -82,6 +83,9 @@ public class Member extends BaseEntity {
     // 받은 star
     @OneToMany(mappedBy = "receiver", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<StarTransaction> receivedStars;
+
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TodoAchievementHistory> todoAchievementHistories;
 
     @Builder
     public Member(String username, String email, OAuth2Provider provider, String providerId, String profileImageUrl, Role role) {
