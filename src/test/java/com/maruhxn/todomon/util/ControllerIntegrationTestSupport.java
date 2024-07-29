@@ -8,10 +8,12 @@ import com.maruhxn.todomon.global.auth.dto.TokenDto;
 import com.maruhxn.todomon.global.auth.model.Role;
 import com.maruhxn.todomon.global.auth.model.TodomonOAuth2User;
 import com.maruhxn.todomon.global.auth.model.provider.OAuth2Provider;
+import com.maruhxn.todomon.infra.file.FileService;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -31,6 +33,9 @@ public abstract class ControllerIntegrationTestSupport {
 
     @Autowired
     protected ObjectMapper objectMapper;
+
+    @MockBean
+    protected FileService fileService;
 
     @Autowired
     protected JwtProvider jwtProvider;
