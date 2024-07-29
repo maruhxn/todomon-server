@@ -15,6 +15,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.ColumnDefault;
+import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -87,6 +88,13 @@ public class Member extends BaseEntity {
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TodoAchievementHistory> todoAchievementHistories;
 
+    @OneToOne(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
+    private TitleName titleName;
+
+    @OneToOne
+    @JoinColumn(name = "represent_pet_id")
+    private Pet representPet;
+
     @Builder
     public Member(String username, String email, OAuth2Provider provider, String providerId, String profileImageUrl, Role role) {
         this.username = username;
@@ -153,5 +161,19 @@ public class Member extends BaseEntity {
 
     public void resetDailyAchievement() {
         this.dailyAchievementCnt = 0L;
+    }
+
+    public void updateProfile(String username, String newProfileImageUrl) {
+        if (StringUtils.hasText(username)) {
+            this.username = username;
+        }
+
+        if (StringUtils.hasText(newProfileImageUrl)) {
+            this.profileImageUrl = newProfileImageUrl;
+        }
+    }
+
+    public void setRepresentPet(Pet pet) {
+        this.representPet = pet;
     }
 }

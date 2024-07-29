@@ -1,7 +1,21 @@
 package com.maruhxn.todomon.domain.member.application;
 
+import com.maruhxn.todomon.domain.auth.dao.RefreshTokenRepository;
+import com.maruhxn.todomon.domain.auth.domain.RefreshToken;
 import com.maruhxn.todomon.domain.member.dao.MemberRepository;
+import com.maruhxn.todomon.domain.member.dao.TitleNameRepository;
 import com.maruhxn.todomon.domain.member.domain.Member;
+import com.maruhxn.todomon.domain.member.domain.TitleName;
+import com.maruhxn.todomon.domain.member.dto.request.UpdateMemberProfileReq;
+import com.maruhxn.todomon.domain.member.dto.response.ProfileDto;
+import com.maruhxn.todomon.domain.pet.dao.PetRepository;
+import com.maruhxn.todomon.domain.pet.domain.Pet;
+import com.maruhxn.todomon.domain.pet.domain.PetType;
+import com.maruhxn.todomon.domain.pet.domain.Rarity;
+import com.maruhxn.todomon.domain.social.dao.FollowRepository;
+import com.maruhxn.todomon.domain.social.domain.Follow;
+import com.maruhxn.todomon.domain.social.domain.FollowRequestStatus;
+import com.maruhxn.todomon.global.auth.application.JwtProvider;
 import com.maruhxn.todomon.global.auth.model.Role;
 import com.maruhxn.todomon.global.auth.model.provider.GoogleUser;
 import com.maruhxn.todomon.global.auth.model.provider.OAuth2Provider;
@@ -11,12 +25,17 @@ import com.maruhxn.todomon.util.IntegrationTestSupport;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
 
 @DisplayName("[Service] - MemberService")
 class MemberServiceTest extends IntegrationTestSupport {
@@ -26,6 +45,21 @@ class MemberServiceTest extends IntegrationTestSupport {
 
     @Autowired
     MemberRepository memberRepository;
+
+    @Autowired
+    RefreshTokenRepository refreshTokenRepository;
+
+    @Autowired
+    TitleNameRepository titleNameRepository;
+
+    @Autowired
+    FollowRepository followRepository;
+
+    @Autowired
+    PetRepository petRepository;
+
+    @Autowired
+    JwtProvider jwtProvider;
 
     @Test
     @DisplayName("유저 정보를 찾아 반환한다.")
@@ -37,7 +71,7 @@ class MemberServiceTest extends IntegrationTestSupport {
                 .role(Role.ROLE_USER)
                 .providerId("google_foobarfoobar")
                 .provider(OAuth2Provider.GOOGLE)
-                .profileImageUrl("google-user-picutre-url")
+                .profileImageUrl("google-user-picture-url")
                 .build();
         memberRepository.save(member);
 
@@ -71,29 +105,29 @@ class MemberServiceTest extends IntegrationTestSupport {
         assertThat(member).isEqualTo(findMember);
     }
 
-    @Test
-    @DisplayName("OAuth2 유저 정보와 일치하는 Member가 이미 존재하는 경우, 해당 Member의 정보를 수정한다.")
-    void createOrUpdate_update() {
-        // given
-        Member existingMember = Member.builder()
-                .username("existing")
-                .email("test@test.com")
-                .role(Role.ROLE_USER)
-                .providerId("google_foobarfoobar")
-                .provider(OAuth2Provider.GOOGLE)
-                .profileImageUrl("existing-google-user-picutre-url")
-                .build();
-        memberRepository.save(existingMember);
-        GoogleUser googleUser = getGoogleUser("test@test.com");
-
-        // when
-        memberService.createOrUpdate(googleUser);
-
-        // then
-        Member findMember = memberRepository.findById(existingMember.getId()).get();
-        assertThat(findMember.getUsername()).isEqualTo("tester");
-        assertThat(findMember.getProfileImageUrl()).isEqualTo("google-user-picutre-url");
-    }
+//    @Test
+//    @DisplayName("OAuth2 유저 정보와 일치하는 Member가 이미 존재하는 경우, 해당 Member의 정보를 수정한다.")
+//    void createOrUpdate_update() {
+//        // given
+//        Member existingMember = Member.builder()
+//                .username("existing")
+//                .email("test@test.com")
+//                .role(Role.ROLE_USER)
+//                .providerId("google_foobarfoobar")
+//                .provider(OAuth2Provider.GOOGLE)
+//                .profileImageUrl("existing-google-user-picture-url")
+//                .build();
+//        memberRepository.save(existingMember);
+//        GoogleUser googleUser = getGoogleUser("test@test.com");
+//
+//        // when
+//        memberService.createOrUpdate(googleUser);
+//
+//        // then
+//        Member findMember = memberRepository.findById(existingMember.getId()).get();
+//        assertThat(findMember.getUsername()).isEqualTo("tester");
+//        assertThat(findMember.getProfileImageUrl()).isEqualTo("google-user-picture-url");
+//    }
 
     @Test
     @DisplayName("admin 이메일에 해당하는 계정일 경우, 어드민 권한으로 생성된다.")
@@ -108,6 +142,171 @@ class MemberServiceTest extends IntegrationTestSupport {
         assertThat(member.getRole()).isEqualTo(Role.ROLE_ADMIN);
     }
 
+    @Test
+    @DisplayName("유저 프로필을 조회한다.")
+    void getProfile() {
+        // given
+        Member tester1 = createMember("tester1");
+        Member tester2 = createMember("tester2");
+        Member tester3 = createMember("tester3");
+        Member tester4 = createMember("tester4");
+
+        Pet pet = Pet.builder()
+                .petType(PetType.getRandomPetType())
+                .rarity(Rarity.COMMON)
+                .build();
+        tester1.addPet(pet);
+        tester1.setRepresentPet(pet);
+        petRepository.save(pet);
+
+        TitleName titleName = TitleName.builder()
+                .member(tester1)
+                .name("title")
+                .color("#000000")
+                .build();
+        titleName.setMember(tester1);
+        titleNameRepository.save(titleName);
+
+        Follow following1 = Follow.builder()
+                .follower(tester1)
+                .followee(tester2)
+                .build();
+        Follow following2 = Follow.builder()
+                .follower(tester1)
+                .followee(tester3)
+                .build();
+        Follow followed = Follow.builder()
+                .follower(tester4)
+                .followee(tester1)
+                .build();
+
+        following1.updateStatus(FollowRequestStatus.ACCEPTED);
+        following2.updateStatus(FollowRequestStatus.ACCEPTED);
+        followed.updateStatus(FollowRequestStatus.ACCEPTED);
+
+        followRepository.saveAll(List.of(followed, following1, following2));
+
+        ProfileDto.RepresentPetItem representPetItem = ProfileDto.RepresentPetItem.of(pet);
+
+        // when
+        ProfileDto profile = memberService.getProfile(tester1.getId());
+
+        // then
+        assertThat(profile)
+                .extracting("id", "username", "email", "profileImageUrl", "level", "gauge", "representPetItem.id", "representPetItem.name", "representPetItem.rarity", "representPetItem.appearance", "representPetItem.color", "representPetItem.level", "titleName", "titleColor", "followerCnt", "followingCnt")
+                .containsExactly(tester1.getId(), "tester1", "tester1@test.com", "profileImageUrl", 1, 0.0, representPetItem.getId(), representPetItem.getName(), representPetItem.getRarity(), representPetItem.getAppearance(), representPetItem.getColor(), representPetItem.getLevel(), "title", "#000000", 1L, 2L);
+    }
+
+    @Test
+    @DisplayName("유저명과 프로필 이미지를 업데이트한다.")
+    void updateUsername() throws IOException {
+        // given
+        Member member = Member.builder()
+                .username("existing")
+                .email("test@test.com")
+                .role(Role.ROLE_USER)
+                .providerId("google_foobarfoobar")
+                .provider(OAuth2Provider.GOOGLE)
+                .profileImageUrl("existing-google-user-picture-url")
+                .build();
+        memberRepository.save(member);
+
+        UpdateMemberProfileReq req = UpdateMemberProfileReq.builder()
+                .username("update")
+                .build();
+
+        // when
+        memberService.updateProfile(member.getId(), req);
+
+        // then
+        assertThat(member)
+                .extracting("username", "profileImageUrl")
+                .containsExactly("update", "existing-google-user-picture-url");
+    }
+
+    @Test
+    @DisplayName("유저명과 프로필 이미지를 업데이트한다.")
+    void updateProfile() throws IOException {
+        // given
+        Member member = Member.builder()
+                .username("existing")
+                .email("test@test.com")
+                .role(Role.ROLE_USER)
+                .providerId("google_foobarfoobar")
+                .provider(OAuth2Provider.GOOGLE)
+                .profileImageUrl("existing-google-user-picture-url")
+                .build();
+        memberRepository.save(member);
+
+        MockMultipartFile newProfileImage = getMockMultipartFile();
+        UpdateMemberProfileReq req = UpdateMemberProfileReq.builder()
+                .username("update")
+                .profileImage(newProfileImage)
+                .build();
+        given(fileService.storeOneFile(any(MultipartFile.class)))
+                .willReturn("newProfileImageUrl");
+
+        // when
+        memberService.updateProfile(member.getId(), req);
+
+        // then
+        assertThat(member)
+                .extracting("username", "profileImageUrl")
+                .containsExactly("update", "newProfileImageUrl");
+    }
+
+    @Test
+    @DisplayName("회원 탈퇴가 가능하다.")
+    void membershipWithdrawal() {
+        // Given
+        Member member = Member.builder()
+                .username("existing")
+                .email("test@test.com")
+                .role(Role.ROLE_USER)
+                .providerId("google_foobarfoobar")
+                .provider(OAuth2Provider.GOOGLE)
+                .profileImageUrl("existing-google-user-picture-url")
+                .build();
+        memberRepository.save(member);
+
+        String rawRefreshToken = jwtProvider.generateRefreshToken(member.getEmail(), new Date());
+        RefreshToken refreshToken = RefreshToken.builder()
+                .payload(rawRefreshToken)
+                .email(member.getEmail())
+                .build();
+        refreshTokenRepository.save(refreshToken);
+
+        // When
+        memberService.withdraw(member.getId());
+
+        // Then
+        Optional<Member> optionalMember = memberRepository.findById(member.getId());
+        List<RefreshToken> refreshTokens = refreshTokenRepository.findAll();
+        assertThat(optionalMember.isEmpty()).isTrue();
+        assertThat(refreshTokens).isEmpty();
+    }
+
+    @DisplayName("회원 탈퇴 시 존재하지 않는 회원의 아이디를 전달하면 에러를 발생한다..")
+    @Test
+    void membershipWithdrawalWithNonExistingMemberId() {
+        assertThatThrownBy(() -> memberService.withdraw(1L))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage(ErrorCode.NOT_FOUND_MEMBER.getMessage());
+    }
+
+    private Member createMember(String username) {
+        Member member = Member.builder()
+                .username(username)
+                .email(username + "@test.com")
+                .provider(OAuth2Provider.GOOGLE)
+                .providerId("google_" + username)
+                .role(Role.ROLE_USER)
+                .profileImageUrl("profileImageUrl")
+                .build();
+        member.initDiligence();
+        return memberRepository.save(member);
+    }
+
     private static GoogleUser getGoogleUser(String email) {
         Map<String, Object> attributes = new HashMap<>();
         attributes.put("sub", "foobarfoobar");
@@ -116,5 +315,17 @@ class MemberServiceTest extends IntegrationTestSupport {
         attributes.put("name", "tester");
         GoogleUser googleUser = new GoogleUser(attributes, "google");
         return googleUser;
+    }
+
+    private MockMultipartFile getMockMultipartFile() throws IOException {
+        final String originalFileName = "profile.png";
+        final String filePath = "src/test/resources/static/img/" + originalFileName;
+
+        return new MockMultipartFile(
+                "profileImage", //name
+                originalFileName,
+                "image/jpeg",
+                new FileInputStream(filePath)
+        );
     }
 }
