@@ -3,7 +3,6 @@ package com.maruhxn.todomon.domain.member.application;
 import com.maruhxn.todomon.domain.auth.dao.RefreshTokenRepository;
 import com.maruhxn.todomon.domain.member.dao.MemberQueryRepository;
 import com.maruhxn.todomon.domain.member.dao.MemberRepository;
-import com.maruhxn.todomon.domain.member.dao.TitleNameRepository;
 import com.maruhxn.todomon.domain.member.domain.Member;
 import com.maruhxn.todomon.domain.member.dto.request.UpdateMemberProfileReq;
 import com.maruhxn.todomon.domain.member.dto.response.ProfileDto;
