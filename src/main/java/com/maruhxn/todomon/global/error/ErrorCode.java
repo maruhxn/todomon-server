@@ -33,9 +33,11 @@ public enum ErrorCode {
     NOT_FOUND_PET("펫 정보가 존재하지 않습니다."),
     NOT_FOUND_FOLLOW("팔로우 정보가 존재하지 않습니다."),
     NOT_FOUND_STAR_TRANSACTION("STAR 발신 내역이 없습니다."),
+    NOT_FOUND_TITLE_NAME("유저 칭호를 찾을 수 없습니다."),
 
     /* UNPROCESSABLE CONTENT 422 */
     EXISTING_RESOURCE("이미 존재하는 리소스입니다."),
+    EXISTING_MEMBER("이미 존재하는 멤버입니다."),
 
     /* INTERNAL SERVER ERROR  500 */
     INTERNAL_ERROR("서버 오류입니다.");
