@@ -13,6 +13,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -79,6 +80,7 @@ public class TodoController {
 
     @PatchMapping("/{todoId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("@authChecker.isMyTodoOrAdmin(#todoId)")
     public void updateTodo(
             @PathVariable("todoId") Long todoId,
             @RequestBody UpdateTodoReq req
@@ -94,6 +96,7 @@ public class TodoController {
      */
     @PatchMapping("/{todoId}/status")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("@authChecker.isMyTodoOrAdmin(#todoId)")
     public void updateTodoStatus(
             @AuthenticationPrincipal TodomonOAuth2User todomonOAuth2User,
             @PathVariable("todoId") Long todoId,
@@ -104,6 +107,7 @@ public class TodoController {
 
     @DeleteMapping("/{todoId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("@authChecker.isMyTodoOrAdmin(#todoId)")
     public void deleteTodo(
             @AuthenticationPrincipal TodomonOAuth2User todomonOAuth2User,
             @PathVariable("todoId") Long todoId

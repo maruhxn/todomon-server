@@ -9,13 +9,14 @@ import com.maruhxn.todomon.global.auth.model.TodomonOAuth2User;
 import com.maruhxn.todomon.global.common.dto.response.DataResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/pet")
+@RequestMapping("/api/pets")
 @RequiredArgsConstructor
 public class PetController {
 
@@ -46,6 +47,7 @@ public class PetController {
 
     @PatchMapping("/{petId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("@authChecker.isMyPetOrAdmin(#petId)")
     public void feedToPet(
             @AuthenticationPrincipal TodomonOAuth2User todomonOAuth2User,
             @PathVariable("petId") Long petId,
@@ -56,6 +58,7 @@ public class PetController {
 
     @DeleteMapping("/{petId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("@authChecker.isMyPetOrAdmin(#petId)")
     public void deletePet(
             @AuthenticationPrincipal TodomonOAuth2User todomonOAuth2User,
             @PathVariable("petId") Long petId
