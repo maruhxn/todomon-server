@@ -1,9 +1,7 @@
 package com.maruhxn.todomon.domain.member.dto.request;
 
 import jakarta.validation.constraints.Size;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.web.multipart.MultipartFile;
 
 @Getter
@@ -18,6 +16,14 @@ public class UpdateMemberProfileReq {
     @Builder
     public UpdateMemberProfileReq(String username, MultipartFile profileImage) {
         this.username = username;
+        this.profileImage = profileImage;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public void setProfileImage(MultipartFile profileImage) {
         this.profileImage = profileImage;
     }
 }
