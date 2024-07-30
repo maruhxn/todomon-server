@@ -21,15 +21,15 @@ public class MemberController {
 
     @GetMapping("/{memberId}")
     public DataResponse<ProfileDto> getProfile(
-            @PathVariable("memberId") Long memberId
+            @PathVariable Long memberId
     ) {
         ProfileDto profile = memberService.getProfile(memberId);
         return DataResponse.of("프로필 조회 성공", profile);
     }
 
     @PatchMapping("/{memberId}")
-    @PreAuthorize("@authChecker.isMeOrAdmin(#memberId)")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("@authChecker.isMeOrAdmin(#memberId)")
     public void updateProfile(
             @PathVariable("memberId") Long memberId,
             @ModelAttribute @Valid UpdateMemberProfileReq updateMemberProfileReq
@@ -38,8 +38,8 @@ public class MemberController {
     }
 
     @DeleteMapping("/{memberId}")
-    @PreAuthorize("@authChecker.isMeOrAdmin(#memberId)")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("@authChecker.isMeOrAdmin(#memberId)")
     public void withdraw(
             @PathVariable("memberId") Long memberId
     ) {

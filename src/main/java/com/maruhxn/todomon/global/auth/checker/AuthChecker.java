@@ -10,6 +10,7 @@ import com.maruhxn.todomon.global.error.exception.ForbiddenException;
 import com.maruhxn.todomon.global.error.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
@@ -17,7 +18,7 @@ import java.util.Objects;
 
 import static com.maruhxn.todomon.global.auth.model.Role.ROLE_ADMIN;
 
-@Component
+@Component("authChecker")
 @RequiredArgsConstructor
 public class AuthChecker {
 
@@ -27,7 +28,7 @@ public class AuthChecker {
     public boolean isMeOrAdmin(Long memberId) {
         TodomonOAuth2User todomonOAuth2User = getPrincipal();
 
-        if (!todomonOAuth2User.getAuthorities().contains(ROLE_ADMIN)
+        if (!hasAdminAuthority()
                 && !Objects.equals(todomonOAuth2User.getId(), memberId)) {
             throw new ForbiddenException(ErrorCode.FORBIDDEN);
         }
@@ -41,7 +42,7 @@ public class AuthChecker {
         Pet findPet = petRepository.findById(petId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_PET));
 
-        if (!todomonOAuth2User.getAuthorities().contains(ROLE_ADMIN)
+        if (!hasAdminAuthority()
                 && !Objects.equals(todomonOAuth2User.getId(), findPet.getMember().getId())) {
             throw new ForbiddenException(ErrorCode.FORBIDDEN);
         }
@@ -55,12 +56,16 @@ public class AuthChecker {
         Todo findTodo = todoRepository.findById(todoId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_TODO));
 
-        if (!todomonOAuth2User.getAuthorities().contains(ROLE_ADMIN)
+        if (!hasAdminAuthority()
                 && !Objects.equals(todomonOAuth2User.getId(), findTodo.getWriter().getId())) {
             throw new ForbiddenException(ErrorCode.FORBIDDEN);
         }
 
         return true;
+    }
+
+    private boolean hasAdminAuthority() {
+        return getPrincipal().getAuthorities().contains(new SimpleGrantedAuthority(ROLE_ADMIN.name()));
     }
 
     private static TodomonOAuth2User getPrincipal() {
