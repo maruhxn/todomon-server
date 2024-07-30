@@ -57,6 +57,8 @@ public class FollowService {
 
     // 팔로우를 취소한다.
     public void unfollow(Member follower, Long followeeId) {
+        if (follower.getId() == followeeId) throw new BadRequestException(ErrorCode.BAD_REQUEST);
+
         memberRepository.findById(followeeId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_MEMBER, "팔로위 정보가 존재하지 않습니다."));
 

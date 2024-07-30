@@ -24,10 +24,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DisplayName("[Service] - StarService")
-class StarServiceTest extends IntegrationTestSupport {
+class StarTransactionServiceTest extends IntegrationTestSupport {
 
     @Autowired
-    StarService starService;
+    StarTransactionService starTransactionService;
 
     @Autowired
     MemberRepository memberRepository;
@@ -51,7 +51,7 @@ class StarServiceTest extends IntegrationTestSupport {
         followRepository.save(follow);
 
         // when
-        starService.sendStar(tester1, tester2.getId());
+        starTransactionService.sendStar(tester1, tester2.getId());
 
         // then
         assertThat(starTransactionRepository.findAll())
@@ -72,7 +72,7 @@ class StarServiceTest extends IntegrationTestSupport {
                 .build();
         followRepository.save(follow);
         // when / then
-        assertThatThrownBy(() -> starService.sendStar(tester1, tester2.getId()))
+        assertThatThrownBy(() -> starTransactionService.sendStar(tester1, tester2.getId()))
                 .isInstanceOf(ForbiddenException.class)
                 .hasMessage(ErrorCode.NOT_ACCEPTED_FOLLOW.getMessage());
     }
@@ -94,7 +94,7 @@ class StarServiceTest extends IntegrationTestSupport {
         starTransactionRepository.save(transaction);
 
         // when
-        starService.receiveOneStar(tester2, transaction.getId());
+        starTransactionService.receiveOneStar(tester2, transaction.getId());
 
         // then
         assertThat(transaction.getStatus()).isEqualTo(StarTransactionStatus.RECEIVED);
@@ -119,7 +119,7 @@ class StarServiceTest extends IntegrationTestSupport {
         starTransactionRepository.save(transaction);
 
         // when
-        assertThatThrownBy(() -> starService.receiveOneStar(tester2, transaction.getId()))
+        assertThatThrownBy(() -> starTransactionService.receiveOneStar(tester2, transaction.getId()))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessage(ErrorCode.ALREADY_RECEIVED.getMessage());
     }
@@ -156,7 +156,7 @@ class StarServiceTest extends IntegrationTestSupport {
         starTransactionRepository.saveAll(List.of(transaction1, transaction2, transaction3));
 
         // when
-        starService.receiveAllStars(tester1);
+        starTransactionService.receiveAllStars(tester1);
 
         // then
         assertThat(tester1.getStarPoint()).isEqualTo(2);

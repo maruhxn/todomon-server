@@ -82,7 +82,7 @@ public class PetService {
 
 
     public void feed(Long petId, Member member, FeedReq req) {
-        Pet findPet = petRepository.findById(petId)
+        Pet findPet = petRepository.findOneByIdAndMember_Id(petId, member.getId())
                 .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_PET));
         int prevEvolutionCnt = findPet.getEvolutionCnt();
         if (req.getFoodCnt() > member.getFoodCnt()) {

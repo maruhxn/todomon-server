@@ -8,7 +8,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/members/{memberId}/represent-pet")
+@RequestMapping("/api/members/{memberId}/represent-pet")
 @RequiredArgsConstructor
 public class RepresentPetController {
 

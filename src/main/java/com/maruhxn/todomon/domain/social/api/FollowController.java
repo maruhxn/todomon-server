@@ -2,7 +2,6 @@ package com.maruhxn.todomon.domain.social.api;
 
 import com.maruhxn.todomon.domain.social.application.FollowQueryService;
 import com.maruhxn.todomon.domain.social.application.FollowService;
-import com.maruhxn.todomon.domain.social.application.StarService;
 import com.maruhxn.todomon.domain.social.dto.response.FollowItem;
 import com.maruhxn.todomon.global.auth.model.TodomonOAuth2User;
 import com.maruhxn.todomon.global.common.dto.response.DataResponse;
@@ -20,7 +19,6 @@ public class FollowController {
 
     private final FollowService followService;
     private final FollowQueryService followQueryService;
-    private final StarService starService;
 
     @PostMapping("/follow/{memberId}")
     @ResponseStatus(HttpStatus.CREATED)
