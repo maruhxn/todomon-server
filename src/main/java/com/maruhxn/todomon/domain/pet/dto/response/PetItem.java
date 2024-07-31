@@ -33,6 +33,7 @@ public class PetItem {
     public static PetItem from(Pet pet) {
         return PetItem.builder()
                 .name(pet.getName())
+                .color(pet.getColor())
                 .rarity(pet.getRarity())
                 .appearance(pet.getAppearance())
                 .level(pet.getLevel())

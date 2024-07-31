@@ -34,7 +34,7 @@ public class PetController {
             @AuthenticationPrincipal TodomonOAuth2User todomonOAuth2User
     ) {
         List<PetItem> pets = petQueryService.findAllMyPets(todomonOAuth2User.getMember());
-        return DataResponse.of("펫 조회 성공", pets);
+        return DataResponse.of("나의 펫 조회 성공", pets);
     }
 
     @GetMapping("/collections")
@@ -45,7 +45,7 @@ public class PetController {
         return DataResponse.of("펫 획득 목록 조회 성공", collections);
     }
 
-    @PatchMapping("/{petId}")
+    @PatchMapping("/{petId}/feed")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("@authChecker.isMyPetOrAdmin(#petId)")
     public void feedToPet(
@@ -60,7 +60,6 @@ public class PetController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("@authChecker.isMyPetOrAdmin(#petId)")
     public void deletePet(
-            @AuthenticationPrincipal TodomonOAuth2User todomonOAuth2User,
             @PathVariable("petId") Long petId
     ) {
         petService.deletePet(petId);
