@@ -74,6 +74,7 @@ public class TestTodoFactory {
         }
 
         if (instances.size() > 1) { // 최소 반복 횟수를 넘지 못하면 인스턴스를 생성하지 않고, 단일 투두로 처리
+            todo.setTodoInstances(instances);
             todoInstanceRepository.saveAll(instances);
             LocalDateTime repeatStartAt = instances.get(0).getStartAt();
             LocalDateTime repeatEndAt = instances.get(instances.size() - 1).getEndAt();
@@ -82,6 +83,7 @@ public class TestTodoFactory {
                     .endAt(repeatEndAt)
                     .build());
         }
+
     }
 
     private List<TodoInstance> generateMonthlyInstances(Todo todo, LocalDateTime startAt, LocalDateTime endAt, RepeatInfo repeatInfo) {

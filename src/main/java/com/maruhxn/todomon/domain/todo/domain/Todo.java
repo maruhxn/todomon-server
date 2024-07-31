@@ -12,6 +12,8 @@ import org.hibernate.annotations.ColumnDefault;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -38,8 +40,11 @@ public class Todo extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     private Member writer;
 
-    @OneToOne(mappedBy = "todo", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToOne(mappedBy = "todo", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private RepeatInfo repeatInfo;
+
+    @OneToMany(mappedBy = "todo", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<TodoInstance> todoInstances = new ArrayList<>();
 
     @Builder
     public Todo(String content, LocalDateTime startAt, LocalDateTime endAt, boolean isAllDay, Member writer) {
@@ -81,5 +86,9 @@ public class Todo extends BaseEntity {
             this.isAllDay = req.getIsAllDay();
             if (this.isAllDay) updateToAllDay();
         }
+    }
+
+    public void setTodoInstances(List<TodoInstance> instances) {
+        this.todoInstances = instances;
     }
 }

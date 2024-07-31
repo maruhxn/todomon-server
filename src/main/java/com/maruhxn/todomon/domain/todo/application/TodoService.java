@@ -11,6 +11,7 @@ import com.maruhxn.todomon.domain.todo.dto.request.CreateTodoReq;
 import com.maruhxn.todomon.domain.todo.dto.request.UpdateTodoReq;
 import com.maruhxn.todomon.domain.todo.dto.request.UpdateTodoStatusReq;
 import com.maruhxn.todomon.global.error.ErrorCode;
+import com.maruhxn.todomon.global.error.exception.BadRequestException;
 import com.maruhxn.todomon.global.error.exception.NotFoundException;
 import com.maruhxn.todomon.global.util.TimeUtil;
 import lombok.RequiredArgsConstructor;
@@ -77,6 +78,7 @@ public class TodoService {
         }
 
         if (instances.size() > 1) { // 최소 반복 횟수를 넘지 못하면 인스턴스를 생성하지 않고, 단일 투두로 처리
+            todo.setTodoInstances(instances);
             todoInstanceRepository.saveAll(instances);
             LocalDateTime repeatStartAt = instances.get(0).getStartAt();
             LocalDateTime repeatEndAt = instances.get(instances.size() - 1).getEndAt();
@@ -171,9 +173,13 @@ public class TodoService {
 
     // Todo 정보를 업데이트한다. 새로운 반복 정보가 들어오면 기존 반복 정보를 제거한 후, 덮어씌운다.
     public void update(Long todoId, UpdateTodoReq req) {
+        validateUpdateReq(req);
+
         Todo findTodo = todoRepository.findById(todoId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_TODO));
+
         findTodo.update(req);
+
         if (req.getRepeatInfoItem() != null) {
             RepeatInfo oldRepeatInfo = findTodo.getRepeatInfo();
             if (oldRepeatInfo != null) {
@@ -188,6 +194,12 @@ public class TodoService {
         }
     }
 
+    private static void validateUpdateReq(UpdateTodoReq req) {
+        if (req.getContent() == null && req.getIsAllDay() == null && req.getRepeatInfoItem() == null) {
+            throw new BadRequestException(ErrorCode.VALIDATION_ERROR, "수정할 데이터를 넘겨주세요");
+        }
+    }
+
     /**
      * 반복 정보가 있는 경우 -> 해당 반복을 수행할 때마다 일관성 게이지가 오름, 보상은 그대로 + 반복 종료일까지 모든 투두를 수행했을 경우 "누적된" 보상의 지급
      * 반복 정보가 없는 단일 Todo의 경우 -> 단순 상태 업데이트 및 보상 지급
@@ -197,10 +209,10 @@ public class TodoService {
      * @param req
      */
     public void updateStatusAndReward(Long todoId, Member member, UpdateTodoStatusReq req) {
-        if (req.isInstance()) {
+        if (req.getIsInstance()) {
             TodoInstance todoInstance = todoInstanceRepository.findById(todoId)
                     .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_TODO));
-            if (req.isDone()) {
+            if (req.getIsDone()) {
                 todoInstance.updateIsDone(true);
                 rewardForInstance(todoInstance, member);
             } else {
@@ -211,8 +223,8 @@ public class TodoService {
             Todo findTodo = todoRepository.findById(todoId)
                     .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_TODO));
             // 반복 정보가 없는 단일 todo의 경우 -> 단순 상태 업데이트 및 보상 지급
-            findTodo.updateIsDone(req.isDone());
-            if (req.isDone()) {
+            findTodo.updateIsDone(req.getIsDone());
+            if (req.getIsDone()) {
                 reward(member, 1);
             } else {
                 withdrawReward(member, 1);

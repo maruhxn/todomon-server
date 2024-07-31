@@ -32,7 +32,7 @@ public class TodoController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public BaseResponse createTodo(
-            @Valid @RequestBody CreateTodoReq req,
+            @RequestBody @Valid CreateTodoReq req,
             @AuthenticationPrincipal TodomonOAuth2User todomonOAuth2User
     ) {
         todoService.create(todomonOAuth2User.getMember(), req);
@@ -83,7 +83,7 @@ public class TodoController {
     @PreAuthorize("@authChecker.isMyTodoOrAdmin(#todoId)")
     public void updateTodo(
             @PathVariable("todoId") Long todoId,
-            @RequestBody UpdateTodoReq req
+            @RequestBody @Valid UpdateTodoReq req
     ) {
         todoService.update(todoId, req);
     }
@@ -98,9 +98,9 @@ public class TodoController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("@authChecker.isMyTodoOrAdmin(#todoId)")
     public void updateTodoStatus(
+            @PathVariable Long todoId,
             @AuthenticationPrincipal TodomonOAuth2User todomonOAuth2User,
-            @PathVariable("todoId") Long todoId,
-            @RequestBody UpdateTodoStatusReq req
+            @RequestBody @Valid UpdateTodoStatusReq req
     ) {
         todoService.updateStatusAndReward(todoId, todomonOAuth2User.getMember(), req);
     }
@@ -110,7 +110,7 @@ public class TodoController {
     @PreAuthorize("@authChecker.isMyTodoOrAdmin(#todoId)")
     public void deleteTodo(
             @AuthenticationPrincipal TodomonOAuth2User todomonOAuth2User,
-            @PathVariable("todoId") Long todoId
+            @PathVariable Long todoId
     ) {
         todoService.deleteTodo(todoId);
     }

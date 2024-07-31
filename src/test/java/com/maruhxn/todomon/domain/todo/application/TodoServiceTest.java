@@ -2,6 +2,7 @@ package com.maruhxn.todomon.domain.todo.application;
 
 import com.maruhxn.todomon.domain.member.dao.MemberRepository;
 import com.maruhxn.todomon.domain.member.domain.Member;
+import com.maruhxn.todomon.domain.todo.dao.RepeatInfoRepository;
 import com.maruhxn.todomon.domain.todo.dao.TodoInstanceRepository;
 import com.maruhxn.todomon.domain.todo.dao.TodoRepository;
 import com.maruhxn.todomon.domain.todo.domain.Frequency;
@@ -43,6 +44,9 @@ class TodoServiceTest extends IntegrationTestSupport {
 
     @Autowired
     TodoInstanceRepository todoInstanceRepository;
+
+    @Autowired
+    RepeatInfoRepository repeatInfoRepository;
     @Autowired
     TodoService todoService;
 
@@ -533,6 +537,31 @@ class TodoServiceTest extends IntegrationTestSupport {
         assertThat(todoInstances.get(2).isDone()).isFalse();
         assertThat(member.getDiligence().getGauge()).isEqualTo(40 - GAUGE_INCREASE_RATE * (size + 1));
         assertThat(member.getScheduledReward()).isEqualTo((long) (100L - REWARD_UNIT * (size + 1) * REWARD_LEVERAGE_RATE));
+    }
+
+    @Test
+    @DisplayName("반복 일정 삭제 시 관련된 엔터티는 모두 삭제된다")
+    void deleteRepeatedTodo() {
+        // given
+        Todo todo = testTodoFactory.createRepeatedTodo(
+                LocalDateTime.of(2024, 7, 7, 7, 0),
+                LocalDateTime.of(2024, 7, 7, 8, 0),
+                false,
+                member,
+                RepeatInfo.builder()
+                        .frequency(Frequency.DAILY)
+                        .interval(1)
+                        .until(LocalDate.from(LocalDateTime.of(2024, 7, 10, 7, 0)))
+                        .build()
+        );
+
+        // when
+        todoService.deleteTodo(todo.getId());
+
+        // then
+        assertThat(todoRepository.findAll()).hasSize(0);
+        assertThat(todoInstanceRepository.findAll()).hasSize(0);
+        assertThat(repeatInfoRepository.findAll()).hasSize(0);
     }
 
     private Member createMember() {
