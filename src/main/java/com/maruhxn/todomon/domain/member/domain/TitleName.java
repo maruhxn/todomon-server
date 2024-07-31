@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class TitleName extends BaseEntity {
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 5)
     private String name;
 
     @Column(nullable = false)
