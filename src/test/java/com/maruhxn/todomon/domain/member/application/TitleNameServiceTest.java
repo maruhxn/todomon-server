@@ -6,6 +6,7 @@ import com.maruhxn.todomon.domain.member.domain.Member;
 import com.maruhxn.todomon.domain.member.domain.TitleName;
 import com.maruhxn.todomon.domain.member.dto.request.CreateTitleNameReq;
 import com.maruhxn.todomon.domain.member.dto.request.UpdateTitleNameReq;
+import com.maruhxn.todomon.domain.member.dto.response.TitleNameItem;
 import com.maruhxn.todomon.global.auth.model.Role;
 import com.maruhxn.todomon.global.auth.model.provider.OAuth2Provider;
 import com.maruhxn.todomon.util.IntegrationTestSupport;
@@ -61,14 +62,12 @@ class TitleNameServiceTest extends IntegrationTestSupport {
         titleNameRepository.save(titleName);
 
         // when
-        titleNameService.getTitleName(member);
+        TitleNameItem dto = titleNameService.getTitleName(member);
 
         // then
-        assertThat(titleNameRepository.findAll())
-                .hasSize(1)
-                .first()
-                .extracting("name", "color", "member")
-                .containsExactly("name", "#000000", member);
+        assertThat(dto)
+                .extracting("titleNameId", "name", "color")
+                .containsExactly(titleName.getId(), "name", "#000000");
     }
 
     @Test
