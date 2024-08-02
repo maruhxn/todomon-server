@@ -2,6 +2,8 @@ package com.maruhxn.todomon.global.auth.checker;
 
 import com.maruhxn.todomon.domain.pet.dao.PetRepository;
 import com.maruhxn.todomon.domain.pet.domain.Pet;
+import com.maruhxn.todomon.domain.social.dao.FollowRepository;
+import com.maruhxn.todomon.domain.social.domain.Follow;
 import com.maruhxn.todomon.domain.todo.dao.TodoRepository;
 import com.maruhxn.todomon.domain.todo.domain.Todo;
 import com.maruhxn.todomon.global.auth.model.TodomonOAuth2User;
@@ -24,6 +26,7 @@ public class AuthChecker {
 
     private final PetRepository petRepository;
     private final TodoRepository todoRepository;
+    private final FollowRepository followRepository;
 
     public boolean isMeOrAdmin(Long memberId) {
         TodomonOAuth2User todomonOAuth2User = getPrincipal();
@@ -58,6 +61,20 @@ public class AuthChecker {
 
         if (!hasAdminAuthority()
                 && !Objects.equals(todomonOAuth2User.getId(), findTodo.getWriter().getId())) {
+            throw new ForbiddenException(ErrorCode.FORBIDDEN);
+        }
+
+        return true;
+    }
+
+    public boolean isMyFollowOrAdmin(Long followId) {
+        TodomonOAuth2User todomonOAuth2User = getPrincipal();
+
+        Follow follow = followRepository.findById(followId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_FOLLOW));
+
+        if (!hasAdminAuthority() &&
+                !Objects.equals(follow.getFollowee(), todomonOAuth2User.getMember())) {
             throw new ForbiddenException(ErrorCode.FORBIDDEN);
         }
 

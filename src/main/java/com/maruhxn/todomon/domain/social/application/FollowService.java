@@ -56,14 +56,16 @@ public class FollowService {
     }
 
     // 팔로우를 취소한다.
-    public void unfollow(Member follower, Long followeeId) {
-        if (follower.getId() == followeeId) throw new BadRequestException(ErrorCode.BAD_REQUEST);
+    public void unfollow(Long memberId, Long targetId) {
+        if (memberId == targetId) throw new BadRequestException(ErrorCode.BAD_REQUEST);
 
-        memberRepository.findById(followeeId)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_MEMBER, "팔로위 정보가 존재하지 않습니다."));
+        memberRepository.findById(targetId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_MEMBER, "대상 유저의 정보가 존재하지 않습니다."));
 
-        Follow findFollow = followRepository.findByFollower_IdAndFollowee_Id(follower.getId(), followeeId)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_FOLLOW));
+        Follow findFollow = followRepository.findByFollower_IdAndFollowee_Id(memberId, targetId)
+                .orElseGet(() -> followRepository.findByFollower_IdAndFollowee_Id(targetId, memberId)
+                        .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_FOLLOW)));
+
         followRepository.delete(findFollow);
     }
 
