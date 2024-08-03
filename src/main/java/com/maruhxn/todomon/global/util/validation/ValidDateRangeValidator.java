@@ -5,11 +5,17 @@ import com.maruhxn.todomon.domain.todo.dto.request.DateRangeDto;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
+import java.time.Duration;
+
 public class ValidDateRangeValidator implements ConstraintValidator<ValidDateRange, DateRangeDto> {
+
+    private String startAtAfterEndAtMessage;
+    private String overOneDayMessage;
 
     @Override
     public void initialize(ValidDateRange constraintAnnotation) {
-        // 초기화 코드 (필요한 경우)
+        this.startAtAfterEndAtMessage = constraintAnnotation.startAtAfterEndAtMessage();
+        this.overOneDayMessage = constraintAnnotation.overOneDayMessage();
     }
 
     @Override
@@ -17,13 +23,26 @@ public class ValidDateRangeValidator implements ConstraintValidator<ValidDateRan
         if (dto.getStartAt() == null || dto.getEndAt() == null) {
             return true; // 다른 검증기에 의해 처리됨
         }
-        boolean isValid = dto.getStartAt().isBefore(dto.getEndAt());
-        if (!isValid) {
+        boolean startAtIsAfterThanEndAt = dto.getStartAt().isAfter(dto.getEndAt());
+        if (startAtIsAfterThanEndAt) {
             context.disableDefaultConstraintViolation();
-            context.buildConstraintViolationWithTemplate(context.getDefaultConstraintMessageTemplate())
+            context.buildConstraintViolationWithTemplate(startAtAfterEndAtMessage)
                     .addPropertyNode("endAt")
                     .addConstraintViolation();
+            return false;
         }
-        return isValid;
+
+        Duration duration = Duration.between(dto.getStartAt(), dto.getEndAt());
+        boolean isOverOneDay = duration.toDays() > 1;
+
+        if (isOverOneDay) {
+            context.disableDefaultConstraintViolation();
+            context.buildConstraintViolationWithTemplate(overOneDayMessage)
+                    .addPropertyNode("endAt")
+                    .addConstraintViolation();
+            return false;
+        }
+
+        return true;
     }
 }
