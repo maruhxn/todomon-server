@@ -3,6 +3,7 @@ package com.maruhxn.todomon.domain.todo.api;
 import com.maruhxn.todomon.domain.todo.application.TodoQueryService;
 import com.maruhxn.todomon.domain.todo.application.TodoService;
 import com.maruhxn.todomon.domain.todo.dto.request.CreateTodoReq;
+import com.maruhxn.todomon.domain.todo.dto.request.UpdateAndDeleteTodoQueryParams;
 import com.maruhxn.todomon.domain.todo.dto.request.UpdateTodoReq;
 import com.maruhxn.todomon.domain.todo.dto.request.UpdateTodoStatusReq;
 import com.maruhxn.todomon.domain.todo.dto.response.TodoItem;
@@ -13,6 +14,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,7 +33,7 @@ public class TodoController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public BaseResponse createTodo(
-            @Valid @RequestBody CreateTodoReq req,
+            @RequestBody @Valid CreateTodoReq req,
             @AuthenticationPrincipal TodomonOAuth2User todomonOAuth2User
     ) {
         todoService.create(todomonOAuth2User.getMember(), req);
@@ -77,37 +79,47 @@ public class TodoController {
         return DataResponse.of("월별 조회 성공", todos);
     }
 
-    @PatchMapping("/{todoId}")
+    /**
+     * 어떤 투두(단일 투두 혹은 인스턴스)에 대한 수정 요청
+     * 단일 투두일 경우 -> 그냥 수정하면 됨. 만약 반복 정보가 들어오면 인스턴스 생성까지
+     * 인스턴스일 경우 -> '이 할 일', '이번 및 향후 할 일', '모든 할 일' 중 한 가지 선택 필요
+     */
+    @PatchMapping("/{objectId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("@authChecker.isMyTodoOrAdmin(#objectId, #params.isInstance)")
     public void updateTodo(
-            @PathVariable("todoId") Long todoId,
-            @RequestBody UpdateTodoReq req
+            @PathVariable Long objectId,
+            @ModelAttribute @Valid UpdateAndDeleteTodoQueryParams params,
+            @RequestBody @Valid UpdateTodoReq req
     ) {
-        todoService.update(todoId, req);
+        todoService.update(objectId, params, req);
     }
 
     /**
      * Todo의 완료 여부를 업데이트한다.
      *
-     * @param todoId
+     * @param objectId
      * @param req
      */
-    @PatchMapping("/{todoId}/status")
+    @PatchMapping("/{objectId}/status")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("@authChecker.isMyTodoOrAdmin(#objectId, #isInstance)")
     public void updateTodoStatus(
+            @PathVariable Long objectId,
             @AuthenticationPrincipal TodomonOAuth2User todomonOAuth2User,
-            @PathVariable("todoId") Long todoId,
-            @RequestBody UpdateTodoStatusReq req
+            @RequestParam(required = true) boolean isInstance,
+            @RequestBody @Valid UpdateTodoStatusReq req
     ) {
-        todoService.updateStatusAndReward(todoId, todomonOAuth2User.getMember(), req);
+        todoService.updateStatusAndReward(objectId, todomonOAuth2User.getMember(), isInstance, req);
     }
 
-    @DeleteMapping("/{todoId}")
+    @DeleteMapping("/{objectId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("@authChecker.isMyTodoOrAdmin(#objectId, #params.isInstance)")
     public void deleteTodo(
-            @AuthenticationPrincipal TodomonOAuth2User todomonOAuth2User,
-            @PathVariable("todoId") Long todoId
+            @PathVariable Long objectId,
+            @Valid UpdateAndDeleteTodoQueryParams params
     ) {
-        todoService.deleteTodo(todoId);
+        todoService.deleteTodo(objectId, params);
     }
 }

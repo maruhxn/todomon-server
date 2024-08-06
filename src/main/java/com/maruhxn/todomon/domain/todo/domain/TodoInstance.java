@@ -1,5 +1,6 @@
 package com.maruhxn.todomon.domain.todo.domain;
 
+import com.maruhxn.todomon.domain.todo.dto.request.UpdateTodoReq;
 import com.maruhxn.todomon.global.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -7,6 +8,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.ColumnDefault;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 
@@ -18,6 +20,9 @@ public class TodoInstance extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "todo_id", nullable = false, referencedColumnName = "id")
     private Todo todo;
+
+    @Column(length = 50, nullable = false)
+    private String content;
 
     @Column(nullable = false)
     private LocalDateTime startAt;
@@ -34,8 +39,9 @@ public class TodoInstance extends BaseEntity {
     private boolean isAllDay = false;
 
     @Builder
-    public TodoInstance(Todo todo, LocalDateTime startAt, LocalDateTime endAt, boolean isAllDay) {
+    public TodoInstance(Todo todo, String content, LocalDateTime startAt, LocalDateTime endAt, boolean isAllDay) {
         this.todo = todo;
+        this.content = content;
         this.startAt = startAt;
         this.endAt = endAt;
         this.isAllDay = isAllDay;
@@ -44,6 +50,7 @@ public class TodoInstance extends BaseEntity {
     public static TodoInstance of(Todo todo, LocalDateTime startAt, LocalDateTime endAt) {
         return TodoInstance.builder()
                 .todo(todo)
+                .content(todo.getContent())
                 .startAt(startAt)
                 .endAt(endAt)
                 .isAllDay(todo.isAllDay())
@@ -52,5 +59,27 @@ public class TodoInstance extends BaseEntity {
 
     public void updateIsDone(boolean isDone) {
         this.isDone = isDone;
+    }
+
+    public void update(UpdateTodoReq req) {
+        if (StringUtils.hasText(req.getContent())) this.content = req.getContent();
+
+        if (req.getStartAt() != null) {
+            this.startAt = req.getStartAt();
+        }
+
+        if (req.getEndAt() != null) {
+            this.endAt = req.getEndAt();
+        }
+
+        if (req.getIsAllDay() != null) {
+            this.isAllDay = req.getIsAllDay();
+            if (this.isAllDay) updateToAllDay();
+        }
+    }
+
+    public void updateToAllDay() {
+        this.startAt = LocalDateTime.of(startAt.toLocalDate(), LocalDateTime.MIN.toLocalTime());
+        this.endAt = LocalDateTime.of(endAt.toLocalDate(), LocalDateTime.MAX.toLocalTime());
     }
 }

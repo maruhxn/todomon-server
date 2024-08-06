@@ -198,7 +198,7 @@ class MemberServiceTest extends IntegrationTestSupport {
     }
 
     @Test
-    @DisplayName("유저명과 프로필 이미지를 업데이트한다.")
+    @DisplayName("유저명을 업데이트한다.")
     void updateUsername() throws IOException {
         // given
         Member member = Member.builder()

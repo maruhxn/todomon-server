@@ -15,6 +15,7 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.temporal.TemporalAdjusters;
 import java.util.List;
+import java.util.Optional;
 
 import static com.maruhxn.todomon.domain.member.domain.QDiligence.diligence;
 import static com.maruhxn.todomon.domain.member.domain.QMember.member;
@@ -87,7 +88,7 @@ public class MemberQueryRepository {
     }
 
     // 유저명, 프로필사진, 이메일, 대표 펫, 팔로워 수, 팔로잉 수, 현재 칭호 반환
-    public ProfileDto getMemberProfileById(Long memberId) {
+    public Optional<ProfileDto> getMemberProfileById(Long memberId) {
         QPet representPet = new QPet("representPet");
 
         ProfileDto profileDto = query
@@ -129,11 +130,11 @@ public class MemberQueryRepository {
                 .leftJoin(member.representPet, representPet)
                 .where(member.id.eq(memberId))
                 .fetchOne();
-        
+
         if (profileDto != null && profileDto.getRepresentPetItem().getId() == null) {
             profileDto.setRepresentPetItemToNull();
         }
 
-        return profileDto;
+        return Optional.ofNullable(profileDto);
     }
 }

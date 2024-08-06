@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @ValidDateRange
-public class CreateTodoReq {
+public class CreateTodoReq implements DateRangeDto {
 
     @NotEmpty(message = "내용을 입력해주세요.")
     @Size(max = 50, message = "내용은 최대 50글자입니다.")

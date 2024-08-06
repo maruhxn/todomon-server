@@ -11,12 +11,15 @@ public class PetDexItem {
     private String name;
     private Rarity rarity;
     private String appearance;
+    private String color;
 
     @Builder
     public PetDexItem(String name, Rarity rarity, String appearance) {
         this.name = name;
         this.rarity = rarity;
+        this.color = rarity.getColor();
         this.appearance = appearance;
+
     }
 
     public static PetDexItem from(CollectedPet collectedPet) {

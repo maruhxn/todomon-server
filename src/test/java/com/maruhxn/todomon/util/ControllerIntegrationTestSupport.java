@@ -20,6 +20,8 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
+import java.util.List;
+
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 
@@ -44,6 +46,8 @@ public abstract class ControllerIntegrationTestSupport {
     protected MemberRepository memberRepository;
 
     protected Member member;
+    protected Member admin;
+    protected TokenDto adminTokenDto;
     protected TokenDto memberTokenDto;
 
     @BeforeEach
@@ -64,8 +68,21 @@ public abstract class ControllerIntegrationTestSupport {
                 .profileImageUrl("profileImageUrl")
                 .build();
         member.initDiligence();
-        memberRepository.save(member);
+
+        admin = Member.builder()
+                .username("admin")
+                .email("admin@admin.com")
+                .provider(OAuth2Provider.GOOGLE)
+                .providerId("google_admin")
+                .role(Role.ROLE_ADMIN)
+                .profileImageUrl("profileImageUrl")
+                .build();
+        admin.initDiligence();
+
+        memberRepository.saveAll(List.of(member, admin));
+
         memberTokenDto = getTokenDto(member);
+        adminTokenDto = getTokenDto(admin);
     }
 
     private TokenDto getTokenDto(Member member) {

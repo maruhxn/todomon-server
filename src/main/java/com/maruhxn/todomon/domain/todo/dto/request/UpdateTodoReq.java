@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @ValidDateRange
-public class UpdateTodoReq {
+public class UpdateTodoReq implements DateRangeDto {
 
     @Size(max = 50, message = "내용은 최대 50글자입니다.")
     private String content;

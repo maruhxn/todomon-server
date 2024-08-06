@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @Slf4j
@@ -20,7 +21,7 @@ public class MemberController {
 
     @GetMapping("/{memberId}")
     public DataResponse<ProfileDto> getProfile(
-            @PathVariable("memberId") Long memberId
+            @PathVariable Long memberId
     ) {
         ProfileDto profile = memberService.getProfile(memberId);
         return DataResponse.of("프로필 조회 성공", profile);
@@ -28,6 +29,7 @@ public class MemberController {
 
     @PatchMapping("/{memberId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("@authChecker.isMeOrAdmin(#memberId)")
     public void updateProfile(
             @PathVariable("memberId") Long memberId,
             @ModelAttribute @Valid UpdateMemberProfileReq updateMemberProfileReq
@@ -37,6 +39,7 @@ public class MemberController {
 
     @DeleteMapping("/{memberId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("@authChecker.isMeOrAdmin(#memberId)")
     public void withdraw(
             @PathVariable("memberId") Long memberId
     ) {

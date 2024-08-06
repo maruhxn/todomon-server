@@ -2,12 +2,12 @@ package com.maruhxn.todomon.domain.social.api;
 
 import com.maruhxn.todomon.domain.social.application.FollowQueryService;
 import com.maruhxn.todomon.domain.social.application.FollowService;
-import com.maruhxn.todomon.domain.social.application.StarService;
 import com.maruhxn.todomon.domain.social.dto.response.FollowItem;
 import com.maruhxn.todomon.global.auth.model.TodomonOAuth2User;
 import com.maruhxn.todomon.global.common.dto.response.DataResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,9 +20,8 @@ public class FollowController {
 
     private final FollowService followService;
     private final FollowQueryService followQueryService;
-    private final StarService starService;
 
-    @PostMapping("/follow/{memberId}")
+    @PostMapping("/{memberId}")
     @ResponseStatus(HttpStatus.CREATED)
     public void follow(
             @AuthenticationPrincipal TodomonOAuth2User todomonOAuth2User,
@@ -31,13 +30,23 @@ public class FollowController {
         followService.sendFollowRequest(todomonOAuth2User.getMember(), memberId);
     }
 
-    @DeleteMapping("/follow/{memberId}")
+    @PatchMapping("/accept/{followId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("@authChecker.isMyFollowOrAdmin(#followId)")
+    public void respondFollow(
+            @PathVariable Long followId,
+            @RequestParam(required = true) Boolean isAccepted
+    ) {
+        followService.respondToFollowRequest(followId, isAccepted);
+    }
+
+    @DeleteMapping("/{memberId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void unfollow(
             @AuthenticationPrincipal TodomonOAuth2User todomonOAuth2User,
             @PathVariable("memberId") Long memberId
     ) {
-        followService.unfollow(todomonOAuth2User.getMember(), memberId);
+        followService.unfollow(todomonOAuth2User.getId(), memberId);
     }
 
     @GetMapping("/{memberId}/followers")

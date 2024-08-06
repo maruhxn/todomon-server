@@ -9,13 +9,14 @@ import com.maruhxn.todomon.global.auth.model.TodomonOAuth2User;
 import com.maruhxn.todomon.global.common.dto.response.DataResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/pet")
+@RequestMapping("/api/pets")
 @RequiredArgsConstructor
 public class PetController {
 
@@ -33,7 +34,7 @@ public class PetController {
             @AuthenticationPrincipal TodomonOAuth2User todomonOAuth2User
     ) {
         List<PetItem> pets = petQueryService.findAllMyPets(todomonOAuth2User.getMember());
-        return DataResponse.of("펫 조회 성공", pets);
+        return DataResponse.of("나의 펫 조회 성공", pets);
     }
 
     @GetMapping("/collections")
@@ -44,8 +45,9 @@ public class PetController {
         return DataResponse.of("펫 획득 목록 조회 성공", collections);
     }
 
-    @PatchMapping("/{petId}")
+    @PatchMapping("/{petId}/feed")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("@authChecker.isMyPetOrAdmin(#petId)")
     public void feedToPet(
             @AuthenticationPrincipal TodomonOAuth2User todomonOAuth2User,
             @PathVariable("petId") Long petId,
@@ -56,8 +58,8 @@ public class PetController {
 
     @DeleteMapping("/{petId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("@authChecker.isMyPetOrAdmin(#petId)")
     public void deletePet(
-            @AuthenticationPrincipal TodomonOAuth2User todomonOAuth2User,
             @PathVariable("petId") Long petId
     ) {
         petService.deletePet(petId);

@@ -19,13 +19,15 @@ import static com.maruhxn.todomon.domain.social.domain.StarTransactionStatus.SEN
 @Service
 @Transactional
 @RequiredArgsConstructor
-public class StarService {
+public class StarTransactionService {
 
     private final MemberRepository memberRepository;
     private final StarTransactionRepository starTransactionRepository;
     private final FollowService followService;
 
     public void sendStar(Member sender, Long receiverId) {
+        if (sender.getId() == receiverId) throw new BadRequestException(ErrorCode.BAD_REQUEST);
+
         // 수신자 존재하는지 확인
         Member receiver = memberRepository.findById(receiverId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_MEMBER, "수신자 정보가 존재하지 않습니다."));

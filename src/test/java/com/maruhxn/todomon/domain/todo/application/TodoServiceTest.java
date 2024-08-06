@@ -2,16 +2,14 @@ package com.maruhxn.todomon.domain.todo.application;
 
 import com.maruhxn.todomon.domain.member.dao.MemberRepository;
 import com.maruhxn.todomon.domain.member.domain.Member;
+import com.maruhxn.todomon.domain.todo.dao.RepeatInfoRepository;
 import com.maruhxn.todomon.domain.todo.dao.TodoInstanceRepository;
 import com.maruhxn.todomon.domain.todo.dao.TodoRepository;
 import com.maruhxn.todomon.domain.todo.domain.Frequency;
 import com.maruhxn.todomon.domain.todo.domain.RepeatInfo;
 import com.maruhxn.todomon.domain.todo.domain.Todo;
 import com.maruhxn.todomon.domain.todo.domain.TodoInstance;
-import com.maruhxn.todomon.domain.todo.dto.request.CreateTodoReq;
-import com.maruhxn.todomon.domain.todo.dto.request.RepeatInfoItem;
-import com.maruhxn.todomon.domain.todo.dto.request.UpdateTodoReq;
-import com.maruhxn.todomon.domain.todo.dto.request.UpdateTodoStatusReq;
+import com.maruhxn.todomon.domain.todo.dto.request.*;
 import com.maruhxn.todomon.global.auth.model.Role;
 import com.maruhxn.todomon.global.auth.model.provider.OAuth2Provider;
 import com.maruhxn.todomon.util.IntegrationTestSupport;
@@ -28,6 +26,7 @@ import java.util.List;
 
 import static com.maruhxn.todomon.global.common.Constants.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 
 @DisplayName("[Service] - TodoService")
 class TodoServiceTest extends IntegrationTestSupport {
@@ -43,6 +42,9 @@ class TodoServiceTest extends IntegrationTestSupport {
 
     @Autowired
     TodoInstanceRepository todoInstanceRepository;
+
+    @Autowired
+    RepeatInfoRepository repeatInfoRepository;
     @Autowired
     TodoService todoService;
 
@@ -290,7 +292,47 @@ class TodoServiceTest extends IntegrationTestSupport {
 
     @Test
     @DisplayName("todo를 수정한다.")
-    void update() {
+    void update_single_todo() {
+        // given
+        Todo todo = testTodoFactory.createSingleTodo(
+                LocalDateTime.of(2024, 7, 7, 7, 0),
+                LocalDateTime.of(2024, 7, 7, 8, 0),
+                false,
+                member
+        );
+
+        UpdateAndDeleteTodoQueryParams params = UpdateAndDeleteTodoQueryParams.builder()
+                .isInstance(false)
+                .build();
+
+        UpdateTodoReq req = UpdateTodoReq.builder()
+                .content("수정됨")
+                .isAllDay(true)
+                .startAt(LocalDateTime.of(2024, 7, 8, 15, 0))
+                .endAt(LocalDateTime.of(2024, 7, 8, 20, 0))
+                .repeatInfoItem(
+                        RepeatInfoItem.builder()
+                                .frequency(Frequency.WEEKLY)
+                                .byDay("MON,WED")
+                                .interval(1)
+                                .count(2)
+                                .build()
+                )
+                .build();
+
+        // when
+        todoService.update(todo.getId(), params, req);
+
+        // then
+        assertThat(todo)
+                .extracting("content", "isAllDay", "startAt", "endAt")
+                .containsExactly("수정됨", true, LocalDateTime.of(2024, 7, 8, 0, 0), LocalDateTime.of(LocalDate.of(2024, 7, 10), LocalDateTime.MAX.toLocalTime()));
+        assertThat(todoInstanceRepository.findAll()).hasSize(2);
+    }
+
+    @Test
+    @DisplayName("todoinstance 하나를 수정한다.")
+    void update_todoInstance_THIS_TASK() {
         // given
         Todo todo = testTodoFactory.createRepeatedTodo(
                 LocalDateTime.of(2024, 7, 7, 7, 0),
@@ -304,6 +346,93 @@ class TodoServiceTest extends IntegrationTestSupport {
                         .build()
         );
 
+        UpdateAndDeleteTodoQueryParams params = UpdateAndDeleteTodoQueryParams.builder()
+                .targetType(TargetType.THIS_TASK)
+                .isInstance(true)
+                .build();
+
+        UpdateTodoReq req = UpdateTodoReq.builder()
+                .content("수정됨")
+                .startAt(LocalDateTime.of(2024, 7, 7, 15, 0))
+                .endAt(LocalDateTime.of(2024, 7, 7, 20, 0))
+                .build();
+
+        List<TodoInstance> todoInstances = todo.getTodoInstances();
+        // when
+        TodoInstance firstInstance = todoInstances.get(0);
+        todoService.update(firstInstance.getId(), params, req);
+
+        // then
+        assertThat(firstInstance)
+                .extracting("content", "startAt", "endAt")
+                .containsExactly("수정됨", LocalDateTime.of(2024, 7, 7, 15, 0), LocalDateTime.of(2024, 7, 7, 20, 0));
+        assertThat(todoInstanceRepository.findAll()).hasSize(4);
+    }
+
+    @Test
+    @DisplayName("todoinstance 전체를 수정한다.")
+    void update_todoInstance_ALL_TASKS() {
+        // given
+        Todo todo = testTodoFactory.createRepeatedTodo(
+                LocalDateTime.of(2024, 7, 7, 7, 0),
+                LocalDateTime.of(2024, 7, 7, 8, 0),
+                false,
+                member,
+                RepeatInfo.builder()
+                        .frequency(Frequency.DAILY)
+                        .interval(1)
+                        .until(LocalDate.from(LocalDateTime.of(2024, 7, 10, 7, 0)))
+                        .build()
+        );
+
+        UpdateAndDeleteTodoQueryParams params = UpdateAndDeleteTodoQueryParams.builder()
+                .targetType(TargetType.ALL_TASKS)
+                .isInstance(true)
+                .build();
+
+        UpdateTodoReq req = UpdateTodoReq.builder()
+                .content("수정됨")
+                .isAllDay(true)
+                .build();
+
+        List<TodoInstance> todoInstances = todo.getTodoInstances();
+        // when
+        TodoInstance firstInstance = todoInstances.get(0);
+        todoService.update(firstInstance.getId(), params, req);
+
+        // then
+        assertThat(todoInstances)
+                .hasSize(4)
+                .extracting("content", "startAt", "endAt")
+                .containsExactly(
+                        tuple("수정됨", LocalDateTime.of(2024, 7, 7, 0, 0), LocalDateTime.of(LocalDate.of(2024, 7, 7), LocalDateTime.MAX.toLocalTime())),
+                        tuple("수정됨", LocalDateTime.of(2024, 7, 8, 0, 0), LocalDateTime.of(LocalDate.of(2024, 7, 8), LocalDateTime.MAX.toLocalTime())),
+                        tuple("수정됨", LocalDateTime.of(2024, 7, 9, 0, 0), LocalDateTime.of(LocalDate.of(2024, 7, 9), LocalDateTime.MAX.toLocalTime())),
+                        tuple("수정됨", LocalDateTime.of(2024, 7, 10, 0, 0), LocalDateTime.of(LocalDate.of(2024, 7, 10), LocalDateTime.MAX.toLocalTime()))
+                );
+    }
+
+    @Test
+    @DisplayName("todoinstance 전체의 반복 정보를 수정한다.")
+    void update_todoInstance_ALL_TASKS_with_new_repeat_info() {
+        // given
+        Todo todo = testTodoFactory.createRepeatedTodo(
+                LocalDateTime.of(2024, 7, 7, 7, 0),
+                LocalDateTime.of(2024, 7, 7, 8, 0),
+                false,
+                member,
+                RepeatInfo.builder()
+                        .frequency(Frequency.DAILY)
+                        .interval(1)
+                        .until(LocalDate.from(LocalDateTime.of(2024, 7, 10, 7, 0)))
+                        .build()
+        );
+
+        UpdateAndDeleteTodoQueryParams params = UpdateAndDeleteTodoQueryParams.builder()
+                .targetType(TargetType.ALL_TASKS)
+                .isInstance(true)
+                .build();
+
         UpdateTodoReq req = UpdateTodoReq.builder()
                 .content("수정됨")
                 .isAllDay(true)
@@ -316,15 +445,19 @@ class TodoServiceTest extends IntegrationTestSupport {
                                 .build()
                 )
                 .build();
+
         // when
-        todoService.update(todo.getId(), req);
+        TodoInstance firstInstance = todo.getTodoInstances().get(0);
+        todoService.update(firstInstance.getId(), params, req);
 
         // then
-        Todo findTodo = todoRepository.findById(todo.getId()).get();
-        assertThat(findTodo.getContent()).isEqualTo("수정됨");
-        assertThat(findTodo.getRepeatInfo().getFrequency()).isEqualTo(Frequency.WEEKLY);
-        assertThat(findTodo.getRepeatInfo().getByDay()).isEqualTo("MON,WED");
-        assertThat(todoInstanceRepository.findAll()).hasSize(2);
+        assertThat(todo.getTodoInstances())
+                .hasSize(2)
+                .extracting("content", "startAt", "endAt")
+                .containsExactly(
+                        tuple("수정됨", LocalDateTime.of(2024, 7, 8, 0, 0), LocalDateTime.of(LocalDate.of(2024, 7, 8), LocalDateTime.MAX.toLocalTime())),
+                        tuple("수정됨", LocalDateTime.of(2024, 7, 10, 0, 0), LocalDateTime.of(LocalDate.of(2024, 7, 10), LocalDateTime.MAX.toLocalTime()))
+                );
     }
 
     @Test
@@ -345,11 +478,10 @@ class TodoServiceTest extends IntegrationTestSupport {
 
         UpdateTodoStatusReq req = UpdateTodoStatusReq.builder()
                 .isDone(true)
-                .isInstance(false)
                 .build();
 
         // when
-        todoService.updateStatusAndReward(todo.getId(), member, req);
+        todoService.updateStatusAndReward(todo.getId(), member, false, req);
 
         // then
         assertThat(todo.isDone()).isTrue();
@@ -378,11 +510,10 @@ class TodoServiceTest extends IntegrationTestSupport {
 
         UpdateTodoStatusReq req = UpdateTodoStatusReq.builder()
                 .isDone(false)
-                .isInstance(false)
                 .build();
 
         // when
-        todoService.updateStatusAndReward(todo.getId(), member, req);
+        todoService.updateStatusAndReward(todo.getId(), member, false, req);
 
         // then
         assertThat(todo.isDone()).isFalse();
@@ -409,10 +540,9 @@ class TodoServiceTest extends IntegrationTestSupport {
 
         UpdateTodoStatusReq req = UpdateTodoStatusReq.builder()
                 .isDone(true)
-                .isInstance(true)
                 .build();
         // when
-        todoService.updateStatusAndReward(todoInstances.get(0).getId(), member, req);
+        todoService.updateStatusAndReward(todoInstances.get(0).getId(), member, true, req);
 
         // then
         assertThat(todoInstanceRepository.findAll()).hasSize(4);
@@ -440,7 +570,6 @@ class TodoServiceTest extends IntegrationTestSupport {
 
         UpdateTodoStatusReq req = UpdateTodoStatusReq.builder()
                 .isDone(true)
-                .isInstance(true)
                 .build();
 
         int size = todoInstances.size();
@@ -451,7 +580,7 @@ class TodoServiceTest extends IntegrationTestSupport {
         }
 
         // when
-        todoService.updateStatusAndReward(todoInstances.get(size - 1).getId(), member, req);
+        todoService.updateStatusAndReward(todoInstances.get(size - 1).getId(), member, true, req);
 
         // then
         assertThat(todo.isDone()).isTrue();
@@ -480,7 +609,6 @@ class TodoServiceTest extends IntegrationTestSupport {
 
         UpdateTodoStatusReq req = UpdateTodoStatusReq.builder()
                 .isDone(false)
-                .isInstance(true)
                 .build();
 
         TodoInstance firstInstance = todoInstances.get(0);
@@ -489,7 +617,7 @@ class TodoServiceTest extends IntegrationTestSupport {
         member.getDiligence().increaseGauge(40);
         member.addScheduledReward(100L);
         // when
-        todoService.updateStatusAndReward(firstInstance.getId(), member, req);
+        todoService.updateStatusAndReward(firstInstance.getId(), member, true, req);
 
         // then
         assertThat(firstInstance.isDone()).isFalse();
@@ -516,7 +644,6 @@ class TodoServiceTest extends IntegrationTestSupport {
 
         UpdateTodoStatusReq req = UpdateTodoStatusReq.builder()
                 .isDone(false)
-                .isInstance(true)
                 .build();
 
         int size = todoInstances.size();
@@ -526,13 +653,92 @@ class TodoServiceTest extends IntegrationTestSupport {
         member.getDiligence().increaseGauge(40);
         member.addScheduledReward(100L);
         // when
-        todoService.updateStatusAndReward(todoInstances.get(2).getId(), member, req);
+        todoService.updateStatusAndReward(todoInstances.get(2).getId(), member, true, req);
 
         // then
         assertThat(todo.isDone()).isFalse();
         assertThat(todoInstances.get(2).isDone()).isFalse();
         assertThat(member.getDiligence().getGauge()).isEqualTo(40 - GAUGE_INCREASE_RATE * (size + 1));
         assertThat(member.getScheduledReward()).isEqualTo((long) (100L - REWARD_UNIT * (size + 1) * REWARD_LEVERAGE_RATE));
+    }
+
+    @Test
+    @DisplayName("todo를 삭제한다.")
+    void deleteSingleTodo() {
+        // given
+        Todo todo = testTodoFactory.createSingleTodo(
+                LocalDateTime.of(2024, 7, 7, 7, 0),
+                LocalDateTime.of(2024, 7, 7, 8, 0),
+                false,
+                member
+        );
+
+        UpdateAndDeleteTodoQueryParams params = UpdateAndDeleteTodoQueryParams.builder()
+                .isInstance(false)
+                .build();
+
+        // when
+        todoService.deleteTodo(todo.getId(), params);
+
+        // then
+        assertThat(todoRepository.findById(todo.getId())).isEmpty();
+    }
+
+    @Test
+    @DisplayName("한 개의 반복 일정을 삭제할 수 있다.")
+    void deleteRepeatedTodo_THIS_TASK() {
+        // given
+        Todo todo = testTodoFactory.createRepeatedTodo(
+                LocalDateTime.of(2024, 7, 7, 7, 0),
+                LocalDateTime.of(2024, 7, 7, 8, 0),
+                false,
+                member,
+                RepeatInfo.builder()
+                        .frequency(Frequency.DAILY)
+                        .interval(1)
+                        .until(LocalDate.from(LocalDateTime.of(2024, 7, 10, 7, 0)))
+                        .build()
+        );
+
+        UpdateAndDeleteTodoQueryParams params = UpdateAndDeleteTodoQueryParams.builder()
+                .isInstance(true)
+                .targetType(TargetType.THIS_TASK)
+                .build();
+
+        // when
+        todoService.deleteTodo(todo.getTodoInstances().get(0).getId(), params);
+
+        // then
+        assertThat(todo.getTodoInstances()).hasSize(3);
+    }
+
+    @Test
+    @DisplayName("전체 반복 일정을 삭제할 수 있다.")
+    void deleteRepeatedTodo_ALL_TASKS() {
+        // given
+        Todo todo = testTodoFactory.createRepeatedTodo(
+                LocalDateTime.of(2024, 7, 7, 7, 0),
+                LocalDateTime.of(2024, 7, 7, 8, 0),
+                false,
+                member,
+                RepeatInfo.builder()
+                        .frequency(Frequency.DAILY)
+                        .interval(1)
+                        .until(LocalDate.from(LocalDateTime.of(2024, 7, 10, 7, 0)))
+                        .build()
+        );
+
+        UpdateAndDeleteTodoQueryParams params = UpdateAndDeleteTodoQueryParams.builder()
+                .isInstance(true)
+                .targetType(TargetType.ALL_TASKS)
+                .build();
+
+        // when
+        todoService.deleteTodo(todo.getTodoInstances().get(0).getId(), params);
+
+        // then
+        assertThat(todo.getTodoInstances()).hasSize(0);
+        assertThat(todoRepository.findById(todo.getId())).isEmpty();
     }
 
     private Member createMember() {
