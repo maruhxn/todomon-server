@@ -4,8 +4,10 @@ import com.maruhxn.todomon.domain.pet.dao.PetRepository;
 import com.maruhxn.todomon.domain.pet.domain.Pet;
 import com.maruhxn.todomon.domain.social.dao.FollowRepository;
 import com.maruhxn.todomon.domain.social.domain.Follow;
+import com.maruhxn.todomon.domain.todo.dao.TodoInstanceRepository;
 import com.maruhxn.todomon.domain.todo.dao.TodoRepository;
 import com.maruhxn.todomon.domain.todo.domain.Todo;
+import com.maruhxn.todomon.domain.todo.domain.TodoInstance;
 import com.maruhxn.todomon.global.auth.model.TodomonOAuth2User;
 import com.maruhxn.todomon.global.error.ErrorCode;
 import com.maruhxn.todomon.global.error.exception.ForbiddenException;
@@ -26,6 +28,7 @@ public class AuthChecker {
 
     private final PetRepository petRepository;
     private final TodoRepository todoRepository;
+    private final TodoInstanceRepository todoInstanceRepository;
     private final FollowRepository followRepository;
 
     public boolean isMeOrAdmin(Long memberId) {
@@ -53,14 +56,23 @@ public class AuthChecker {
         return true;
     }
 
-    public boolean isMyTodoOrAdmin(Long todoId) {
+    public boolean isMyTodoOrAdmin(Long objectId, boolean isInstance) {
         TodomonOAuth2User todomonOAuth2User = getPrincipal();
 
-        Todo findTodo = todoRepository.findById(todoId)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_TODO));
+        Todo todo = null;
+
+        if (isInstance) {
+            TodoInstance todoInstance = todoInstanceRepository.findById(objectId)
+                    .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_TODO));
+
+            todo = todoInstance.getTodo();
+        } else {
+            todo = todoRepository.findById(objectId)
+                    .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_TODO));
+        }
 
         if (!hasAdminAuthority()
-                && !Objects.equals(todomonOAuth2User.getId(), findTodo.getWriter().getId())) {
+                && !Objects.equals(todomonOAuth2User.getId(), todo.getWriter().getId())) {
             throw new ForbiddenException(ErrorCode.FORBIDDEN);
         }
 

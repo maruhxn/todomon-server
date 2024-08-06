@@ -7,9 +7,7 @@ import com.maruhxn.todomon.domain.todo.dao.TodoRepository;
 import com.maruhxn.todomon.domain.todo.domain.RepeatInfo;
 import com.maruhxn.todomon.domain.todo.domain.Todo;
 import com.maruhxn.todomon.domain.todo.domain.TodoInstance;
-import com.maruhxn.todomon.domain.todo.dto.request.CreateTodoReq;
-import com.maruhxn.todomon.domain.todo.dto.request.UpdateTodoReq;
-import com.maruhxn.todomon.domain.todo.dto.request.UpdateTodoStatusReq;
+import com.maruhxn.todomon.domain.todo.dto.request.*;
 import com.maruhxn.todomon.global.error.ErrorCode;
 import com.maruhxn.todomon.global.error.exception.BadRequestException;
 import com.maruhxn.todomon.global.error.exception.NotFoundException;
@@ -40,8 +38,6 @@ public class TodoService {
 
     /**
      * Todo를 생성한다.
-     * <p>
-     * + 4일짜리 Todo는 해당 Todo를 종료 일자까지 매일 반복하는 것과 동일
      *
      * @param member
      * @param req
@@ -50,9 +46,7 @@ public class TodoService {
         Todo todo = req.toEntity(member);
         RepeatInfo repeatInfo = null;
         if (req.getRepeatInfoItem() != null) {
-            repeatInfo = req.getRepeatInfoItem().toEntity();
-            todo.setRepeatInfo(repeatInfo);
-            repeatInfoRepository.save(repeatInfo);
+            repeatInfo = createAndSetRepeatInfo(req.getRepeatInfoItem(), todo);
         }
 
         todoRepository.save(todo);
@@ -60,8 +54,13 @@ public class TodoService {
         if (repeatInfo != null) {
             createTodoInstances(todo);
         }
+    }
 
-
+    private RepeatInfo createAndSetRepeatInfo(RepeatInfoItem repeatInfoItem, Todo todo) {
+        RepeatInfo repeatInfo = repeatInfoItem.toEntity();
+        todo.setRepeatInfo(repeatInfo);
+        repeatInfoRepository.save(repeatInfo);
+        return repeatInfo;
     }
 
     private void createTodoInstances(Todo todo) {
@@ -171,27 +170,66 @@ public class TodoService {
         return true;
     }
 
-    // Todo 정보를 업데이트한다. 새로운 반복 정보가 들어오면 기존 반복 정보를 제거한 후, 덮어씌운다.
-    public void update(Long todoId, UpdateTodoReq req) {
+    public void update(Long objectId, UpdateAndDeleteTodoQueryParams params, UpdateTodoReq req) {
         validateUpdateReq(req);
 
-        Todo findTodo = todoRepository.findById(todoId)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_TODO));
+        if (params.getIsInstance()) {
+            TodoInstance todoInstance = todoInstanceRepository.findById(objectId)
+                    .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_TODO));
+            switch (params.getTargetType()) {
+                case THIS_TASK -> {
+                    // 반복 정보 수정은 ALL_TASKS 타입만 가능
+                    if (req.getRepeatInfoItem() != null) {
+                        throw new BadRequestException(ErrorCode.BAD_REQUEST, "전체 인스턴스에 대해서만 반복 정보 수정이 가능합니다.");
+                    }
 
-        findTodo.update(req);
+                    if (req.getEndAt() == null && todoInstance.getEndAt().isBefore(req.getStartAt())
+                            || req.getStartAt() == null && todoInstance.getStartAt().isAfter(req.getEndAt())
+                    ) {
+                        throw new BadRequestException(ErrorCode.BAD_REQUEST, "시작 시각은 종료 시각보다 이전이어야 합니다.");
+                    }
 
-        if (req.getRepeatInfoItem() != null) {
-            RepeatInfo oldRepeatInfo = findTodo.getRepeatInfo();
-            if (oldRepeatInfo != null) {
-                findTodo.setRepeatInfo(null);
-                repeatInfoRepository.delete(oldRepeatInfo);
-                todoInstanceRepository.deleteAllByTodo_Id(todoId);
+                    todoInstance.update(req);
+                }
+                case ALL_TASKS -> {
+                    // 시간 정보 수정은 THIS_TASK 타입만 가능
+                    if (req.getStartAt() != null || req.getEndAt() != null) {
+                        throw new BadRequestException(ErrorCode.BAD_REQUEST, "시간 정보 수정은 단일 인스턴스에 대해서만 수정 가능합니다.");
+                    }
+
+                    Todo todo = todoInstance.getTodo();
+                    todo.update(req); // todo 먼저 업데이트
+
+                    if (req.getRepeatInfoItem() != null) {
+                        RepeatInfo oldRepeatInfo = todo.getRepeatInfo();
+                        if (oldRepeatInfo != null) {
+                            todo.setRepeatInfo(null);
+                            todo.setTodoInstances(null);
+                            repeatInfoRepository.delete(oldRepeatInfo);
+                            todoInstanceRepository.deleteAllByTodo_Id(todo.getId());
+                        }
+                        todo.updateEndAtTemporally();
+                        createAndSetRepeatInfo(req.getRepeatInfoItem(), todo);
+                        createTodoInstances(todo);
+                    } else {
+                        List<TodoInstance> todoInstances = todoInstanceRepository.findAllByTodo_Id(todoInstance.getTodo().getId());
+                        todoInstances.forEach(instance -> instance.update(req));
+                    }
+                }
             }
-            RepeatInfo repeatInfo = req.getRepeatInfoItem().toEntity();
-            repeatInfoRepository.save(repeatInfo);
-            findTodo.setRepeatInfo(repeatInfo);
-            createTodoInstances(findTodo);
+        } else {
+            Todo findTodo = todoRepository.findById(objectId)
+                    .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_TODO));
+
+            findTodo.update(req);
+
+            if (req.getRepeatInfoItem() != null) {
+                createAndSetRepeatInfo(req.getRepeatInfoItem(), findTodo);
+                createTodoInstances(findTodo);
+            }
         }
+
+
     }
 
     private static void validateUpdateReq(UpdateTodoReq req) {
@@ -204,13 +242,14 @@ public class TodoService {
      * 반복 정보가 있는 경우 -> 해당 반복을 수행할 때마다 일관성 게이지가 오름, 보상은 그대로 + 반복 종료일까지 모든 투두를 수행했을 경우 "누적된" 보상의 지급
      * 반복 정보가 없는 단일 Todo의 경우 -> 단순 상태 업데이트 및 보상 지급
      *
-     * @param todoId
+     * @param objectId
      * @param member
+     * @param isInstance
      * @param req
      */
-    public void updateStatusAndReward(Long todoId, Member member, UpdateTodoStatusReq req) {
-        if (req.getIsInstance()) {
-            TodoInstance todoInstance = todoInstanceRepository.findById(todoId)
+    public void updateStatusAndReward(Long objectId, Member member, boolean isInstance, UpdateTodoStatusReq req) {
+        if (isInstance) {
+            TodoInstance todoInstance = todoInstanceRepository.findById(objectId)
                     .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_TODO));
             if (req.getIsDone()) {
                 todoInstance.updateIsDone(true);
@@ -220,7 +259,7 @@ public class TodoService {
                 todoInstance.updateIsDone(false);
             }
         } else {
-            Todo findTodo = todoRepository.findById(todoId)
+            Todo findTodo = todoRepository.findById(objectId)
                     .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_TODO));
             // 반복 정보가 없는 단일 todo의 경우 -> 단순 상태 업데이트 및 보상 지급
             findTodo.updateIsDone(req.getIsDone());
@@ -290,10 +329,32 @@ public class TodoService {
     }
 
 
-    public void deleteTodo(Long todoId) {
-        Todo findTodo = todoRepository.findById(todoId)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_TODO));
-        todoRepository.delete(findTodo);
+    public void deleteTodo(Long objectId, UpdateAndDeleteTodoQueryParams params) {
+        if (params.getIsInstance()) {
+            TodoInstance todoInstance = todoInstanceRepository.findById(objectId)
+                    .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_TODO));
+            Todo todo = todoInstance.getTodo();
+            List<TodoInstance> todoInstances = todo.getTodoInstances();
+
+            switch (params.getTargetType()) {
+                case THIS_TASK -> {
+                    todoInstanceRepository.delete(todoInstance);
+                    todoInstances.remove(todoInstance);
+                }
+                case ALL_TASKS -> {
+                    todoInstances.clear();
+                    todoInstanceRepository.deleteAllByTodo_Id(todo.getId());
+                }
+            }
+
+            if (todoInstances.isEmpty()) {
+                todoRepository.delete(todo);
+            }
+        } else {
+            Todo findTodo = todoRepository.findById(objectId)
+                    .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_TODO));
+            todoRepository.delete(findTodo);
+        }
     }
 
 }

@@ -91,4 +91,8 @@ public class Todo extends BaseEntity {
     public void setTodoInstances(List<TodoInstance> instances) {
         this.todoInstances = instances;
     }
+
+    public void updateEndAtTemporally() {
+        this.endAt = LocalDateTime.of(this.startAt.toLocalDate(), this.endAt.toLocalTime());
+    }
 }
