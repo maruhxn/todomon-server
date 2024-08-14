@@ -11,7 +11,6 @@ import com.maruhxn.todomon.global.auth.model.provider.OAuth2Provider;
 import com.maruhxn.todomon.global.auth.model.provider.OAuth2ProviderUser;
 import com.maruhxn.todomon.global.error.ErrorCode;
 import com.maruhxn.todomon.global.error.exception.BadRequestException;
-import com.maruhxn.todomon.global.error.exception.ExistingResourceException;
 import com.maruhxn.todomon.global.error.exception.NotFoundException;
 import com.maruhxn.todomon.infra.file.FileService;
 import lombok.RequiredArgsConstructor;
@@ -35,19 +34,8 @@ public class MemberService {
     }
 
     public Member createOrUpdate(OAuth2ProviderUser oAuth2ProviderUser) {
-        memberRepository.findByEmail(oAuth2ProviderUser.getEmail())
-                .ifPresent(findMember -> {
-                    throw new ExistingResourceException(ErrorCode.EXISTING_MEMBER);
-                });
-
-//        if (optionalMember.isPresent()) {
-//            member = optionalMember.get();
-//            member.updateByOAuth2Info(oAuth2ProviderUser);
-//        } else {
-//            member = this.registerByOAuth2(oAuth2ProviderUser);
-//        }
-
-        return this.registerByOAuth2(oAuth2ProviderUser);
+        return memberRepository.findByEmail(oAuth2ProviderUser.getEmail())
+                .orElseGet(() -> this.registerByOAuth2(oAuth2ProviderUser));
     }
 
     private Member registerByOAuth2(OAuth2ProviderUser oAuth2ProviderUser) {

@@ -140,7 +140,7 @@ public class Member extends BaseEntity {
         this.foodCnt -= foodCnt;
     }
 
-    public void addStar(int starCnt) {
+    public void addStar(Long starCnt) {
         this.starPoint += starCnt;
     }
 
