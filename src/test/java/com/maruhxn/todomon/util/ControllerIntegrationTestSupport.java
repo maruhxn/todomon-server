@@ -3,7 +3,9 @@ package com.maruhxn.todomon.util;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.maruhxn.todomon.config.MockS3Config;
 import com.maruhxn.todomon.domain.member.dao.MemberRepository;
+import com.maruhxn.todomon.domain.member.dao.TitleNameRepository;
 import com.maruhxn.todomon.domain.member.domain.Member;
+import com.maruhxn.todomon.domain.member.domain.TitleName;
 import com.maruhxn.todomon.global.auth.application.JwtProvider;
 import com.maruhxn.todomon.global.auth.dto.TokenDto;
 import com.maruhxn.todomon.global.auth.model.Role;
@@ -48,6 +50,9 @@ public abstract class ControllerIntegrationTestSupport {
     @Autowired
     protected MemberRepository memberRepository;
 
+    @Autowired
+    protected TitleNameRepository titleNameRepository;
+
     protected Member member;
     protected Member admin;
     protected TokenDto adminTokenDto;
@@ -91,5 +96,15 @@ public abstract class ControllerIntegrationTestSupport {
     private TokenDto getTokenDto(Member member) {
         TodomonOAuth2User todomonOAuth2User = TodomonOAuth2User.of(member);
         return jwtProvider.createJwt(todomonOAuth2User);
+    }
+
+    protected TitleName createTitleName(Member member) {
+        TitleName titleName = TitleName.builder()
+                .name("TEST")
+                .color("#000000")
+                .member(member)
+                .build();
+        member.setTitleName(titleName);
+        return titleNameRepository.save(titleName);
     }
 }

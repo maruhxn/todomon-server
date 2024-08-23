@@ -105,30 +105,6 @@ class MemberServiceTest extends IntegrationTestSupport {
         assertThat(member).isEqualTo(findMember);
     }
 
-//    @Test
-//    @DisplayName("OAuth2 유저 정보와 일치하는 Member가 이미 존재하는 경우, 해당 Member의 정보를 수정한다.")
-//    void createOrUpdate_update() {
-//        // given
-//        Member existingMember = Member.builder()
-//                .username("existing")
-//                .email("test@test.com")
-//                .role(Role.ROLE_USER)
-//                .providerId("google_foobarfoobar")
-//                .provider(OAuth2Provider.GOOGLE)
-//                .profileImageUrl("existing-google-user-picture-url")
-//                .build();
-//        memberRepository.save(existingMember);
-//        GoogleUser googleUser = getGoogleUser("test@test.com");
-//
-//        // when
-//        memberService.createOrUpdate(googleUser);
-//
-//        // then
-//        Member findMember = memberRepository.findById(existingMember.getId()).get();
-//        assertThat(findMember.getUsername()).isEqualTo("tester");
-//        assertThat(findMember.getProfileImageUrl()).isEqualTo("google-user-picture-url");
-//    }
-
     @Test
     @DisplayName("admin 이메일에 해당하는 계정일 경우, 어드민 권한으로 생성된다.")
     void adminCreate() {
@@ -186,15 +162,29 @@ class MemberServiceTest extends IntegrationTestSupport {
 
         followRepository.saveAll(List.of(followed, following1, following2));
 
-        ProfileDto.RepresentPetItem representPetItem = ProfileDto.RepresentPetItem.of(pet);
-
         // when
         ProfileDto profile = memberService.getProfile(tester1.getId());
 
         // then
         assertThat(profile)
-                .extracting("id", "username", "email", "profileImageUrl", "level", "gauge", "representPetItem.id", "representPetItem.name", "representPetItem.rarity", "representPetItem.appearance", "representPetItem.color", "representPetItem.level", "titleName", "titleColor", "followerCnt", "followingCnt")
-                .containsExactly(tester1.getId(), "tester1", "tester1@test.com", "profileImageUrl", 1, 0.0, representPetItem.getId(), representPetItem.getName(), representPetItem.getRarity(), representPetItem.getAppearance(), representPetItem.getColor(), representPetItem.getLevel(), "title", "#000000", 1L, 2L);
+                .satisfies(dto -> {
+                    assertThat(dto.getId()).isEqualTo(tester1.getId());
+                    assertThat(dto.getUsername()).isEqualTo("tester1");
+                    assertThat(dto.getProfileImageUrl()).isEqualTo("profileImageUrl");
+                    assertThat(dto.getLevel()).isEqualTo(1);
+                    assertThat(dto.getGauge()).isEqualTo(0.0);
+                    assertThat(dto.getRepresentPetItem().getId()).isEqualTo(pet.getId());
+                    assertThat(dto.getRepresentPetItem().getName()).isEqualTo(pet.getName());
+                    assertThat(dto.getRepresentPetItem().getRarity()).isEqualTo(pet.getRarity());
+                    assertThat(dto.getRepresentPetItem().getAppearance()).isEqualTo(pet.getAppearance());
+                    assertThat(dto.getRepresentPetItem().getColor()).isEqualTo(pet.getColor());
+                    assertThat(dto.getRepresentPetItem().getLevel()).isEqualTo(pet.getLevel());
+                    assertThat(dto.getTitle().getId()).isEqualTo(titleName.getId());
+                    assertThat(dto.getTitle().getName()).isEqualTo(titleName.getName());
+                    assertThat(dto.getTitle().getColor()).isEqualTo(titleName.getColor());
+                    assertThat(dto.getFollowerCnt()).isEqualTo(1L);
+                    assertThat(dto.getFollowingCnt()).isEqualTo(2L);
+                });
     }
 
     @Test

@@ -55,7 +55,7 @@ class PetServiceTest extends IntegrationTestSupport {
         // given
 
         // when
-        petService.create(member, null);
+        petService.create(member.getId(), null);
 
         // then
         List<Pet> pets = petRepository.findAll();
@@ -79,7 +79,7 @@ class PetServiceTest extends IntegrationTestSupport {
         memberRepository.save(member);
 
         // when
-        petService.create(member, req);
+        petService.create(member.getId(), req);
 
         // then
         List<Pet> pets = petRepository.findAll();
@@ -100,7 +100,7 @@ class PetServiceTest extends IntegrationTestSupport {
                 .build();
 
         // when / then
-        assertThatThrownBy(() -> petService.create(member, req))
+        assertThatThrownBy(() -> petService.create(member.getId(), req))
                 .isInstanceOf(AccessDeniedException.class)
                 .hasMessage(ErrorCode.NOT_SUBSCRIPTION.getMessage());
 
@@ -128,7 +128,7 @@ class PetServiceTest extends IntegrationTestSupport {
         petRepository.saveAll(List.of(pet1, pet2, pet3));
 
         // when / then
-        assertThatThrownBy(() -> petService.create(member, null))
+        assertThatThrownBy(() -> petService.create(member.getId(), null))
                 .hasMessage(ErrorCode.NO_SPACE_PET_HOUSE.getMessage())
                 .isInstanceOf(BadRequestException.class);
     }
@@ -145,10 +145,8 @@ class PetServiceTest extends IntegrationTestSupport {
         member.addFood(10);
         petRepository.save(pet);
 
-        FeedReq req = new FeedReq(1);
-
         // when
-        petService.feed(pet.getId(), member, req);
+        petService.feed(pet.getId(), member, 1L);
 
         // then
         assertThat(pet)
@@ -170,10 +168,8 @@ class PetServiceTest extends IntegrationTestSupport {
         member.addFood(10);
         petRepository.save(pet);
 
-        FeedReq req = new FeedReq(1);
-
         // when
-        petService.feed(pet.getId(), member, req);
+        petService.feed(pet.getId(), member, 1L);
 
         // then
         assertThat(pet)
@@ -204,10 +200,8 @@ class PetServiceTest extends IntegrationTestSupport {
         member.addCollection(collectedPet);
         collectedPetRepository.save(collectedPet);
 
-        FeedReq req = new FeedReq(10);
-
         // when
-        petService.feed(pet.getId(), member, req);
+        petService.feed(pet.getId(), member, 10L);
 
         // then
         assertThat(prevAppearance).isNotEqualTo(pet.getAppearance());
@@ -229,10 +223,8 @@ class PetServiceTest extends IntegrationTestSupport {
         member.addFood(1);
         petRepository.save(pet);
 
-        FeedReq req = new FeedReq(10);
-
         // when
-        assertThatThrownBy(() -> petService.feed(pet.getId(), member, req))
+        assertThatThrownBy(() -> petService.feed(pet.getId(), member, 10L))
                 .hasMessage(ErrorCode.OVER_FOOD_CNT.getMessage())
                 .isInstanceOf(BadRequestException.class);
     }

@@ -19,14 +19,16 @@ public class UpdateTodoReq implements DateRangeDto {
     private LocalDateTime startAt;
     private LocalDateTime endAt;
     private Boolean isAllDay;
-    private RepeatInfoItem repeatInfoItem;
+    private String color;
+    private RepeatInfoReqItem repeatInfoReqItem;
 
     @Builder
-    public UpdateTodoReq(String content, LocalDateTime startAt, LocalDateTime endAt, Boolean isAllDay, RepeatInfoItem repeatInfoItem) {
+    public UpdateTodoReq(String content, LocalDateTime startAt, LocalDateTime endAt, Boolean isAllDay, String color, RepeatInfoReqItem repeatInfoReqItem) {
         this.content = content;
         this.startAt = startAt;
         this.endAt = endAt;
         this.isAllDay = isAllDay;
-        this.repeatInfoItem = repeatInfoItem;
+        this.color = color;
+        this.repeatInfoReqItem = repeatInfoReqItem;
     }
 }

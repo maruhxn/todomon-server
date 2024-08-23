@@ -1,9 +1,8 @@
 package com.maruhxn.todomon.domain.member.dao;
 
 import com.maruhxn.todomon.domain.member.dto.response.ProfileDto;
+import com.maruhxn.todomon.domain.member.dto.response.SearchDto;
 import com.maruhxn.todomon.domain.pet.domain.QPet;
-import com.maruhxn.todomon.domain.social.dto.response.DiligenceRankItem;
-import com.maruhxn.todomon.domain.social.dto.response.TodoAchievementRankItem;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.JPAExpressions;
@@ -11,9 +10,6 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import java.time.DayOfWeek;
-import java.time.LocalDate;
-import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,7 +17,6 @@ import static com.maruhxn.todomon.domain.member.domain.QDiligence.diligence;
 import static com.maruhxn.todomon.domain.member.domain.QMember.member;
 import static com.maruhxn.todomon.domain.member.domain.QTitleName.titleName;
 import static com.maruhxn.todomon.domain.social.domain.QFollow.follow;
-import static com.maruhxn.todomon.domain.todo.domain.QTodoAchievementHistory.todoAchievementHistory;
 
 @Repository
 @RequiredArgsConstructor
@@ -29,61 +24,17 @@ public class MemberQueryRepository {
 
     private final JPAQueryFactory query;
 
-    public List<DiligenceRankItem> findTop10MembersByDiligenceLevelAndGauge() {
-        return query.select(
-                        Projections.fields(DiligenceRankItem.class,
-                                member.id,
-                                member.username,
-                                member.profileImageUrl,
-                                diligence.level
+    public List<SearchDto> findMemberByKey(String key) {
+        return query
+                .select(
+                        Projections.fields(SearchDto.class,
+                                member.id.as("memberId"),
+                                member.username
                         )
                 )
                 .from(member)
-                .join(member.diligence, diligence)
-                .orderBy(diligence.level.desc(), diligence.gauge.desc(), member.createdAt.asc())
-                .limit(10)
-                .fetch();
-    }
-
-    public List<TodoAchievementRankItem> findTop10MembersByYesterdayAchievement() {
-        LocalDate yesterday = LocalDate.now().minusDays(1);
-
-        return query.select(
-                        Projections.fields(TodoAchievementRankItem.class,
-                                member.id,
-                                member.username,
-                                member.profileImageUrl,
-                                todoAchievementHistory.cnt
-                        )
-                )
-                .from(todoAchievementHistory)
-                .join(todoAchievementHistory.member, member)
-                .where(todoAchievementHistory.date.eq(yesterday))
-                .groupBy(member.id)
-                .orderBy(todoAchievementHistory.cnt.sum().desc(), todoAchievementHistory.createdAt.max().asc(), member.createdAt.asc())
-                .limit(10)
-                .fetch();
-    }
-
-    public List<TodoAchievementRankItem> findTop10MembersByWeeklyAchievement() {
-        LocalDate startOfCurrentWeek = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
-        LocalDate startOfLastWeek = startOfCurrentWeek.minusWeeks(1);
-        LocalDate endOfLastWeek = startOfCurrentWeek.minusDays(1);
-
-        return query.select(
-                        Projections.fields(TodoAchievementRankItem.class,
-                                member.id,
-                                member.username,
-                                member.profileImageUrl,
-                                todoAchievementHistory.cnt
-                        )
-                )
-                .from(todoAchievementHistory)
-                .join(todoAchievementHistory.member, member)
-                .where(todoAchievementHistory.date.between(startOfLastWeek, endOfLastWeek))
-                .groupBy(member.id)
-                .orderBy(todoAchievementHistory.cnt.sum().desc(), todoAchievementHistory.createdAt.max().asc(), member.createdAt.asc())
-                .limit(10)
+                .where(member.username.startsWith(key))
+                .limit(5)
                 .fetch();
     }
 
@@ -100,8 +51,11 @@ public class MemberQueryRepository {
                                 member.profileImageUrl,
                                 diligence.level,
                                 diligence.gauge,
-                                titleName.name.as("titleName"),
-                                titleName.color.as("titleColor"),
+                                Projections.fields(ProfileDto.TitleNameItem.class,
+                                        titleName.id,
+                                        titleName.name,
+                                        titleName.color
+                                ).as("title"),
                                 Projections.fields(ProfileDto.RepresentPetItem.class,
                                         representPet.id,
                                         representPet.name,
@@ -131,8 +85,9 @@ public class MemberQueryRepository {
                 .where(member.id.eq(memberId))
                 .fetchOne();
 
-        if (profileDto != null && profileDto.getRepresentPetItem().getId() == null) {
-            profileDto.setRepresentPetItemToNull();
+        if (profileDto != null) {
+            profileDto.setTitleNameItemToNullIfIsEmpty();
+            profileDto.setRepresentPetItemToNullIfIsEmpty();
         }
 
         return Optional.ofNullable(profileDto);

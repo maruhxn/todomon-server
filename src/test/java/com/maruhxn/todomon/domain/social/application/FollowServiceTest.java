@@ -111,8 +111,8 @@ class FollowServiceTest extends IntegrationTestSupport {
     }
 
     @Test
-    @DisplayName("언팔로우 - 팔로위가 팔로워를 언팔로우")
-    void unfollow2() {
+    @DisplayName("언팔로우 - 팔로위가 팔로워 삭제")
+    void removeFollower() {
         // given
         Member tester1 = createMember("tester1");
         Member tester2 = createMember("tester2");
@@ -124,10 +124,34 @@ class FollowServiceTest extends IntegrationTestSupport {
         followRepository.save(follow);
 
         // when
-        followService.unfollow(tester2.getId(), tester1.getId());
+        followService.removeFollower(tester2.getId(), tester1.getId());
 
         // then
         assertThat(followRepository.findById(follow.getId())).isEmpty();
+    }
+
+    @Test
+    @DisplayName("맞팔로우")
+    void matFollow() {
+        // given
+        Member member = createMember("tester1");
+        Member follower = createMember("tester2");
+        Follow follow = Follow.builder()
+                .follower(follower)
+                .followee(member)
+                .build();
+        follow.updateStatus(ACCEPTED);
+        followRepository.save(follow);
+
+        // when
+        followService.matFollow(member, follower.getId());
+
+        // then
+        assertThat(followRepository.findByFollower_IdAndFollowee_Id(member.getId(), follower.getId()))
+                .isNotEmpty()
+                .get()
+                .extracting("follower", "followee", "status")
+                .containsExactly(member, follower, ACCEPTED);
     }
 
     private Member createMember(String username) {

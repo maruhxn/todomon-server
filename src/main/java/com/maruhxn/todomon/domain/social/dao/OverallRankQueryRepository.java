@@ -1,13 +1,10 @@
 package com.maruhxn.todomon.domain.social.dao;
 
-import com.maruhxn.todomon.domain.member.domain.Member;
-import com.maruhxn.todomon.domain.social.domain.FollowRequestStatus;
 import com.maruhxn.todomon.domain.social.dto.response.AbstractMemberInfoItem;
 import com.maruhxn.todomon.domain.social.dto.response.CollectedPetRankItem;
 import com.maruhxn.todomon.domain.social.dto.response.DiligenceRankItem;
 import com.maruhxn.todomon.domain.social.dto.response.TodoAchievementRankItem;
 import com.querydsl.core.types.Projections;
-import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -21,18 +18,16 @@ import static com.maruhxn.todomon.domain.member.domain.QDiligence.diligence;
 import static com.maruhxn.todomon.domain.member.domain.QMember.member;
 import static com.maruhxn.todomon.domain.member.domain.QTitleName.titleName;
 import static com.maruhxn.todomon.domain.pet.domain.QCollectedPet.collectedPet;
-import static com.maruhxn.todomon.domain.social.domain.QFollow.follow;
 import static com.maruhxn.todomon.domain.todo.domain.QTodoAchievementHistory.todoAchievementHistory;
 
 @Repository
 @RequiredArgsConstructor
-public class SocialQueryRepository {
+public class OverallRankQueryRepository {
 
     private final JPAQueryFactory query;
 
-    public List<DiligenceRankItem> findTop10MembersByDiligenceLevelAndGauge(Member currentMember) {
-        List<DiligenceRankItem> results = query
-                .select(
+    public List<DiligenceRankItem> findTop10MembersByDiligenceLevelAndGauge() {
+        List<DiligenceRankItem> results = query.select(
                         Projections.fields(DiligenceRankItem.class,
                                 member.id.as("memberId"),
                                 member.username,
@@ -45,13 +40,8 @@ public class SocialQueryRepository {
                         )
                 )
                 .from(member)
-                .leftJoin(follow).on(follow.followee.id.eq(member.id).and(isAccepted()))
                 .join(member.diligence, diligence)
                 .leftJoin(member.titleName, titleName)
-                .where(
-                        followerIsCurrentMember(currentMember.getId())
-                                .or(isCurrentMember(currentMember.getId()))
-                )
                 .orderBy(diligence.level.desc(), diligence.gauge.desc(), member.createdAt.asc())
                 .limit(10)
                 .fetch();
@@ -61,7 +51,7 @@ public class SocialQueryRepository {
         return results;
     }
 
-    public List<CollectedPetRankItem> findTop10MembersByCollectedPetCnt(Member currentMember) {
+    public List<CollectedPetRankItem> findTop10MembersByCollectedPetCnt() {
         List<CollectedPetRankItem> results = query.select(
                         Projections.fields(CollectedPetRankItem.class,
                                 member.id.as("memberId"),
@@ -76,13 +66,8 @@ public class SocialQueryRepository {
                         )
                 )
                 .from(member)
-                .leftJoin(follow).on(follow.followee.id.eq(member.id).and(isAccepted()))
                 .leftJoin(member.collectedPets, collectedPet)
                 .leftJoin(member.titleName, titleName)
-                .where(
-                        followerIsCurrentMember(currentMember.getId())
-                                .or(isCurrentMember(currentMember.getId()))
-                )
                 .groupBy(member.id, member.username, member.profileImageUrl)
                 .orderBy(collectedPet.id.count().desc(), collectedPet.createdAt.max().desc(), member.createdAt.asc())
                 .limit(10)
@@ -93,7 +78,7 @@ public class SocialQueryRepository {
         return results;
     }
 
-    public List<TodoAchievementRankItem> findTop10MembersByYesterdayAchievement(Member currentMember) {
+    public List<TodoAchievementRankItem> findTop10MembersByYesterdayAchievement() {
         LocalDate yesterday = LocalDate.now().minusDays(1);
 
         List<TodoAchievementRankItem> results = query.select(
@@ -108,17 +93,10 @@ public class SocialQueryRepository {
                                 ).as("title")
                         )
                 )
-                .from(member)
-                .leftJoin(follow).on(follow.followee.id.eq(member.id).and(isAccepted()))
-                .join(member.todoAchievementHistories, todoAchievementHistory)
+                .from(todoAchievementHistory)
+                .join(todoAchievementHistory.member, member)
                 .leftJoin(member.titleName, titleName)
-                .where(
-                        (
-                                followerIsCurrentMember(currentMember.getId())
-                                        .or(isCurrentMember(currentMember.getId()))
-                        )
-                                .and(todoAchievementHistory.date.eq(yesterday))
-                )
+                .where(todoAchievementHistory.date.eq(yesterday))
                 .groupBy(member.id)
                 .orderBy(todoAchievementHistory.cnt.sum().desc(), todoAchievementHistory.createdAt.max().asc(), member.createdAt.asc())
                 .limit(10)
@@ -129,11 +107,7 @@ public class SocialQueryRepository {
         return results;
     }
 
-    private static BooleanExpression isAccepted() {
-        return follow.status.eq(FollowRequestStatus.ACCEPTED);
-    }
-
-    public List<TodoAchievementRankItem> findTop10MembersByWeeklyAchievement(Member currentMember) {
+    public List<TodoAchievementRankItem> findTop10MembersByWeeklyAchievement() {
         LocalDate startOfCurrentWeek = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
         LocalDate startOfLastWeek = startOfCurrentWeek.minusWeeks(1);
         LocalDate endOfLastWeek = startOfCurrentWeek.minusDays(1);
@@ -150,17 +124,10 @@ public class SocialQueryRepository {
                                 ).as("title")
                         )
                 )
-                .from(member)
-                .leftJoin(follow).on(follow.followee.id.eq(member.id).and(isAccepted()))
-                .join(member.todoAchievementHistories, todoAchievementHistory)
+                .from(todoAchievementHistory)
+                .join(todoAchievementHistory.member, member)
                 .leftJoin(member.titleName, titleName)
-                .where(
-                        (
-                                followerIsCurrentMember(currentMember.getId())
-                                        .or(isCurrentMember(currentMember.getId()))
-                        )
-                                .and(todoAchievementHistory.date.between(startOfLastWeek, endOfLastWeek))
-                )
+                .where(todoAchievementHistory.date.between(startOfLastWeek, endOfLastWeek))
                 .groupBy(member.id)
                 .orderBy(todoAchievementHistory.cnt.sum().desc(), todoAchievementHistory.createdAt.max().asc(), member.createdAt.asc())
                 .limit(10)
@@ -170,14 +137,4 @@ public class SocialQueryRepository {
 
         return results;
     }
-
-
-    private BooleanExpression followerIsCurrentMember(Long currentMemberId) {
-        return currentMemberId != null ? follow.follower.id.eq(currentMemberId) : null;
-    }
-
-    private BooleanExpression isCurrentMember(Long currentMemberId) {
-        return currentMemberId != null ? member.id.eq(currentMemberId) : null;
-    }
 }
-

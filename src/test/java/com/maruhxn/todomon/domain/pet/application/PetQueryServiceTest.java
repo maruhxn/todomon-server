@@ -84,7 +84,7 @@ class PetQueryServiceTest extends IntegrationTestSupport {
 
         // when
         List<PetDexItem> allPetTypes = petQueryService.findAllPetTypes();
-        List<PetDexItem> allMyCollectedPets = petQueryService.findAllMyCollectedPets(member);
+        List<PetDexItem> allMyCollectedPets = petQueryService.findAllOwnCollectedPets(member.getId());
 
         // then
         List<PetDexItem> commonElements = allPetTypes.stream()

@@ -83,6 +83,7 @@ public class TodoIntegrationTest extends ControllerIntegrationTestSupport {
                 .startAt(LocalDateTime.of(2024, 7, 7, 7, 0))
                 .endAt(LocalDateTime.of(2024, 7, 7, 8, 0))
                 .isAllDay(true)
+                .color("#000000")
                 .build();
 
         // when / then
@@ -135,8 +136,9 @@ public class TodoIntegrationTest extends ControllerIntegrationTestSupport {
                 .startAt(startAt)
                 .endAt(endAt)
                 .isAllDay(true)
-                .repeatInfoItem(
-                        RepeatInfoItem.builder()
+                .color("#000000")
+                .repeatInfoReqItem(
+                        RepeatInfoReqItem.builder()
                                 .frequency(Frequency.DAILY)
                                 .interval(1)
                                 .until(LocalDate.from(startAt.plusDays(3)))
@@ -218,8 +220,8 @@ public class TodoIntegrationTest extends ControllerIntegrationTestSupport {
                 .isAllDay(true)
                 .startAt(LocalDateTime.of(2024, 7, 8, 7, 0))
                 .endAt(LocalDateTime.of(2024, 7, 8, 8, 0))
-                .repeatInfoItem(
-                        RepeatInfoItem.builder()
+                .repeatInfoReqItem(
+                        RepeatInfoReqItem.builder()
                                 .frequency(Frequency.WEEKLY)
                                 .byDay("MON,WED")
                                 .interval(1)
@@ -342,8 +344,8 @@ public class TodoIntegrationTest extends ControllerIntegrationTestSupport {
         UpdateTodoReq req = UpdateTodoReq.builder()
                 .content("수정됨")
                 .isAllDay(true)
-                .repeatInfoItem(
-                        RepeatInfoItem.builder()
+                .repeatInfoReqItem(
+                        RepeatInfoReqItem.builder()
                                 .frequency(Frequency.WEEKLY)
                                 .byDay("MON,WED")
                                 .interval(1)
@@ -388,8 +390,8 @@ public class TodoIntegrationTest extends ControllerIntegrationTestSupport {
                 .isAllDay(true)
                 .startAt(LocalDateTime.of(2024, 7, 8, 7, 0))
                 .endAt(LocalDateTime.of(2024, 7, 8, 8, 0))
-                .repeatInfoItem(
-                        RepeatInfoItem.builder()
+                .repeatInfoReqItem(
+                        RepeatInfoReqItem.builder()
                                 .frequency(Frequency.WEEKLY)
                                 .byDay("MON,WED")
                                 .interval(1)
@@ -430,8 +432,8 @@ public class TodoIntegrationTest extends ControllerIntegrationTestSupport {
                 .isAllDay(true)
                 .startAt(LocalDateTime.of(2024, 7, 8, 7, 0))
                 .endAt(LocalDateTime.of(2024, 7, 8, 8, 0))
-                .repeatInfoItem(
-                        RepeatInfoItem.builder()
+                .repeatInfoReqItem(
+                        RepeatInfoReqItem.builder()
                                 .frequency(Frequency.WEEKLY)
                                 .byDay("MON,WED")
                                 .interval(1)
@@ -502,8 +504,8 @@ public class TodoIntegrationTest extends ControllerIntegrationTestSupport {
         UpdateTodoReq req = UpdateTodoReq.builder()
                 .content("수정됨")
                 .isAllDay(true)
-                .repeatInfoItem(
-                        RepeatInfoItem.builder()
+                .repeatInfoReqItem(
+                        RepeatInfoReqItem.builder()
                                 .frequency(Frequency.WEEKLY)
                                 .byDay("MON,WED")
                                 .interval(1)
@@ -576,8 +578,8 @@ public class TodoIntegrationTest extends ControllerIntegrationTestSupport {
         UpdateTodoReq req = UpdateTodoReq.builder()
                 .content("수정됨")
                 .isAllDay(true)
-                .repeatInfoItem(
-                        RepeatInfoItem.builder()
+                .repeatInfoReqItem(
+                        RepeatInfoReqItem.builder()
                                 .frequency(Frequency.WEEKLY)
                                 .byDay("MON,WED")
                                 .interval(1)
@@ -742,9 +744,9 @@ public class TodoIntegrationTest extends ControllerIntegrationTestSupport {
 
         // when / then
         mockMvc.perform(
-                        delete(TODO_BASE_URL + "/{objectId}", todo.getTodoInstances().get(0).getId())
-                                .queryParam("isInstance", String.valueOf(true))
-                                .queryParam("targetType", String.valueOf(TargetType.THIS_TASK))
+                        delete(TODO_BASE_URL + "/{objectId}?isInstance=true&targetType=THIS_TASK", todo.getTodoInstances().get(0).getId())
+//                                .queryParam("isInstance", String.valueOf(true))
+//                                .queryParam("targetType", String.valueOf(TargetType.THIS_TASK))
                                 .header(ACCESS_TOKEN_HEADER, BEARER_PREFIX + memberTokenDto.getAccessToken())
                                 .header(REFRESH_TOKEN_HEADER, BEARER_PREFIX + memberTokenDto.getRefreshToken())
                 )

@@ -16,29 +16,51 @@ public class ProfileDto {
     private String profileImageUrl;
     private int level;
     private double gauge;
-    private String titleName;
-    private String titleColor;
+    private TitleNameItem title;
     private RepresentPetItem representPetItem;
     private Long followerCnt;
     private Long followingCnt;
 
     @Builder
-    public ProfileDto(Long id, String username, String email, String profileImageUrl, int level, double gauge, String titleName, String titleColor, RepresentPetItem representPetItem, Long followerCnt, Long followingCnt) {
+    public ProfileDto(Long id, String username, String email, String profileImageUrl, int level, double gauge, TitleNameItem title, RepresentPetItem representPetItem, Long followerCnt, Long followingCnt) {
         this.id = id;
         this.username = username;
         this.email = email;
         this.profileImageUrl = profileImageUrl;
         this.level = level;
         this.gauge = gauge;
-        this.titleName = titleName;
-        this.titleColor = titleColor;
+        this.title = title;
         this.representPetItem = representPetItem;
         this.followerCnt = followerCnt;
         this.followingCnt = followingCnt;
     }
 
-    public void setRepresentPetItemToNull() {
-        this.representPetItem = null;
+    public void setTitleNameItemToNullIfIsEmpty() {
+        if (this.title.getId() == null) {
+            this.title = null;
+        }
+    }
+
+    public void setRepresentPetItemToNullIfIsEmpty() {
+        if (this.representPetItem.getId() == null) {
+            this.representPetItem = null;
+        }
+    }
+
+    @Getter
+    @NoArgsConstructor
+    public static class TitleNameItem {
+
+        private Long id;
+        private String name;
+        private String color;
+
+        @Builder
+        public TitleNameItem(Long id, String name, String color) {
+            this.id = id;
+            this.name = name;
+            this.color = color;
+        }
     }
 
     @Getter

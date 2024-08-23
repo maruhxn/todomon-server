@@ -2,6 +2,7 @@ package com.maruhxn.todomon.domain.social.application;
 
 import com.maruhxn.todomon.domain.member.dao.MemberRepository;
 import com.maruhxn.todomon.domain.member.domain.Member;
+import com.maruhxn.todomon.domain.member.domain.TitleName;
 import com.maruhxn.todomon.domain.pet.domain.CollectedPet;
 import com.maruhxn.todomon.domain.pet.domain.Pet;
 import com.maruhxn.todomon.domain.pet.domain.PetType;
@@ -58,6 +59,7 @@ class OverallRankQueryServiceTest extends IntegrationTestSupport {
         List<Member> members = createAndSaveMembers(20);
         for (int i = 1; i <= 5; i++) { // tester2, tester4, tester6, tester8, tester10
             Member member = members.get(2 * i - 1);
+            createTitleName(member);
             member.getDiligence().levelUp(2 * i);
         }
         memberRepository.saveAll(members);
@@ -77,18 +79,18 @@ class OverallRankQueryServiceTest extends IntegrationTestSupport {
         // then
         assertThat(result)
                 .hasSize(10)
-                .extracting("id", "username", "profileImageUrl", "level")
+                .extracting("memberId", "username", "profileImageUrl", "level", "title.name", "title.color")
                 .containsExactly(
-                        tuple(tester10.getId(), tester10.getUsername(), tester10.getProfileImageUrl(), tester10.getDiligence().getLevel()),
-                        tuple(tester8.getId(), tester8.getUsername(), tester8.getProfileImageUrl(), tester8.getDiligence().getLevel()),
-                        tuple(tester6.getId(), tester6.getUsername(), tester6.getProfileImageUrl(), tester6.getDiligence().getLevel()),
-                        tuple(tester4.getId(), tester4.getUsername(), tester4.getProfileImageUrl(), tester4.getDiligence().getLevel()),
-                        tuple(tester2.getId(), tester2.getUsername(), tester2.getProfileImageUrl(), tester2.getDiligence().getLevel()),
-                        tuple(tester1.getId(), tester1.getUsername(), tester1.getProfileImageUrl(), tester1.getDiligence().getLevel()),
-                        tuple(tester3.getId(), tester3.getUsername(), tester3.getProfileImageUrl(), tester3.getDiligence().getLevel()),
-                        tuple(tester5.getId(), tester5.getUsername(), tester5.getProfileImageUrl(), tester5.getDiligence().getLevel()),
-                        tuple(tester7.getId(), tester7.getUsername(), tester7.getProfileImageUrl(), tester7.getDiligence().getLevel()),
-                        tuple(tester9.getId(), tester9.getUsername(), tester9.getProfileImageUrl(), tester9.getDiligence().getLevel())
+                        tuple(tester10.getId(), tester10.getUsername(), tester10.getProfileImageUrl(), tester10.getDiligence().getLevel(), "TEST", "#000000"),
+                        tuple(tester8.getId(), tester8.getUsername(), tester8.getProfileImageUrl(), tester8.getDiligence().getLevel(), "TEST", "#000000"),
+                        tuple(tester6.getId(), tester6.getUsername(), tester6.getProfileImageUrl(), tester6.getDiligence().getLevel(), "TEST", "#000000"),
+                        tuple(tester4.getId(), tester4.getUsername(), tester4.getProfileImageUrl(), tester4.getDiligence().getLevel(), "TEST", "#000000"),
+                        tuple(tester2.getId(), tester2.getUsername(), tester2.getProfileImageUrl(), tester2.getDiligence().getLevel(), "TEST", "#000000"),
+                        tuple(tester1.getId(), tester1.getUsername(), tester1.getProfileImageUrl(), tester1.getDiligence().getLevel(), null, null),
+                        tuple(tester3.getId(), tester3.getUsername(), tester3.getProfileImageUrl(), tester3.getDiligence().getLevel(), null, null),
+                        tuple(tester5.getId(), tester5.getUsername(), tester5.getProfileImageUrl(), tester5.getDiligence().getLevel(), null, null),
+                        tuple(tester7.getId(), tester7.getUsername(), tester7.getProfileImageUrl(), tester7.getDiligence().getLevel(), null, null),
+                        tuple(tester9.getId(), tester9.getUsername(), tester9.getProfileImageUrl(), tester9.getDiligence().getLevel(), null, null)
                 );
     }
 
@@ -99,6 +101,7 @@ class OverallRankQueryServiceTest extends IntegrationTestSupport {
         List<Member> members = createAndSaveMembers(20);
         for (int i = 1; i <= 5; i++) { // tester2, tester4, tester6, tester8, tester10
             Member member = members.get(2 * i - 1);
+            createTitleName(member);
             int petCnt = i % (PetType.values().length + 1);
             createPets(member, petCnt == 0 ? 1 : petCnt); // 1 2 3 1 1
         }
@@ -121,18 +124,18 @@ class OverallRankQueryServiceTest extends IntegrationTestSupport {
         // then
         assertThat(result)
                 .hasSize(10)
-                .extracting("id", "username", "profileImageUrl", "petCnt")
+                .extracting("memberId", "username", "profileImageUrl", "petCnt", "title.name", "title.color")
                 .containsExactly(
-                        tuple(tester6.getId(), tester6.getUsername(), tester6.getProfileImageUrl(), 3),
-                        tuple(tester4.getId(), tester4.getUsername(), tester4.getProfileImageUrl(), 2),
-                        tuple(tester10.getId(), tester10.getUsername(), tester10.getProfileImageUrl(), 1),
-                        tuple(tester8.getId(), tester8.getUsername(), tester8.getProfileImageUrl(), 1),
-                        tuple(tester2.getId(), tester2.getUsername(), tester2.getProfileImageUrl(), 1),
-                        tuple(tester1.getId(), tester1.getUsername(), tester1.getProfileImageUrl(), 0),
-                        tuple(tester3.getId(), tester3.getUsername(), tester3.getProfileImageUrl(), 0),
-                        tuple(tester5.getId(), tester5.getUsername(), tester5.getProfileImageUrl(), 0),
-                        tuple(tester7.getId(), tester7.getUsername(), tester7.getProfileImageUrl(), 0),
-                        tuple(tester9.getId(), tester9.getUsername(), tester9.getProfileImageUrl(), 0)
+                        tuple(tester6.getId(), tester6.getUsername(), tester6.getProfileImageUrl(), 3, "TEST", "#000000"),
+                        tuple(tester4.getId(), tester4.getUsername(), tester4.getProfileImageUrl(), 2, "TEST", "#000000"),
+                        tuple(tester10.getId(), tester10.getUsername(), tester10.getProfileImageUrl(), 1, "TEST", "#000000"),
+                        tuple(tester8.getId(), tester8.getUsername(), tester8.getProfileImageUrl(), 1, "TEST", "#000000"),
+                        tuple(tester2.getId(), tester2.getUsername(), tester2.getProfileImageUrl(), 1, "TEST", "#000000"),
+                        tuple(tester1.getId(), tester1.getUsername(), tester1.getProfileImageUrl(), 0, null, null),
+                        tuple(tester3.getId(), tester3.getUsername(), tester3.getProfileImageUrl(), 0, null, null),
+                        tuple(tester5.getId(), tester5.getUsername(), tester5.getProfileImageUrl(), 0, null, null),
+                        tuple(tester7.getId(), tester7.getUsername(), tester7.getProfileImageUrl(), 0, null, null),
+                        tuple(tester9.getId(), tester9.getUsername(), tester9.getProfileImageUrl(), 0, null, null)
                 );
     }
 
@@ -142,6 +145,7 @@ class OverallRankQueryServiceTest extends IntegrationTestSupport {
         // given
         LocalDate yesterday = LocalDate.now().minusDays(1);
         List<Member> members = createAndSaveMembers(12);
+        members.forEach(this::createTitleName);
         memberRepository.saveAll(members);
         members.forEach(member -> {
             List<Todo> todoList = createManySingleTodo(yesterday, member, 10);
@@ -178,13 +182,13 @@ class OverallRankQueryServiceTest extends IntegrationTestSupport {
         // then
         assertThat(result)
                 .hasSize(5)
-                .extracting("id", "username", "profileImageUrl", "cnt")
+                .extracting("memberId", "username", "profileImageUrl", "cnt", "title.name", "title.color")
                 .containsExactly(
-                        tuple(tester10.getId(), tester10.getUsername(), tester10.getProfileImageUrl(), 5L),
-                        tuple(tester8.getId(), tester8.getUsername(), tester8.getProfileImageUrl(), 4L),
-                        tuple(tester6.getId(), tester6.getUsername(), tester6.getProfileImageUrl(), 3L),
-                        tuple(tester4.getId(), tester4.getUsername(), tester4.getProfileImageUrl(), 2L),
-                        tuple(tester2.getId(), tester2.getUsername(), tester2.getProfileImageUrl(), 1L)
+                        tuple(tester10.getId(), tester10.getUsername(), tester10.getProfileImageUrl(), 5L, "TEST", "#000000"),
+                        tuple(tester8.getId(), tester8.getUsername(), tester8.getProfileImageUrl(), 4L, "TEST", "#000000"),
+                        tuple(tester6.getId(), tester6.getUsername(), tester6.getProfileImageUrl(), 3L, "TEST", "#000000"),
+                        tuple(tester4.getId(), tester4.getUsername(), tester4.getProfileImageUrl(), 2L, "TEST", "#000000"),
+                        tuple(tester2.getId(), tester2.getUsername(), tester2.getProfileImageUrl(), 1L, "TEST", "#000000")
                 );
     }
 
@@ -195,6 +199,7 @@ class OverallRankQueryServiceTest extends IntegrationTestSupport {
         LocalDate startOfLastWeek = startOfCurrentWeek.minusWeeks(1);
         LocalDate endOfLastWeek = startOfCurrentWeek.minusDays(1);
         List<Member> members = createAndSaveMembers(12);
+        members.forEach(this::createTitleName);
         memberRepository.saveAll(members);
         members.forEach(member -> {
             List<Todo> todos = new ArrayList<>();
@@ -238,13 +243,13 @@ class OverallRankQueryServiceTest extends IntegrationTestSupport {
         // then
         assertThat(result)
                 .hasSize(5)
-                .extracting("id", "username", "profileImageUrl", "cnt")
+                .extracting("memberId", "username", "profileImageUrl", "cnt", "title.name", "title.color")
                 .containsExactly(
-                        tuple(tester10.getId(), tester10.getUsername(), tester10.getProfileImageUrl(), 5L),
-                        tuple(tester8.getId(), tester8.getUsername(), tester8.getProfileImageUrl(), 4L),
-                        tuple(tester6.getId(), tester6.getUsername(), tester6.getProfileImageUrl(), 3L),
-                        tuple(tester4.getId(), tester4.getUsername(), tester4.getProfileImageUrl(), 2L),
-                        tuple(tester2.getId(), tester2.getUsername(), tester2.getProfileImageUrl(), 1L)
+                        tuple(tester10.getId(), tester10.getUsername(), tester10.getProfileImageUrl(), 5L, "TEST", "#000000"),
+                        tuple(tester8.getId(), tester8.getUsername(), tester8.getProfileImageUrl(), 4L, "TEST", "#000000"),
+                        tuple(tester6.getId(), tester6.getUsername(), tester6.getProfileImageUrl(), 3L, "TEST", "#000000"),
+                        tuple(tester4.getId(), tester4.getUsername(), tester4.getProfileImageUrl(), 2L, "TEST", "#000000"),
+                        tuple(tester2.getId(), tester2.getUsername(), tester2.getProfileImageUrl(), 1L, "TEST", "#000000")
                 );
     }
 
@@ -294,6 +299,14 @@ class OverallRankQueryServiceTest extends IntegrationTestSupport {
                 .build();
         member.initDiligence();
         return member;
+    }
+
+    private void createTitleName(Member member) {
+        TitleName titleName = TitleName.builder()
+                .name("TEST")
+                .color("#000000")
+                .build();
+        member.setTitleName(titleName);
     }
 
 }

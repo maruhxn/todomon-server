@@ -15,9 +15,11 @@ public interface TodoInstanceRepository extends JpaRepository<TodoInstance, Long
 
     void deleteAllByTodo_Id(Long todoId);
 
-    @Query("SELECT ti from TodoInstance ti WHERE ti.todo.writer.id = :writerId" +
+    @Query("SELECT DISTINCT ti from TodoInstance ti" +
+            " JOIN FETCH ti.todo t" +
+            " JOIN FETCH t.repeatInfo" +
+            " WHERE t.writer.id = :writerId" +
             " AND ti.startAt BETWEEN :startDate AND :endDate")
-    @EntityGraph(attributePaths = {"todo"})
     List<TodoInstance> findAllByWriterIdAndDate(@Param("writerId") long writerId,
                                                 @Param("startDate") LocalDateTime startDate,
                                                 @Param("endDate") LocalDateTime endDate);

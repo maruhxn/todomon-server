@@ -6,7 +6,6 @@ import com.maruhxn.todomon.domain.member.domain.Member;
 import com.maruhxn.todomon.domain.member.domain.TitleName;
 import com.maruhxn.todomon.domain.member.dto.request.CreateTitleNameReq;
 import com.maruhxn.todomon.domain.member.dto.request.UpdateTitleNameReq;
-import com.maruhxn.todomon.domain.member.dto.response.TitleNameItem;
 import com.maruhxn.todomon.global.auth.model.Role;
 import com.maruhxn.todomon.global.auth.model.provider.OAuth2Provider;
 import com.maruhxn.todomon.util.IntegrationTestSupport;
@@ -47,27 +46,6 @@ class TitleNameServiceTest extends IntegrationTestSupport {
                 .first()
                 .extracting("name", "color", "member")
                 .containsExactly("name", "#000000", member);
-    }
-
-    @Test
-    @DisplayName("유저의 현재 칭호를 조회한다")
-    void getTitleName() {
-        // given
-        Member member = createMember("tester");
-        TitleName titleName = TitleName.builder()
-                .name("name")
-                .color("#000000")
-                .member(member)
-                .build();
-        titleNameRepository.save(titleName);
-
-        // when
-        TitleNameItem dto = titleNameService.getTitleName(member);
-
-        // then
-        assertThat(dto)
-                .extracting("titleNameId", "name", "color")
-                .containsExactly(titleName.getId(), "name", "#000000");
     }
 
     @Test

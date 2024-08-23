@@ -95,7 +95,7 @@ class SocialRankQueryServiceTest extends IntegrationTestSupport {
         // then
         assertThat(result)
                 .hasSize(10)
-                .extracting("id", "username", "profileImageUrl", "level")
+                .extracting("memberId", "username", "profileImageUrl", "level")
                 .containsExactly(
                         tuple(tester10.getId(), tester10.getUsername(), tester10.getProfileImageUrl(), tester10.getDiligence().getLevel()),
                         tuple(tester8.getId(), tester8.getUsername(), tester8.getProfileImageUrl(), tester8.getDiligence().getLevel()),
@@ -149,7 +149,7 @@ class SocialRankQueryServiceTest extends IntegrationTestSupport {
         // then
         assertThat(result)
                 .hasSize(10)
-                .extracting("id", "username", "profileImageUrl", "petCnt")
+                .extracting("memberId", "username", "profileImageUrl", "petCnt")
                 .containsExactly(
                         tuple(tester6.getId(), tester6.getUsername(), tester6.getProfileImageUrl(), 3),
                         tuple(tester4.getId(), tester4.getUsername(), tester4.getProfileImageUrl(), 2),
@@ -222,7 +222,7 @@ class SocialRankQueryServiceTest extends IntegrationTestSupport {
         // then
         assertThat(result)
                 .hasSize(5)
-                .extracting("id", "username", "profileImageUrl", "cnt")
+                .extracting("memberId", "username", "profileImageUrl", "cnt")
                 .containsExactly(
                         tuple(tester10.getId(), tester10.getUsername(), tester10.getProfileImageUrl(), 5L),
                         tuple(tester8.getId(), tester8.getUsername(), tester8.getProfileImageUrl(), 4L),
@@ -308,7 +308,7 @@ class SocialRankQueryServiceTest extends IntegrationTestSupport {
         // then
         assertThat(result)
                 .hasSize(6)
-                .extracting("id", "username", "profileImageUrl", "cnt")
+                .extracting("memberId", "username", "profileImageUrl", "cnt")
                 .containsExactly(
                         tuple(tester10.getId(), tester10.getUsername(), tester10.getProfileImageUrl(), 5L),
                         tuple(tester8.getId(), tester8.getUsername(), tester8.getProfileImageUrl(), 4L),

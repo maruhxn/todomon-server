@@ -63,8 +63,8 @@ class TodoServiceTest extends IntegrationTestSupport {
                 .content("test")
                 .startAt(LocalDateTime.of(2024, 7, 10, 7, 0))
                 .endAt(LocalDateTime.of(2024, 7, 10, 8, 0))
-                .repeatInfoItem(
-                        RepeatInfoItem.builder()
+                .repeatInfoReqItem(
+                        RepeatInfoReqItem.builder()
                                 .frequency(Frequency.DAILY)
                                 .interval(2)
                                 .count(3)
@@ -93,8 +93,8 @@ class TodoServiceTest extends IntegrationTestSupport {
                 .content("test")
                 .startAt(LocalDateTime.of(2024, 7, 10, 7, 0))
                 .endAt(LocalDateTime.of(2024, 7, 10, 8, 0))
-                .repeatInfoItem(
-                        RepeatInfoItem.builder()
+                .repeatInfoReqItem(
+                        RepeatInfoReqItem.builder()
                                 .frequency(Frequency.DAILY)
                                 .interval(2)
                                 .until(LocalDate.of(2024, 7, 14))
@@ -120,8 +120,8 @@ class TodoServiceTest extends IntegrationTestSupport {
                 .content("test")
                 .startAt(LocalDateTime.of(2024, 7, 10, 7, 0))
                 .endAt(LocalDateTime.of(2024, 7, 10, 8, 0))
-                .repeatInfoItem(
-                        RepeatInfoItem.builder()
+                .repeatInfoReqItem(
+                        RepeatInfoReqItem.builder()
                                 .frequency(Frequency.WEEKLY)
                                 .interval(2)
                                 .byDay("MON,WED,FRI")
@@ -148,8 +148,8 @@ class TodoServiceTest extends IntegrationTestSupport {
                 .content("test")
                 .startAt(LocalDateTime.of(2024, 7, 10, 7, 0))
                 .endAt(LocalDateTime.of(2024, 7, 10, 8, 0))
-                .repeatInfoItem(
-                        RepeatInfoItem.builder()
+                .repeatInfoReqItem(
+                        RepeatInfoReqItem.builder()
                                 .frequency(Frequency.WEEKLY)
                                 .interval(1)
                                 .byDay("MON,FRI")
@@ -178,8 +178,8 @@ class TodoServiceTest extends IntegrationTestSupport {
                 .content("test")
                 .startAt(LocalDateTime.of(2024, 7, 10, 7, 0))
                 .endAt(LocalDateTime.of(2024, 7, 10, 8, 0))
-                .repeatInfoItem(
-                        RepeatInfoItem.builder()
+                .repeatInfoReqItem(
+                        RepeatInfoReqItem.builder()
                                 .frequency(Frequency.WEEKLY)
                                 .interval(1)
                                 .byDay("MON,FRI")
@@ -207,8 +207,8 @@ class TodoServiceTest extends IntegrationTestSupport {
                 .content("test")
                 .startAt(LocalDateTime.of(2024, 7, 10, 7, 0))
                 .endAt(LocalDateTime.of(2024, 7, 10, 8, 0))
-                .repeatInfoItem(
-                        RepeatInfoItem.builder()
+                .repeatInfoReqItem(
+                        RepeatInfoReqItem.builder()
                                 .frequency(Frequency.MONTHLY)
                                 .interval(1)
                                 .byMonthDay(15)
@@ -237,8 +237,8 @@ class TodoServiceTest extends IntegrationTestSupport {
                 .content("test")
                 .startAt(LocalDateTime.of(2024, 7, 10, 7, 0))
                 .endAt(LocalDateTime.of(2024, 7, 10, 8, 0))
-                .repeatInfoItem(
-                        RepeatInfoItem.builder()
+                .repeatInfoReqItem(
+                        RepeatInfoReqItem.builder()
                                 .frequency(Frequency.MONTHLY)
                                 .interval(2)
                                 .byMonthDay(15)
@@ -266,8 +266,8 @@ class TodoServiceTest extends IntegrationTestSupport {
                 .content("test")
                 .startAt(LocalDateTime.of(2024, 9, 10, 7, 0))
                 .endAt(LocalDateTime.of(2024, 9, 10, 8, 0))
-                .repeatInfoItem(
-                        RepeatInfoItem.builder()
+                .repeatInfoReqItem(
+                        RepeatInfoReqItem.builder()
                                 .frequency(Frequency.MONTHLY)
                                 .interval(1)
                                 .byMonthDay(31)
@@ -310,8 +310,8 @@ class TodoServiceTest extends IntegrationTestSupport {
                 .isAllDay(true)
                 .startAt(LocalDateTime.of(2024, 7, 8, 15, 0))
                 .endAt(LocalDateTime.of(2024, 7, 8, 20, 0))
-                .repeatInfoItem(
-                        RepeatInfoItem.builder()
+                .repeatInfoReqItem(
+                        RepeatInfoReqItem.builder()
                                 .frequency(Frequency.WEEKLY)
                                 .byDay("MON,WED")
                                 .interval(1)
@@ -436,8 +436,8 @@ class TodoServiceTest extends IntegrationTestSupport {
         UpdateTodoReq req = UpdateTodoReq.builder()
                 .content("수정됨")
                 .isAllDay(true)
-                .repeatInfoItem(
-                        RepeatInfoItem.builder()
+                .repeatInfoReqItem(
+                        RepeatInfoReqItem.builder()
                                 .frequency(Frequency.WEEKLY)
                                 .byDay("MON,WED")
                                 .interval(1)

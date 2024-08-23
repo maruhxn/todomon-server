@@ -5,9 +5,9 @@ import com.maruhxn.todomon.domain.member.domain.Member;
 import com.maruhxn.todomon.domain.member.domain.TitleName;
 import com.maruhxn.todomon.domain.member.dto.request.CreateTitleNameReq;
 import com.maruhxn.todomon.domain.member.dto.request.UpdateTitleNameReq;
-import com.maruhxn.todomon.domain.member.dto.response.TitleNameItem;
 import com.maruhxn.todomon.global.error.ErrorCode;
 import com.maruhxn.todomon.global.error.exception.BadRequestException;
+import com.maruhxn.todomon.global.error.exception.ExistingResourceException;
 import com.maruhxn.todomon.global.error.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -20,19 +20,19 @@ public class TitleNameService {
 
     private final TitleNameRepository titleNameRepository;
 
-    @Transactional(readOnly = true)
-    public TitleNameItem getTitleName(Member member) {
-        TitleName findTitleName = titleNameRepository.findByMember_Id(member.getId())
-                .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_TITLE_NAME));
-        return TitleNameItem.of(findTitleName);
-    }
-
     public void createTitleName(Member member, CreateTitleNameReq req) {
+        titleNameRepository.findByMember_Id(member.getId())
+                .ifPresent(tn -> {
+                    throw new ExistingResourceException(ErrorCode.EXISTING_TITLENAME);
+                });
+
         TitleName titleName = TitleName.builder()
                 .name(req.getName())
                 .color(req.getColor())
                 .member(member)
                 .build();
+        member.setTitleName(titleName);
+
         titleNameRepository.save(titleName);
     }
 

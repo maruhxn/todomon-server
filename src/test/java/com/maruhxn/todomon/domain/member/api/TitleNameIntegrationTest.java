@@ -21,38 +21,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DisplayName("[Integration] - TitleName")
 class TitleNameIntegrationTest extends ControllerIntegrationTestSupport {
 
-    static final String TITLENAME_BASE_URL = "/api/members/titleNames";
+    static final String TITLENAME_BASE_URL = "/api/members/titleNames/my";
 
     @Autowired
     TitleNameRepository titleNameRepository;
 
     @Test
-    @DisplayName("GET /api/members/titleNames 요청 시 로그인 한 유저의 칭호를 조회한다.")
-    void getTitleName() throws Exception {
-        // given
-        TitleName titleName = TitleName.builder()
-                .name("name")
-                .color("#000000")
-                .member(member)
-                .build();
-        titleNameRepository.save(titleName);
-
-        // when / then
-        mockMvc.perform(
-                        get(TITLENAME_BASE_URL)
-                                .header(ACCESS_TOKEN_HEADER, BEARER_PREFIX + memberTokenDto.getAccessToken())
-                                .header(REFRESH_TOKEN_HEADER, BEARER_PREFIX + memberTokenDto.getRefreshToken())
-                )
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("code").value("OK"))
-                .andExpect(jsonPath("message").value("칭호 조회 성공"))
-                .andExpect(jsonPath("data.titleNameId").value(titleName.getId()))
-                .andExpect(jsonPath("data.color").value(titleName.getColor()))
-                .andExpect(jsonPath("data.name").value(titleName.getName()));
-    }
-
-    @Test
-    @DisplayName("POST /api/members/titleNames 요청 시 로그인 한 유저의 칭호를 생성한다.")
+    @DisplayName("POST /api/members/titleNames/my 요청 시 로그인 한 유저의 칭호를 생성한다.")
     void createTitleName() throws Exception {
         // given
         CreateTitleNameReq req = CreateTitleNameReq.builder()
@@ -74,7 +49,7 @@ class TitleNameIntegrationTest extends ControllerIntegrationTestSupport {
     }
 
     @Test
-    @DisplayName("POST /api/members/titleNames 요청 시 칭호명이 5글자를 넘으면 400 에러를 반환한다.")
+    @DisplayName("POST /api/members/titleNames/my 요청 시 칭호명이 5글자를 넘으면 400 에러를 반환한다.")
     void createTitleNameReturn400WithLongTitleName() throws Exception {
         // given
         CreateTitleNameReq req = CreateTitleNameReq.builder()
@@ -96,7 +71,7 @@ class TitleNameIntegrationTest extends ControllerIntegrationTestSupport {
     }
 
     @Test
-    @DisplayName("PATCH /api/members/titleNames 요청 시 칭호를 수정한다.")
+    @DisplayName("PATCH /api/members/titleNames/my 요청 시 칭호를 수정한다.")
     void updateTitleName() throws Exception {
         // given
         TitleName titleName = TitleName.builder()
@@ -122,7 +97,7 @@ class TitleNameIntegrationTest extends ControllerIntegrationTestSupport {
     }
 
     @Test
-    @DisplayName("PATCH /api/members/titleNames 요청 시 아무 데이터도 넘기지 않으면 400 에러를 반환한다.")
+    @DisplayName("PATCH /api/members/titleNames/my 요청 시 아무 데이터도 넘기지 않으면 400 에러를 반환한다.")
     void updateTitleNameReturn400WithNoDatta() throws Exception {
         // given
         TitleName titleName = TitleName.builder()
@@ -148,7 +123,7 @@ class TitleNameIntegrationTest extends ControllerIntegrationTestSupport {
     }
 
     @Test
-    @DisplayName("DELETE /api/members/titleNames 요청 시 칭호를 삭제한다.")
+    @DisplayName("DELETE /api/members/titleNames/my 요청 시 칭호를 삭제한다.")
     void deleteTitleName() throws Exception {
         // given
         TitleName titleName = TitleName.builder()
@@ -168,7 +143,7 @@ class TitleNameIntegrationTest extends ControllerIntegrationTestSupport {
     }
 
     @Test
-    @DisplayName("DELETE /api/members/titleNames 요청 시 칭호가 없으면 404 에러를 반환한다.")
+    @DisplayName("DELETE /api/members/titleNames/my 요청 시 칭호가 없으면 404 에러를 반환한다.")
     void deleteTitleNameReturn404WhenIsNoTitleName() throws Exception {
         // given
 

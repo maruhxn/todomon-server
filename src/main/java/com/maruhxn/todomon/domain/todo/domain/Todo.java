@@ -36,6 +36,9 @@ public class Todo extends BaseEntity {
     @ColumnDefault("1")
     private boolean isAllDay = false;
 
+    @Column(nullable = false, length = 7, columnDefinition = "varchar(7) default '#ffffff'")
+    private String color = "#ffffff";
+
     @JoinColumn(name = "writer_id", referencedColumnName = "id")
     @ManyToOne(fetch = FetchType.LAZY)
     private Member writer;
@@ -47,12 +50,13 @@ public class Todo extends BaseEntity {
     private List<TodoInstance> todoInstances = new ArrayList<>();
 
     @Builder
-    public Todo(String content, LocalDateTime startAt, LocalDateTime endAt, boolean isAllDay, Member writer) {
+    public Todo(String content, LocalDateTime startAt, LocalDateTime endAt, boolean isAllDay, String color, Member writer) {
         this.content = content;
         this.startAt = startAt;
         this.endAt = endAt;
         this.isAllDay = isAllDay;
         if (isAllDay) updateToAllDay();
+        if (color != null) this.color = color;
         this.writer = writer;
     }
 
@@ -85,6 +89,9 @@ public class Todo extends BaseEntity {
         if (req.getIsAllDay() != null) {
             this.isAllDay = req.getIsAllDay();
             if (this.isAllDay) updateToAllDay();
+        }
+        if (req.getColor() != null) {
+            this.color = req.getColor();
         }
     }
 

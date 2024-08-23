@@ -35,16 +35,20 @@ public class TodoInstance extends BaseEntity {
     private boolean isDone = false;
 
     @Column(nullable = false)
+    private String color;
+
+    @Column(nullable = false)
     @ColumnDefault("1")
     private boolean isAllDay = false;
 
     @Builder
-    public TodoInstance(Todo todo, String content, LocalDateTime startAt, LocalDateTime endAt, boolean isAllDay) {
+    public TodoInstance(Todo todo, String content, LocalDateTime startAt, LocalDateTime endAt, boolean isAllDay, String color) {
         this.todo = todo;
         this.content = content;
         this.startAt = startAt;
         this.endAt = endAt;
         this.isAllDay = isAllDay;
+        this.color = color;
     }
 
     public static TodoInstance of(Todo todo, LocalDateTime startAt, LocalDateTime endAt) {
@@ -54,6 +58,7 @@ public class TodoInstance extends BaseEntity {
                 .startAt(startAt)
                 .endAt(endAt)
                 .isAllDay(todo.isAllDay())
+                .color(todo.getColor())
                 .build();
     }
 
@@ -75,6 +80,10 @@ public class TodoInstance extends BaseEntity {
         if (req.getIsAllDay() != null) {
             this.isAllDay = req.getIsAllDay();
             if (this.isAllDay) updateToAllDay();
+        }
+
+        if (req.getColor() != null) {
+            this.color = req.getColor();
         }
     }
 

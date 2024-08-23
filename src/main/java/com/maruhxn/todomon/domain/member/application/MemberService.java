@@ -6,6 +6,7 @@ import com.maruhxn.todomon.domain.member.dao.MemberRepository;
 import com.maruhxn.todomon.domain.member.domain.Member;
 import com.maruhxn.todomon.domain.member.dto.request.UpdateMemberProfileReq;
 import com.maruhxn.todomon.domain.member.dto.response.ProfileDto;
+import com.maruhxn.todomon.domain.member.dto.response.SearchDto;
 import com.maruhxn.todomon.global.auth.model.Role;
 import com.maruhxn.todomon.global.auth.model.provider.OAuth2Provider;
 import com.maruhxn.todomon.global.auth.model.provider.OAuth2ProviderUser;
@@ -16,6 +17,8 @@ import com.maruhxn.todomon.infra.file.FileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @Transactional
@@ -91,8 +94,9 @@ public class MemberService {
     }
 
     private void deleteProfileImageOfFindMember(Member findMember) {
-        if (findMember.getProfileImageUrl().startsWith("http")) return;
-        fileService.deleteFile(findMember.getProfileImageUrl());
+        String profileImageUrl = findMember.getProfileImageUrl();
+        if (profileImageUrl.startsWith("http") || profileImageUrl.startsWith("https")) return;
+        fileService.deleteFile(profileImageUrl);
     }
 
     public void withdraw(Long memberId) {
@@ -104,4 +108,7 @@ public class MemberService {
     }
 
 
+    public List<SearchDto> searchMemberByKey(String key) {
+        return memberQueryRepository.findMemberByKey(key);
+    }
 }

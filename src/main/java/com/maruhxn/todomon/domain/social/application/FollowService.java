@@ -6,7 +6,6 @@ import com.maruhxn.todomon.domain.social.dao.FollowRepository;
 import com.maruhxn.todomon.domain.social.domain.Follow;
 import com.maruhxn.todomon.global.error.ErrorCode;
 import com.maruhxn.todomon.global.error.exception.BadRequestException;
-import com.maruhxn.todomon.global.error.exception.ForbiddenException;
 import com.maruhxn.todomon.global.error.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,6 +21,7 @@ public class FollowService {
 
     private final MemberRepository memberRepository;
     private final FollowRepository followRepository;
+    private final FollowQueryService followQueryService;
 
     // 팔로우 요청을 보낸다.
     public void sendFollowRequest(Member follower, Long followeeId) {
@@ -56,23 +56,48 @@ public class FollowService {
     }
 
     // 팔로우를 취소한다.
-    public void unfollow(Long memberId, Long targetId) {
-        if (memberId == targetId) throw new BadRequestException(ErrorCode.BAD_REQUEST);
+    public void unfollow(Long memberId, Long followeeId) {
+        if (memberId.equals(followeeId))
+            throw new BadRequestException(ErrorCode.BAD_REQUEST, "자기 자신에 대한 요청은 할 수 없습니다.");
 
-        memberRepository.findById(targetId)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_MEMBER, "대상 유저의 정보가 존재하지 않습니다."));
+        memberRepository.findById(followeeId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_MEMBER, "팔로우 대상 정보가 존재하지 않습니다."));
 
-        Follow findFollow = followRepository.findByFollower_IdAndFollowee_Id(memberId, targetId)
-                .orElseGet(() -> followRepository.findByFollower_IdAndFollowee_Id(targetId, memberId)
-                        .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_FOLLOW)));
+        Follow findFollow = followRepository.findByFollower_IdAndFollowee_Id(memberId, followeeId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_FOLLOW));
 
         followRepository.delete(findFollow);
     }
 
-    public void checkIsFollow(Long follwerId, Long followeeId) {
-        Follow findFollow = followRepository.findByFollower_IdAndFollowee_Id(follwerId, followeeId)
+    // 나를 팔로우하고 있는 팔로워를 삭제한다.
+    public void removeFollower(Long memberId, Long followerId) {
+        if (memberId.equals(followerId))
+            throw new BadRequestException(ErrorCode.BAD_REQUEST, "자기 자신에 대한 요청은 할 수 없습니다.");
+
+        memberRepository.findById(followerId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_MEMBER, "팔로워 정보가 존재하지 않습니다."));
+
+        Follow findFollow = followRepository.findByFollower_IdAndFollowee_Id(followerId, memberId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_FOLLOW));
 
-        if (findFollow.getStatus() != ACCEPTED) throw new ForbiddenException(ErrorCode.NOT_ACCEPTED_FOLLOW);
+        followRepository.delete(findFollow);
+    }
+
+    public void matFollow(Member member, Long followerId) {
+        // 팔로워가 존재하는지 확인
+        Member follower = memberRepository.findById(followerId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_MEMBER, "팔로워의 정보가 존재하지 않습니다."));
+
+        // 팔로워가 나를 팔로우하고 있는지 확인 (Follow가 있고, ACCEPT)
+        followQueryService.checkIsFollow(followerId, member.getId());
+
+        // 팔로우 요청을 보내지 않고, 바로 팔로우 엔터티 생성
+        Follow matFollow = Follow.builder()
+                .follower(member)
+                .followee(follower)
+                .build();
+        matFollow.updateStatus(ACCEPTED);
+
+        followRepository.save(matFollow);
     }
 }

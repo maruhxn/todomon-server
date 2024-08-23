@@ -1,5 +1,6 @@
 package com.maruhxn.todomon.domain.todo.application;
 
+import com.maruhxn.todomon.domain.member.dao.MemberRepository;
 import com.maruhxn.todomon.domain.member.domain.Member;
 import com.maruhxn.todomon.domain.todo.dao.RepeatInfoRepository;
 import com.maruhxn.todomon.domain.todo.dao.TodoInstanceRepository;
@@ -32,6 +33,7 @@ import static com.maruhxn.todomon.global.common.Constants.*;
 @RequiredArgsConstructor
 public class TodoService {
 
+    private final MemberRepository memberRepository;
     private final TodoRepository todoRepository;
     private final RepeatInfoRepository repeatInfoRepository;
     private final TodoInstanceRepository todoInstanceRepository;
@@ -45,8 +47,8 @@ public class TodoService {
     public void create(Member member, CreateTodoReq req) {
         Todo todo = req.toEntity(member);
         RepeatInfo repeatInfo = null;
-        if (req.getRepeatInfoItem() != null) {
-            repeatInfo = createAndSetRepeatInfo(req.getRepeatInfoItem(), todo);
+        if (req.getRepeatInfoReqItem() != null) {
+            repeatInfo = createAndSetRepeatInfo(req.getRepeatInfoReqItem(), todo);
         }
 
         todoRepository.save(todo);
@@ -56,8 +58,8 @@ public class TodoService {
         }
     }
 
-    private RepeatInfo createAndSetRepeatInfo(RepeatInfoItem repeatInfoItem, Todo todo) {
-        RepeatInfo repeatInfo = repeatInfoItem.toEntity();
+    private RepeatInfo createAndSetRepeatInfo(RepeatInfoReqItem repeatInfoReqItem, Todo todo) {
+        RepeatInfo repeatInfo = repeatInfoReqItem.toEntity();
         todo.setRepeatInfo(repeatInfo);
         repeatInfoRepository.save(repeatInfo);
         return repeatInfo;
@@ -179,7 +181,7 @@ public class TodoService {
             switch (params.getTargetType()) {
                 case THIS_TASK -> {
                     // 반복 정보 수정은 ALL_TASKS 타입만 가능
-                    if (req.getRepeatInfoItem() != null) {
+                    if (req.getRepeatInfoReqItem() != null) {
                         throw new BadRequestException(ErrorCode.BAD_REQUEST, "전체 인스턴스에 대해서만 반복 정보 수정이 가능합니다.");
                     }
 
@@ -199,8 +201,9 @@ public class TodoService {
 
                     Todo todo = todoInstance.getTodo();
                     todo.update(req); // todo 먼저 업데이트
+                    todoInstance.update(req);
 
-                    if (req.getRepeatInfoItem() != null) {
+                    if (req.getRepeatInfoReqItem() != null) {
                         RepeatInfo oldRepeatInfo = todo.getRepeatInfo();
                         if (oldRepeatInfo != null) {
                             todo.setRepeatInfo(null);
@@ -209,7 +212,7 @@ public class TodoService {
                             todoInstanceRepository.deleteAllByTodo_Id(todo.getId());
                         }
                         todo.updateEndAtTemporally();
-                        createAndSetRepeatInfo(req.getRepeatInfoItem(), todo);
+                        createAndSetRepeatInfo(req.getRepeatInfoReqItem(), todo);
                         createTodoInstances(todo);
                     } else {
                         List<TodoInstance> todoInstances = todoInstanceRepository.findAllByTodo_Id(todoInstance.getTodo().getId());
@@ -223,8 +226,8 @@ public class TodoService {
 
             findTodo.update(req);
 
-            if (req.getRepeatInfoItem() != null) {
-                createAndSetRepeatInfo(req.getRepeatInfoItem(), findTodo);
+            if (req.getRepeatInfoReqItem() != null) {
+                createAndSetRepeatInfo(req.getRepeatInfoReqItem(), findTodo);
                 createTodoInstances(findTodo);
             }
         }
@@ -233,7 +236,7 @@ public class TodoService {
     }
 
     private static void validateUpdateReq(UpdateTodoReq req) {
-        if (req.getContent() == null && req.getIsAllDay() == null && req.getRepeatInfoItem() == null) {
+        if (req.getContent() == null && req.getIsAllDay() == null && req.getRepeatInfoReqItem() == null) {
             throw new BadRequestException(ErrorCode.VALIDATION_ERROR, "수정할 데이터를 넘겨주세요");
         }
     }
@@ -269,6 +272,8 @@ public class TodoService {
                 withdrawReward(member, 1);
             }
         }
+
+        memberRepository.save(member);
     }
 
     private void withdrawRewardForInstance(TodoInstance todoInstance, Member member) {
@@ -342,8 +347,8 @@ public class TodoService {
                     todoInstances.remove(todoInstance);
                 }
                 case ALL_TASKS -> {
-                    todoInstances.clear();
                     todoInstanceRepository.deleteAllByTodo_Id(todo.getId());
+                    todoInstances.clear();
                 }
             }
 

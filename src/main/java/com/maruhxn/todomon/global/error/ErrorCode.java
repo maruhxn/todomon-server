@@ -13,8 +13,9 @@ public enum ErrorCode {
     EMPTY_REFRESH_TOKEN("Refresh Token이 비어있습니다."),
     OVER_FOOD_CNT("소지한 먹이 수보다 요청된 먹이 수가 더 많습니다."),
     NO_SPACE_PET_HOUSE("펫 하우스의 공간이 부족합니다."),
-    ALREADY_RECEIVED("이미 STAR를 받았습니다."),
+    ALREADY_RECEIVED("이미 ⭐️을 받았습니다."),
     EMPTY_FILE("파일은 비어있을 수 없습니다."),
+    ALREADY_SENT_STAR("⭐️은 하루에 한번만 보낼 수 있습니다."),
 
 
     /* UNAUTHORIZED 401 */
@@ -40,6 +41,7 @@ public enum ErrorCode {
     /* UNPROCESSABLE CONTENT 422 */
     EXISTING_RESOURCE("이미 존재하는 리소스입니다."),
     EXISTING_MEMBER("이미 존재하는 멤버입니다."),
+    EXISTING_TITLENAME("이미 칭호가 존재합니다."),
 
     /* INTERNAL SERVER ERROR  500 */
     INTERNAL_ERROR("서버 오류입니다."),

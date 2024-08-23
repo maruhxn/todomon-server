@@ -20,7 +20,7 @@ public class ScheduleService {
     private final MemberRepository memberRepository;
     private final TodoAchievementHistoryRepository todoAchievementHistoryRepository;
 
-    @Scheduled(cron = "0 0 0 * * *") // 매일 00시에 실행
+    @Scheduled(cron = "0 0 1 * * *") // 매일 01시에 실행
     @Transactional
     public void saveDailyAchievementAndReset() {
         List<Member> members = memberRepository.findAllWithLock();
@@ -34,7 +34,7 @@ public class ScheduleService {
                     .member(member)
                     .build();
             todoAchievementHistoryRepository.save(history);
-
+            member.addStar(member.getDailyAchievementCnt());
             member.resetDailyAchievement();
         }
 

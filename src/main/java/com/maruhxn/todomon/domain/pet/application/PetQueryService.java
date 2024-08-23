@@ -1,5 +1,6 @@
 package com.maruhxn.todomon.domain.pet.application;
 
+import com.maruhxn.todomon.domain.member.dao.MemberRepository;
 import com.maruhxn.todomon.domain.member.domain.Member;
 import com.maruhxn.todomon.domain.pet.dao.CollectedPetRepository;
 import com.maruhxn.todomon.domain.pet.dao.PetRepository;
@@ -7,8 +8,10 @@ import com.maruhxn.todomon.domain.pet.domain.CollectedPet;
 import com.maruhxn.todomon.domain.pet.domain.Pet;
 import com.maruhxn.todomon.domain.pet.domain.PetType;
 import com.maruhxn.todomon.domain.pet.domain.Rarity;
+import com.maruhxn.todomon.domain.pet.dto.response.PetInfoDto;
 import com.maruhxn.todomon.domain.pet.dto.response.PetDexItem;
-import com.maruhxn.todomon.domain.pet.dto.response.PetItem;
+import com.maruhxn.todomon.global.error.ErrorCode;
+import com.maruhxn.todomon.global.error.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +24,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PetQueryService {
 
+    private final MemberRepository memberRepository;
     private final PetRepository petRepository;
     private final CollectedPetRepository collectedPetRepository;
 
@@ -42,13 +46,15 @@ public class PetQueryService {
         return dex.stream().distinct().toList();
     }
 
-    public List<PetItem> findAllMyPets(Member member) {
-        List<Pet> pets = petRepository.findAllByMember_Id(member.getId());
-        return pets.stream().map(PetItem::from).toList();
+    public PetInfoDto findAllOwnPets(Long memberId) {
+        Member findMember = memberRepository.findById(memberId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_MEMBER));
+        List<Pet> pets = petRepository.findAllByMember_Id(memberId);
+        return PetInfoDto.of(findMember, pets);
     }
 
-    public List<PetDexItem> findAllMyCollectedPets(Member member) {
-        List<CollectedPet> collections = collectedPetRepository.findAllByMember_Id(member.getId());
+    public List<PetDexItem> findAllOwnCollectedPets(Long memberId) {
+        List<CollectedPet> collections = collectedPetRepository.findAllByMember_Id(memberId);
         return collections.stream().map(PetDexItem::from).toList();
     }
 }

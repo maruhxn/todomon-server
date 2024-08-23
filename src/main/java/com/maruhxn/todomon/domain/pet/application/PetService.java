@@ -1,5 +1,6 @@
 package com.maruhxn.todomon.domain.pet.application;
 
+import com.maruhxn.todomon.domain.member.dao.MemberRepository;
 import com.maruhxn.todomon.domain.member.domain.Member;
 import com.maruhxn.todomon.domain.pet.dao.CollectedPetRepository;
 import com.maruhxn.todomon.domain.pet.dao.PetRepository;
@@ -8,7 +9,6 @@ import com.maruhxn.todomon.domain.pet.domain.Pet;
 import com.maruhxn.todomon.domain.pet.domain.PetType;
 import com.maruhxn.todomon.domain.pet.domain.Rarity;
 import com.maruhxn.todomon.domain.pet.dto.request.CreatePetReq;
-import com.maruhxn.todomon.domain.pet.dto.request.FeedReq;
 import com.maruhxn.todomon.global.error.ErrorCode;
 import com.maruhxn.todomon.global.error.exception.BadRequestException;
 import com.maruhxn.todomon.global.error.exception.NotFoundException;
@@ -23,10 +23,13 @@ import static com.maruhxn.todomon.global.common.Constants.PET_GAUGE_INCREASE_RAT
 @Transactional
 @RequiredArgsConstructor
 public class PetService {
+    private final MemberRepository memberRepository;
     private final PetRepository petRepository;
     private final CollectedPetRepository collectedPetRepository;
 
-    public void create(Member member, CreatePetReq req) {
+    public void create(Long memberId, CreatePetReq req) {
+        Member member = memberRepository.findMemberWithPets(memberId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_MEMBER));
         validateMemberSubscription(member, req);
         validatePetHouseSpace(member);
 
@@ -81,20 +84,20 @@ public class PetService {
     }
 
 
-    public void feed(Long petId, Member member, FeedReq req) {
+    public void feed(Long petId, Member member, Long foodCnt) {
         Pet findPet = petRepository.findOneByIdAndMember_Id(petId, member.getId())
                 .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_PET));
         int prevEvolutionCnt = findPet.getEvolutionCnt();
-        if (req.getFoodCnt() > member.getFoodCnt()) {
+        if (foodCnt > member.getFoodCnt()) {
             throw new BadRequestException(ErrorCode.OVER_FOOD_CNT);
         }
 
         // 요청 먹이 수만큼 펫 게이지 올리기
-        findPet.increaseGauge(req.getFoodCnt() * PET_GAUGE_INCREASE_RATE);
+        findPet.increaseGauge(foodCnt * PET_GAUGE_INCREASE_RATE);
         if (prevEvolutionCnt != findPet.getEvolutionCnt()) updatePetCollection(member, findPet);
 
         // 멤버의 소지 먹이 수 감소
-        member.decreaseFoodCnt(req.getFoodCnt());
+        member.decreaseFoodCnt(foodCnt);
     }
 
     public void deletePet(Long petId) {

@@ -19,6 +19,7 @@ import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Entity
 @Getter
@@ -136,7 +137,7 @@ public class Member extends BaseEntity {
         this.scheduledReward -= reward;
     }
 
-    public void decreaseFoodCnt(int foodCnt) {
+    public void decreaseFoodCnt(Long foodCnt) {
         this.foodCnt -= foodCnt;
     }
 
@@ -145,6 +146,12 @@ public class Member extends BaseEntity {
     }
 
     /* 연관관계 메서드 */
+
+    public void setTitleName(TitleName titleName) {
+        this.titleName = titleName;
+        titleName.setMember(this);
+    }
+
     public void addPet(Pet pet) {
         this.pets.add(pet);
         pet.setOwner(this);
@@ -171,6 +178,10 @@ public class Member extends BaseEntity {
         if (StringUtils.hasText(newProfileImageUrl)) {
             this.profileImageUrl = newProfileImageUrl;
         }
+    }
+
+    public Optional<Pet> getRepresentPet() {
+        return Optional.ofNullable(this.representPet);
     }
 
     public void setRepresentPet(Pet pet) {

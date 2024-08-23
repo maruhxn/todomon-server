@@ -10,7 +10,10 @@ import java.util.List;
 
 public interface TodoRepository extends JpaRepository<Todo, Long> {
 
-    @Query("SELECT t from Todo t WHERE t.writer.id = :writerId AND t.startAt BETWEEN :startDate AND :endDate AND t.repeatInfo IS NULL")
+    @Query("SELECT t from Todo t" +
+            " WHERE t.writer.id = :writerId" +
+            " AND t.startAt BETWEEN :startDate AND :endDate" +
+            " AND t.repeatInfo IS NULL")
     List<Todo> findSingleTodosByWriterIdAndDate(@Param("writerId") long writerId,
                                                 @Param("startDate") LocalDateTime startDate,
                                                 @Param("endDate") LocalDateTime endDate);

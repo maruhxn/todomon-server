@@ -26,15 +26,18 @@ public class CreateTodoReq implements DateRangeDto {
     @NotNull(message = "종료 시간을 입력해주세요.")
     private LocalDateTime endAt;
     private Boolean isAllDay;
-    private RepeatInfoItem repeatInfoItem;
+    @NotNull(message = "색을 입력해주세요.")
+    private String color;
+    private RepeatInfoReqItem repeatInfoReqItem;
 
     @Builder
-    public CreateTodoReq(String content, LocalDateTime startAt, LocalDateTime endAt, Boolean isAllDay, RepeatInfoItem repeatInfoItem) {
+    public CreateTodoReq(String content, LocalDateTime startAt, LocalDateTime endAt, Boolean isAllDay, String color, RepeatInfoReqItem repeatInfoReqItem) {
         this.content = content;
         this.startAt = startAt;
         this.endAt = endAt;
         this.isAllDay = isAllDay;
-        this.repeatInfoItem = repeatInfoItem;
+        this.color = color;
+        this.repeatInfoReqItem = repeatInfoReqItem;
     }
 
     public Todo toEntity(Member writer) {
@@ -44,6 +47,7 @@ public class CreateTodoReq implements DateRangeDto {
                 .startAt(getStartAt())
                 .endAt(getEndAt())
                 .isAllDay(getIsAllDay())
+                .color(getColor())
                 .build();
     }
 }

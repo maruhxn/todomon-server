@@ -6,18 +6,15 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-public class TodoAchievementRankItem {
+public class TodoAchievementRankItem extends AbstractMemberInfoItem {
 
-    private Long id;
-    private String username;
-    private String profileImageUrl;
+    private Long memberId;
     private long cnt;
 
     @Builder
-    public TodoAchievementRankItem(Long id, String username, String profileImageUrl, long cnt) {
-        this.id = id;
-        this.username = username;
-        this.profileImageUrl = profileImageUrl;
+    public TodoAchievementRankItem(Long memberId, String username, String profileImageUrl, long cnt, TitleNameItem title) {
+        super(username, profileImageUrl, title);
+        this.memberId = memberId;
         this.cnt = cnt;
     }
 }

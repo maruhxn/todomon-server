@@ -38,7 +38,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
         TodomonOAuth2User principal = (TodomonOAuth2User) authentication.getPrincipal();
         TokenDto tokenDto = jwtProvider.createJwt(principal);
-        String targetUri = createUri(tokenDto, principal.getName());
+        String targetUri = createUri(tokenDto, principal.getId());
         jwtService.saveRefreshToken(principal, tokenDto);
         jwtProvider.setHeader(response, tokenDto);
 //        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
@@ -48,9 +48,9 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         response.sendRedirect(targetUri);
     }
 
-    private String createUri(TokenDto tokenDto, String username) {
+    private String createUri(TokenDto tokenDto, Long memberId) {
         MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
-        queryParams.add("username", username);
+        queryParams.add("memberId", memberId.toString());
         queryParams.add("accessToken", tokenDto.getAccessToken());
         queryParams.add("refreshToken", tokenDto.getRefreshToken());
 

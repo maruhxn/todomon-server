@@ -3,6 +3,7 @@ package com.maruhxn.todomon.domain.member.api;
 import com.maruhxn.todomon.domain.member.application.MemberService;
 import com.maruhxn.todomon.domain.member.dto.request.UpdateMemberProfileReq;
 import com.maruhxn.todomon.domain.member.dto.response.ProfileDto;
+import com.maruhxn.todomon.domain.member.dto.response.SearchDto;
 import com.maruhxn.todomon.global.common.dto.response.DataResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +12,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @Slf4j
 @RestController
 @RequestMapping("/api/members")
@@ -18,6 +21,14 @@ import org.springframework.web.bind.annotation.*;
 public class MemberController {
 
     private final MemberService memberService;
+
+    @GetMapping("/search")
+    public DataResponse<List<SearchDto>> searchMemberByKey(
+            @RequestParam(required = true) String key
+    ) {
+        List<SearchDto> queryResults = memberService.searchMemberByKey(key);
+        return DataResponse.of("유저 조회 성공", queryResults);
+    }
 
     @GetMapping("/{memberId}")
     public DataResponse<ProfileDto> getProfile(

@@ -1,4 +1,4 @@
-package com.maruhxn.todomon.domain.member.application;
+package com.maruhxn.todomon.domain.pet.application;
 
 import com.maruhxn.todomon.domain.member.dao.MemberRepository;
 import com.maruhxn.todomon.domain.member.domain.Member;
@@ -22,9 +22,13 @@ public class RepresentPetService {
         Member findMember = memberRepository.findById(memberId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_MEMBER));
 
-        Pet pet = petRepository.findOneByIdAndMember_Id(petId, memberId)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_PET));
+        if (petId == null) {
+            findMember.setRepresentPet(null);
+        } else {
+            Pet pet = petRepository.findOneByIdAndMember_Id(petId, memberId)
+                    .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_PET));
 
-        findMember.setRepresentPet(pet);
+            findMember.setRepresentPet(pet);
+        }
     }
 }

@@ -90,7 +90,7 @@ class OverallRankIntegrationTest extends ControllerIntegrationTestSupport {
                 .andExpect(jsonPath("code").value("OK"))
                 .andExpect(jsonPath("message").value("전체 일간 투두 달성 랭킹 조회 성공"))
                 .andExpect(jsonPath("data").isArray())
-                .andExpect(jsonPath("data[0].id").value(tester10.getId()))
+                .andExpect(jsonPath("data[0].memberId").value(tester10.getId()))
                 .andExpect(jsonPath("data[0].username").value(tester10.getUsername()))
                 .andExpect(jsonPath("data[0].profileImageUrl").value(tester10.getProfileImageUrl()))
                 .andExpect(jsonPath("data[0].cnt").value(5L));
@@ -147,7 +147,7 @@ class OverallRankIntegrationTest extends ControllerIntegrationTestSupport {
                 .andExpect(jsonPath("code").value("OK"))
                 .andExpect(jsonPath("message").value("전체 주간 투두 달성 랭킹 조회 성공"))
                 .andExpect(jsonPath("data").isArray())
-                .andExpect(jsonPath("data[0].id").value(tester10.getId()))
+                .andExpect(jsonPath("data[0].memberId").value(tester10.getId()))
                 .andExpect(jsonPath("data[0].username").value(tester10.getUsername()))
                 .andExpect(jsonPath("data[0].profileImageUrl").value(tester10.getProfileImageUrl()))
                 .andExpect(jsonPath("data[0].cnt").value(5L));
@@ -175,7 +175,7 @@ class OverallRankIntegrationTest extends ControllerIntegrationTestSupport {
                 .andExpect(jsonPath("code").value("OK"))
                 .andExpect(jsonPath("message").value("전체 일관성 레벨 랭킹 조회 성공"))
                 .andExpect(jsonPath("data").isArray())
-                .andExpect(jsonPath("data[0].id").value(tester10.getId()))
+                .andExpect(jsonPath("data[0].memberId").value(tester10.getId()))
                 .andExpect(jsonPath("data[0].username").value(tester10.getUsername()))
                 .andExpect(jsonPath("data[0].profileImageUrl").value(tester10.getProfileImageUrl()))
                 .andExpect(jsonPath("data[0].level").value(tester10.getDiligence().getLevel()));
@@ -205,7 +205,7 @@ class OverallRankIntegrationTest extends ControllerIntegrationTestSupport {
                 .andExpect(jsonPath("code").value("OK"))
                 .andExpect(jsonPath("message").value("전체 도감 랭킹 조회 성공"))
                 .andExpect(jsonPath("data").isArray())
-                .andExpect(jsonPath("data[0].id").value(tester6.getId()))
+                .andExpect(jsonPath("data[0].memberId").value(tester6.getId()))
                 .andExpect(jsonPath("data[0].username").value(tester6.getUsername()))
                 .andExpect(jsonPath("data[0].profileImageUrl").value(tester6.getProfileImageUrl()))
                 .andExpect(jsonPath("data[0].petCnt").value(3));

@@ -1,10 +1,7 @@
-package com.maruhxn.todomon.domain.todo.dto.request;
+package com.maruhxn.todomon.domain.todo.dto.response;
 
 import com.maruhxn.todomon.domain.todo.domain.Frequency;
 import com.maruhxn.todomon.domain.todo.domain.RepeatInfo;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -16,14 +13,11 @@ import java.time.LocalDate;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class RepeatInfoItem {
-    @NotNull(message = "반복 단위를 입력해주세요.")
     private Frequency frequency;
     private int interval;
-    @Size(max = 30, message = "최대 30글자입니다.")
     private String byDay;
     private Integer byMonthDay;
     private LocalDate until;
-    @Min(value = 2, message = "최소 반복 횟수는 2번입니다.")
     private Integer count;
 
     @Builder
@@ -37,14 +31,14 @@ public class RepeatInfoItem {
         this.count = count;
     }
 
-    public RepeatInfo toEntity() {
-        return RepeatInfo.builder()
-                .frequency(getFrequency())
-                .interval(getInterval())
-                .byDay(getByDay())
-                .byMonthDay(getByMonthDay())
-                .until(getUntil())
-                .count(getCount())
+    public static RepeatInfoItem from(RepeatInfo repeatInfo) {
+        return RepeatInfoItem.builder()
+                .frequency(repeatInfo.getFrequency())
+                .interval(repeatInfo.getInterval())
+                .byDay(repeatInfo.getByDay())
+                .byMonthDay(repeatInfo.getByMonthDay())
+                .until(repeatInfo.getUntil())
+                .count(repeatInfo.getCount())
                 .build();
     }
 }

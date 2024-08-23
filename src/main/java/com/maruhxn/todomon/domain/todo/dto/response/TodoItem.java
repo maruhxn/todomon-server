@@ -26,20 +26,24 @@ public class TodoItem {
     private Long todoId;
     private Long parentId;
     private String content;
+    private String color;
     private boolean isAllDay;
     private boolean isDone;
     private LocalDateTime startAt;
     private LocalDateTime endAt;
+    private RepeatInfoItem repeatInfoItem;
 
     @Builder
-    public TodoItem(Long todoId, Long parentId, String content, boolean isAllDay, boolean isDone, LocalDateTime startAt, LocalDateTime endAt) {
+    public TodoItem(Long todoId, Long parentId, String content, String color, boolean isAllDay, boolean isDone, LocalDateTime startAt, LocalDateTime endAt, RepeatInfoItem repeatInfoItem) {
         this.todoId = todoId;
         this.parentId = parentId;
         this.content = content;
+        this.color = color;
         this.isAllDay = isAllDay;
         this.isDone = isDone;
         this.startAt = startAt;
         this.endAt = endAt;
+        this.repeatInfoItem = repeatInfoItem;
     }
 
     public static TodoItem from(Todo todo) {
@@ -47,10 +51,12 @@ public class TodoItem {
                 .todoId(todo.getId())
                 .parentId(null)
                 .content(todo.getContent())
+                .color(todo.getColor())
                 .startAt(todo.getStartAt())
                 .endAt(todo.getEndAt())
                 .isAllDay(todo.isAllDay())
                 .isDone(todo.isDone())
+                .repeatInfoItem(null)
                 .build();
     }
 
@@ -58,11 +64,13 @@ public class TodoItem {
         return TodoItem.builder()
                 .todoId(todoInstance.getId())
                 .parentId(todoInstance.getTodo().getId())
-                .content(todoInstance.getTodo().getContent())
+                .content(todoInstance.getContent())
+                .color(todoInstance.getColor())
                 .startAt(todoInstance.getStartAt())
                 .endAt(todoInstance.getEndAt())
                 .isAllDay(todoInstance.isAllDay())
                 .isDone(todoInstance.isDone())
+                .repeatInfoItem(RepeatInfoItem.from(todoInstance.getTodo().getRepeatInfo()))
                 .build();
     }
 }
