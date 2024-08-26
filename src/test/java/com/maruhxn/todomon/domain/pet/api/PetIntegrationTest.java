@@ -99,8 +99,6 @@ class PetIntegrationTest extends ControllerIntegrationTestSupport {
                 .andExpect(jsonPath("code").value("OK"))
                 .andExpect(jsonPath("message").value("소유 펫 정보 조회 성공"))
                 .andExpect(jsonPath("data.representPetId").isEmpty())
-                .andExpect(jsonPath("data.starPoint").value(member.getStarPoint()))
-                .andExpect(jsonPath("data.foodCnt").value(member.getFoodCnt()))
                 .andExpect(jsonPath("data.petHouseSize").value(member.getPetHouseSize()))
                 .andExpect(jsonPath("data.myPets").isArray())
                 .andExpect(jsonPath("data.myPets.size()").value(2))

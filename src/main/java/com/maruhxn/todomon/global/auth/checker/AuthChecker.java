@@ -43,6 +43,8 @@ public class AuthChecker {
     }
 
     public boolean isMyPetOrAdmin(Long petId) {
+        if (petId == null) return true;
+
         TodomonOAuth2User todomonOAuth2User = getPrincipal();
 
         Pet findPet = petRepository.findById(petId)
@@ -86,7 +88,7 @@ public class AuthChecker {
                 .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_FOLLOW));
 
         if (!hasAdminAuthority() &&
-                !Objects.equals(follow.getFollowee(), todomonOAuth2User.getMember())) {
+                !Objects.equals(follow.getFollowee().getId(), todomonOAuth2User.getId())) {
             throw new ForbiddenException(ErrorCode.FORBIDDEN);
         }
 

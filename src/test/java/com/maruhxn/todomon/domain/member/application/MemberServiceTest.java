@@ -151,19 +151,23 @@ class MemberServiceTest extends IntegrationTestSupport {
                 .follower(tester1)
                 .followee(tester3)
                 .build();
-        Follow followed = Follow.builder()
+        Follow followed1 = Follow.builder()
                 .follower(tester4)
+                .followee(tester1)
+                .build();
+        Follow followed2 = Follow.builder()
+                .follower(tester2)
                 .followee(tester1)
                 .build();
 
         following1.updateStatus(FollowRequestStatus.ACCEPTED);
         following2.updateStatus(FollowRequestStatus.ACCEPTED);
-        followed.updateStatus(FollowRequestStatus.ACCEPTED);
+        followed1.updateStatus(FollowRequestStatus.ACCEPTED);
 
-        followRepository.saveAll(List.of(followed, following1, following2));
+        followRepository.saveAll(List.of(followed1, followed2, following1, following2));
 
         // when
-        ProfileDto profile = memberService.getProfile(tester1.getId());
+        ProfileDto profile = memberService.getProfile(tester2.getId(), tester1.getId());
 
         // then
         assertThat(profile)
@@ -182,8 +186,12 @@ class MemberServiceTest extends IntegrationTestSupport {
                     assertThat(dto.getTitle().getId()).isEqualTo(titleName.getId());
                     assertThat(dto.getTitle().getName()).isEqualTo(titleName.getName());
                     assertThat(dto.getTitle().getColor()).isEqualTo(titleName.getColor());
-                    assertThat(dto.getFollowerCnt()).isEqualTo(1L);
-                    assertThat(dto.getFollowingCnt()).isEqualTo(2L);
+                    assertThat(dto.getFollowInfo().getFollowerCnt()).isEqualTo(1L);
+                    assertThat(dto.getFollowInfo().getFollowingCnt()).isEqualTo(2L);
+                    assertThat(dto.getFollowInfo().getIsFollowing()).isTrue();
+                    assertThat(dto.getFollowInfo().getReceivedRequestId()).isEqualTo(following1.getId());
+                    assertThat(dto.getFollowInfo().getReceivedFollowStatus()).isEqualTo(FollowRequestStatus.ACCEPTED);
+                    assertThat(dto.getFollowInfo().getSentFollowStatus()).isEqualTo(FollowRequestStatus.PENDING);
                 });
     }
 

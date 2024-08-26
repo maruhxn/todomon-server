@@ -66,28 +66,28 @@ class FollowIntegrationTest extends ControllerIntegrationTestSupport {
                 .andExpect(jsonPath("data.results.size()").value(10));
     }
 
-    // 맞팔로우
-    @Test
-    @DisplayName("POST /api/social/follows/{followerId}/mutual - 맞팔로우를 한다")
-    void matFollow() throws Exception {
-        // given
-        Member tester1 = createMember("tester1");
-        Follow follow = Follow.builder()
-                .follower(tester1)
-                .followee(member)
-                .build();
-        follow.updateStatus(ACCEPTED);
-        followRepository.save(follow);
-
-        // when / then
-        mockMvc.perform(
-                        post(FOLLOW_BASE_URL + "/{followerId}/mutual", tester1.getId())
-                                .header(ACCESS_TOKEN_HEADER, BEARER_PREFIX + memberTokenDto.getAccessToken())
-                                .header(REFRESH_TOKEN_HEADER, BEARER_PREFIX + memberTokenDto.getRefreshToken())
-                )
-                .andExpect(status().isCreated());
-
-    }
+//    // 맞팔로우
+//    @Test
+//    @DisplayName("POST /api/social/follows/{followerId}/mutual - 맞팔로우를 한다")
+//    void matFollow() throws Exception {
+//        // given
+//        Member tester1 = createMember("tester1");
+//        Follow follow = Follow.builder()
+//                .follower(tester1)
+//                .followee(member)
+//                .build();
+//        follow.updateStatus(ACCEPTED);
+//        followRepository.save(follow);
+//
+//        // when / then
+//        mockMvc.perform(
+//                        post(FOLLOW_BASE_URL + "/{followerId}/mutual", tester1.getId())
+//                                .header(ACCESS_TOKEN_HEADER, BEARER_PREFIX + memberTokenDto.getAccessToken())
+//                                .header(REFRESH_TOKEN_HEADER, BEARER_PREFIX + memberTokenDto.getRefreshToken())
+//                )
+//                .andExpect(status().isCreated());
+//
+//    }
 
     @Test
     @DisplayName("POST /api/social/follows/{memberId} - 유저에게 팔로우 요청을 보낸다")
@@ -98,7 +98,7 @@ class FollowIntegrationTest extends ControllerIntegrationTestSupport {
 
         // when / then
         mockMvc.perform(
-                        post(FOLLOW_BASE_URL + "/{memberId}/request", tester1.getId())
+                        post(FOLLOW_BASE_URL + "/{memberId}", tester1.getId())
                                 .header(ACCESS_TOKEN_HEADER, BEARER_PREFIX + memberTokenDto.getAccessToken())
                                 .header(REFRESH_TOKEN_HEADER, BEARER_PREFIX + memberTokenDto.getRefreshToken())
                 )

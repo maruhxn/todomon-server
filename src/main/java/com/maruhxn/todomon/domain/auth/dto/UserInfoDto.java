@@ -13,14 +13,18 @@ public class UserInfoDto {
     private String username;
     private Role role;
     private String profileImage;
+    private Long starPoint;
+    private Long foodCnt;
 
     @Builder
-    public UserInfoDto(Long id, String email, String username, Role role, String profileImage) {
+    public UserInfoDto(Long id, String email, String username, Role role, String profileImage, Long starPoint, Long foodCnt) {
         this.id = id;
         this.email = email;
         this.username = username;
         this.role = role;
         this.profileImage = profileImage;
+        this.starPoint = starPoint;
+        this.foodCnt = foodCnt;
     }
 
     public static UserInfoDto from(Member member) {
@@ -30,6 +34,8 @@ public class UserInfoDto {
                 .username(member.getUsername())
                 .role(member.getRole())
                 .profileImage(member.getProfileImageUrl())
+                .starPoint(member.getStarPoint())
+                .foodCnt(member.getFoodCnt())
                 .build();
     }
 }

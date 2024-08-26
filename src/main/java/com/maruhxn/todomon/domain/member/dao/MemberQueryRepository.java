@@ -16,6 +16,7 @@ import java.util.Optional;
 import static com.maruhxn.todomon.domain.member.domain.QDiligence.diligence;
 import static com.maruhxn.todomon.domain.member.domain.QMember.member;
 import static com.maruhxn.todomon.domain.member.domain.QTitleName.titleName;
+import static com.maruhxn.todomon.domain.social.domain.FollowRequestStatus.ACCEPTED;
 import static com.maruhxn.todomon.domain.social.domain.QFollow.follow;
 
 @Repository
@@ -38,8 +39,7 @@ public class MemberQueryRepository {
                 .fetch();
     }
 
-    // 유저명, 프로필사진, 이메일, 대표 펫, 팔로워 수, 팔로잉 수, 현재 칭호 반환
-    public Optional<ProfileDto> getMemberProfileById(Long memberId) {
+    public Optional<ProfileDto> getMemberProfileById(Long loginMemberId, Long memberId) {
         QPet representPet = new QPet("representPet");
 
         ProfileDto profileDto = query
@@ -64,18 +64,60 @@ public class MemberQueryRepository {
                                         representPet.color,
                                         representPet.level
                                 ).as("representPetItem"),
-                                ExpressionUtils.as(
-                                        JPAExpressions.select(follow.countDistinct())
-                                                .from(follow)
-                                                .where(follow.followee.id.eq(memberId)),
-                                        "followerCnt"
-                                ),
-                                ExpressionUtils.as(
-                                        JPAExpressions.select(follow.countDistinct())
-                                                .from(follow)
-                                                .where(follow.follower.id.eq(memberId)),
-                                        "followingCnt"
-                                )
+                                Projections.fields(ProfileDto.FollowInfoItem.class,
+                                        ExpressionUtils.as(
+                                                JPAExpressions.select(follow.countDistinct())
+                                                        .from(follow)
+                                                        .where(follow.followee.id.eq(memberId), follow.status.eq(ACCEPTED)),
+                                                "followerCnt"
+                                        ),
+                                        ExpressionUtils.as(
+                                                JPAExpressions.select(follow.countDistinct())
+                                                        .from(follow)
+                                                        .where(follow.follower.id.eq(memberId), follow.status.eq(ACCEPTED)),
+                                                "followingCnt"
+                                        ),
+                                        ExpressionUtils.as(
+                                                JPAExpressions
+                                                        .selectOne()
+                                                        .from(follow)
+                                                        .where(
+                                                                follow.followee.id.eq(memberId)
+                                                                        .and(follow.follower.id.eq(loginMemberId))
+                                                        )
+                                                        .exists(),
+                                                "isFollowing"
+                                        ),
+                                        ExpressionUtils.as(
+                                                JPAExpressions
+                                                        .select(follow.id)
+                                                        .from(follow)
+                                                        .where(follow.follower.id.eq(memberId)
+                                                                .and(follow.followee.id.eq(loginMemberId))),
+                                                "receivedRequestId"
+                                        ),
+                                        ExpressionUtils.as(
+                                                JPAExpressions
+                                                        .select(follow.status)
+                                                        .from(follow)
+                                                        .where(
+                                                                follow.follower.id.eq(memberId)
+                                                                        .and(follow.followee.id.eq(loginMemberId))
+                                                        ),
+                                                "receivedFollowStatus"
+                                        ),
+                                        ExpressionUtils.as(
+                                                JPAExpressions
+                                                        .select(follow.status)
+                                                        .from(follow)
+                                                        .where(
+                                                                follow.followee.id.eq(memberId)
+                                                                        .and(follow.follower.id.eq(loginMemberId))
+                                                        ),
+                                                "sentFollowStatus"
+                                        )
+                                ).as("followInfo")
+
                         )
                 )
                 .from(member)
@@ -89,6 +131,10 @@ public class MemberQueryRepository {
             profileDto.setTitleNameItemToNullIfIsEmpty();
             profileDto.setRepresentPetItemToNullIfIsEmpty();
         }
+
+//        if (loginMemberId.equals(memberId)) {
+//            profileDto.setIsFollowingToNull();
+//        }
 
         return Optional.ofNullable(profileDto);
     }

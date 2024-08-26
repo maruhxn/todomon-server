@@ -60,10 +60,9 @@ public class MemberService {
         return member;
     }
 
-    // 유저명, 프로필사진, 이메일, 대표 펫, 팔로워 수, 팔로잉 수, 칭호
     @Transactional(readOnly = true)
-    public ProfileDto getProfile(Long memberId) {
-        return memberQueryRepository.getMemberProfileById(memberId)
+    public ProfileDto getProfile(Long loginMemberId, Long memberId) {
+        return memberQueryRepository.getMemberProfileById(loginMemberId, memberId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_MEMBER));
     }
 

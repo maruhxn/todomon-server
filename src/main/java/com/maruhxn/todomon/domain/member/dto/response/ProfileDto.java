@@ -2,6 +2,7 @@ package com.maruhxn.todomon.domain.member.dto.response;
 
 import com.maruhxn.todomon.domain.pet.domain.Pet;
 import com.maruhxn.todomon.domain.pet.domain.Rarity;
+import com.maruhxn.todomon.domain.social.domain.FollowRequestStatus;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,11 +19,10 @@ public class ProfileDto {
     private double gauge;
     private TitleNameItem title;
     private RepresentPetItem representPetItem;
-    private Long followerCnt;
-    private Long followingCnt;
+    private FollowInfoItem followInfo;
 
     @Builder
-    public ProfileDto(Long id, String username, String email, String profileImageUrl, int level, double gauge, TitleNameItem title, RepresentPetItem representPetItem, Long followerCnt, Long followingCnt) {
+    public ProfileDto(Long id, String username, String email, String profileImageUrl, int level, double gauge, TitleNameItem title, RepresentPetItem representPetItem, FollowInfoItem followInfo) {
         this.id = id;
         this.username = username;
         this.email = email;
@@ -31,8 +31,7 @@ public class ProfileDto {
         this.gauge = gauge;
         this.title = title;
         this.representPetItem = representPetItem;
-        this.followerCnt = followerCnt;
-        this.followingCnt = followingCnt;
+        this.followInfo = followInfo;
     }
 
     public void setTitleNameItemToNullIfIsEmpty() {
@@ -92,6 +91,27 @@ public class ProfileDto {
                     .color(representPet.getColor())
                     .level(representPet.getLevel())
                     .build();
+        }
+    }
+
+    @Getter
+    @NoArgsConstructor
+    public static class FollowInfoItem {
+
+        private Long followerCnt;
+        private Long followingCnt;
+        private Boolean isFollowing;
+        private Long receivedRequestId;
+        private FollowRequestStatus receivedFollowStatus;
+        private FollowRequestStatus sentFollowStatus;
+
+        public FollowInfoItem(Long followerCnt, Long followingCnt, Boolean isFollowing, Long receivedRequestId, FollowRequestStatus receivedFollowStatus, FollowRequestStatus sentFollowStatus) {
+            this.followerCnt = followerCnt;
+            this.followingCnt = followingCnt;
+            this.isFollowing = isFollowing;
+            this.receivedRequestId = receivedRequestId;
+            this.receivedFollowStatus = receivedFollowStatus;
+            this.sentFollowStatus = sentFollowStatus;
         }
     }
 }

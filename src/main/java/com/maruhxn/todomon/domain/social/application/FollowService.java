@@ -11,8 +11,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import static com.maruhxn.todomon.domain.social.domain.FollowRequestStatus.ACCEPTED;
-import static com.maruhxn.todomon.domain.social.domain.FollowRequestStatus.REJECTED;
+import java.util.Optional;
+
+import static com.maruhxn.todomon.domain.social.domain.FollowRequestStatus.*;
 
 @Service
 @Transactional
@@ -21,29 +22,43 @@ public class FollowService {
 
     private final MemberRepository memberRepository;
     private final FollowRepository followRepository;
-    private final FollowQueryService followQueryService;
 
     // 팔로우 요청을 보낸다.
-    public void sendFollowRequest(Member follower, Long followeeId) {
+    public void sendFollowRequestOrMatFollow(Member follower, Long followeeId) {
         // 자기 자신은 팔로우 안됨
         if (follower.getId() == followeeId) throw new BadRequestException(ErrorCode.BAD_REQUEST);
-
-        // 팔로우 정보가 이미 존재하는지 확인
-        followRepository.findByFollower_IdAndFollowee_Id(follower.getId(), followeeId)
-                .ifPresent(f -> {
-                    throw new BadRequestException(ErrorCode.BAD_REQUEST);
-                });
 
         Member followee = memberRepository.findById(followeeId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_MEMBER, "팔로위 정보가 존재하지 않습니다."));
 
-        Follow follow = Follow.builder()
-                .follower(follower)
-                .followee(followee)
-                .build();
+        // 이미 받은 팔로우가 있다면, 맞팔로우 로직으로 전환
+        Optional<Follow> receivedFollowRequest =
+                followRepository.findByFollower_IdAndFollowee_Id(followeeId, follower.getId());
 
-        follower.getFollowings().add(follow);
-        followRepository.save(follow);
+        if (receivedFollowRequest.isPresent()) {
+            Follow receivedFollow = receivedFollowRequest.get();
+            if (receivedFollow.getStatus().equals(PENDING)) {
+                receivedFollow.updateStatus(ACCEPTED);
+            }
+            Follow matFollow = Follow.builder()
+                    .follower(follower)
+                    .followee(followee)
+                    .build();
+            matFollow.updateStatus(ACCEPTED);
+            followRepository.save(matFollow);
+        } else {
+            followRepository.findByFollower_IdAndFollowee_Id(follower.getId(), followeeId)
+                    .ifPresent(f -> {
+                        throw new BadRequestException(ErrorCode.BAD_REQUEST, "이미 팔로우 요청을 보냈습니다.");
+                    });
+
+            Follow follow = Follow.builder()
+                    .follower(follower)
+                    .followee(followee)
+                    .build();
+
+            followRepository.save(follow);
+        }
     }
 
     // 팔로우 요청에 대해 응답한다.
@@ -83,21 +98,21 @@ public class FollowService {
         followRepository.delete(findFollow);
     }
 
-    public void matFollow(Member member, Long followerId) {
-        // 팔로워가 존재하는지 확인
-        Member follower = memberRepository.findById(followerId)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_MEMBER, "팔로워의 정보가 존재하지 않습니다."));
-
-        // 팔로워가 나를 팔로우하고 있는지 확인 (Follow가 있고, ACCEPT)
-        followQueryService.checkIsFollow(followerId, member.getId());
-
-        // 팔로우 요청을 보내지 않고, 바로 팔로우 엔터티 생성
-        Follow matFollow = Follow.builder()
-                .follower(member)
-                .followee(follower)
-                .build();
-        matFollow.updateStatus(ACCEPTED);
-
-        followRepository.save(matFollow);
-    }
+//    public void matFollow(Member member, Long followerId) {
+//        // 팔로워가 존재하는지 확인
+//        Member follower = memberRepository.findById(followerId)
+//                .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_MEMBER, "팔로워의 정보가 존재하지 않습니다."));
+//
+//        // 팔로워가 나를 팔로우하고 있는지 확인 (Follow가 있고, ACCEPT)
+//        followQueryService.checkIsFollow(followerId, member.getId());
+//
+//        // 팔로우 요청을 보내지 않고, 바로 팔로우 엔터티 생성
+//        Follow matFollow = Follow.builder()
+//                .follower(member)
+//                .followee(follower)
+//                .build();
+//        matFollow.updateStatus(ACCEPTED);
+//
+//        followRepository.save(matFollow);
+//    }
 }

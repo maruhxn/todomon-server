@@ -35,7 +35,7 @@ public class MyPetController {
     @PreAuthorize("@authChecker.isMyPetOrAdmin(#petId)")
     public void updateRepresentPet(
             @AuthenticationPrincipal TodomonOAuth2User todomonOAuth2User,
-            @RequestParam Long petId
+            @RequestParam(required = false) Long petId
     ) {
         representPetService.setRepresentPet(todomonOAuth2User.getId(), petId);
     }

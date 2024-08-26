@@ -15,16 +15,12 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class PetInfoDto {
     private Long representPetId;
-    private Long starPoint;
-    private Long foodCnt;
     private int petHouseSize;
     private List<MyPetItem> myPets;
 
     @Builder
-    public PetInfoDto(Long representPetId, Long starPoint, Long foodCnt, int petHouseSize, List<MyPetItem> myPets) {
+    public PetInfoDto(Long representPetId, int petHouseSize, List<MyPetItem> myPets) {
         this.representPetId = representPetId;
-        this.starPoint = starPoint;
-        this.foodCnt = foodCnt;
         this.petHouseSize = petHouseSize;
         this.myPets = myPets;
     }
@@ -32,8 +28,6 @@ public class PetInfoDto {
     public static PetInfoDto of(Member member, List<Pet> pets) {
         return PetInfoDto.builder()
                 .representPetId(member.getRepresentPet().map(Pet::getId).orElse(null))
-                .starPoint(member.getStarPoint())
-                .foodCnt(member.getFoodCnt())
                 .petHouseSize(member.getPetHouseSize())
                 .myPets(pets.stream().map(MyPetItem::from).toList())
                 .build();
