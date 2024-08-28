@@ -16,7 +16,10 @@ public enum ErrorCode {
     ALREADY_RECEIVED("이미 ⭐️을 받았습니다."),
     EMPTY_FILE("파일은 비어있을 수 없습니다."),
     ALREADY_SENT_STAR("⭐️은 하루에 한번만 보낼 수 있습니다."),
-
+    PREPARE_PAYMENT_ERROR("결제 정보 사전 검증 에러"),
+    POST_VALIDATE_PAYMENT_ERROR("결제 정보 사후 검증 에러"),
+    NOT_ENOUGH_STAR_POINT("⭐️이 부족합니다."),
+    INVALID_PAYMENT_AMOUNT_ERROR("거래 금액이 일치하지 않습니다."),
 
     /* UNAUTHORIZED 401 */
     UNAUTHORIZED("로그인이 필요한 서비스입니다."),
@@ -37,6 +40,9 @@ public enum ErrorCode {
     NOT_FOUND_STAR_TRANSACTION("STAR 발신 내역이 없습니다."),
     NOT_FOUND_TITLE_NAME("유저 칭호를 찾을 수 없습니다."),
     NOT_FOUND_FILE("파일을 찾을 수 없습니다."),
+    NOT_FOUND_ITEM("상품 정보를 찾을 수 없습니다."),
+    NOT_FOUND_ORDER("주문 정보를 찾을 수 없습니다."),
+    NOT_FOUND_STAR_POINT_PAYMENT_HISTORY("⭐️ 아이템 구매 기록을 찾을 수 없습니다."),
 
     /* UNPROCESSABLE CONTENT 422 */
     EXISTING_RESOURCE("이미 존재하는 리소스입니다."),
