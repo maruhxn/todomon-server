@@ -80,17 +80,21 @@ public class Member extends BaseEntity {
 
     // 보낸 star
     @OneToMany(mappedBy = "sender", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<StarTransaction> sentStars;
+    private List<StarTransaction> sentStars = new ArrayList<>();
 
     // 받은 star
     @OneToMany(mappedBy = "receiver", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<StarTransaction> receivedStars;
+    private List<StarTransaction> receivedStars = new ArrayList<>();
 
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<TodoAchievementHistory> todoAchievementHistories;
+    private List<TodoAchievementHistory> todoAchievementHistories = new ArrayList<>();
 
     @OneToOne(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     private TitleName titleName;
+
+    // 유저는 여러 인벤토리 아이템을 가질 수 있음
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<InventoryItem> inventoryItems = new ArrayList<>();
 
     @OneToOne
     @JoinColumn(name = "represent_pet_id")
@@ -162,6 +166,11 @@ public class Member extends BaseEntity {
         collectedPet.setMember(this);
     }
 
+    public void addItemToInventory(InventoryItem inventoryItem) {
+        this.inventoryItems.add(inventoryItem);
+        inventoryItem.setMember(this);
+    }
+
     public void addDailyAchievementCnt(int cnt) {
         this.dailyAchievementCnt += cnt;
     }
@@ -186,5 +195,9 @@ public class Member extends BaseEntity {
 
     public void setRepresentPet(Pet pet) {
         this.representPet = pet;
+    }
+
+    public void subtractStarPoint(Long totalPrice) {
+        this.starPoint -= totalPrice;
     }
 }
