@@ -197,6 +197,10 @@ public class Member extends BaseEntity {
         this.representPet = pet;
     }
 
+    public void addStarPoint(Long refundAmount) {
+        this.starPoint += refundAmount;
+    }
+
     public void subtractStarPoint(Long totalPrice) {
         this.starPoint -= totalPrice;
     }

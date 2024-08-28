@@ -1,5 +1,6 @@
 package com.maruhxn.todomon.domain.purchase.domain;
 
+import com.maruhxn.todomon.domain.member.domain.Member;
 import com.maruhxn.todomon.global.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -13,6 +14,9 @@ import lombok.NoArgsConstructor;
 @Table(name = "payment")
 public class TodomonPayment extends BaseEntity {
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id", referencedColumnName = "id")
+    private Member member;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", referencedColumnName = "id")
@@ -22,15 +26,19 @@ public class TodomonPayment extends BaseEntity {
     private String impUid; // 포트원 결제 id
 
     @Enumerated(EnumType.STRING)
-    private PaymentStatus status;
+    private PaymentStatus status = PaymentStatus.OK;
 
     private Long amount;
 
     @Builder
-    public TodomonPayment(Order order, String impUid, PaymentStatus status, Long amount) {
+    public TodomonPayment(Member member, Order order, String impUid, Long amount) {
+        this.member = member;
         this.order = order;
         this.impUid = impUid;
-        this.status = status;
         this.amount = amount;
+    }
+
+    public void updateStatus(PaymentStatus status) {
+        this.status = status;
     }
 }

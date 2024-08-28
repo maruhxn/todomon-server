@@ -14,9 +14,18 @@ import lombok.NoArgsConstructor;
 @Table(name = "orders")
 public class Order extends BaseEntity {
 
+    @Column(nullable = false)
     private Long totalPrice; // 총 가격
+
+    @Column(nullable = false)
     private Long quantity; // 상품 수
+
+    @Column(nullable = false, unique = true)
     private String merchantUid; // 주문번호
+
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private MoneyType moneyType;
 
     @Enumerated(EnumType.STRING)
     private OrderStatus orderStatus = OrderStatus.REQUEST_PAYMENT;
@@ -30,10 +39,11 @@ public class Order extends BaseEntity {
     private Item item;
 
     @Builder
-    public Order(Long totalPrice, Long quantity, String merchantUid, Member member, Item item) {
+    public Order(Long totalPrice, Long quantity, String merchantUid, MoneyType moneyType, Member member, Item item) {
         this.totalPrice = totalPrice;
         this.quantity = quantity;
         this.merchantUid = merchantUid;
+        this.moneyType = moneyType;
         this.member = member;
         this.item = item;
     }

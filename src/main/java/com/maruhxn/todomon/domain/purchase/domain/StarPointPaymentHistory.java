@@ -29,13 +29,21 @@ public class StarPointPaymentHistory extends BaseEntity {
     @Column(nullable = false)
     private Long amount;
 
+    @Enumerated(EnumType.STRING)
+    private PaymentStatus status = PaymentStatus.OK;
+
     @Builder
-    public StarPointPaymentHistory(Member member, String merchantUid, Long itemId, Long quantity, Long amount) {
+    public StarPointPaymentHistory(Member member, String merchantUid, Long itemId, Long quantity, Long amount, PaymentStatus status) {
         this.member = member;
         this.merchantUid = merchantUid;
         this.itemId = itemId;
         this.quantity = quantity;
         this.amount = amount;
+        this.status = status;
+    }
+
+    public void updateStatus(PaymentStatus status) {
+        this.status = status;
     }
 
 }

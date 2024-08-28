@@ -20,6 +20,7 @@ public enum ErrorCode {
     POST_VALIDATE_PAYMENT_ERROR("결제 정보 사후 검증 에러"),
     NOT_ENOUGH_STAR_POINT("⭐️이 부족합니다."),
     INVALID_PAYMENT_AMOUNT_ERROR("거래 금액이 일치하지 않습니다."),
+    CANCEL_PAYMENT_ERROR("결제 취소 중 에러"),
 
     /* UNAUTHORIZED 401 */
     UNAUTHORIZED("로그인이 필요한 서비스입니다."),
@@ -43,6 +44,7 @@ public enum ErrorCode {
     NOT_FOUND_ITEM("상품 정보를 찾을 수 없습니다."),
     NOT_FOUND_ORDER("주문 정보를 찾을 수 없습니다."),
     NOT_FOUND_STAR_POINT_PAYMENT_HISTORY("⭐️ 아이템 구매 기록을 찾을 수 없습니다."),
+    NOT_FOUND_PAYMENT("결제 정보를 찾을 수 없습니다."),
 
     /* UNPROCESSABLE CONTENT 422 */
     EXISTING_RESOURCE("이미 존재하는 리소스입니다."),
