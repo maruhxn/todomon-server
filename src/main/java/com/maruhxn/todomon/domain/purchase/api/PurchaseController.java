@@ -9,10 +9,7 @@ import com.maruhxn.todomon.global.common.dto.response.BaseResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/purchase")
@@ -30,13 +27,6 @@ public class PurchaseController {
         return new BaseResponse("⭐️ 아이템 결제 요청 성공");
     }
 
-    /**
-     * 결제 정보 사전 검증
-     * 해당 주문번호의 결제 예정 금액을 사전에 등록한다.
-     *
-     * @param req
-     * @return
-     */
     @PostMapping("/payment/prepare")
     public BaseResponse preparePayment(
             @AuthenticationPrincipal TodomonOAuth2User todomonOAuth2User,
@@ -53,5 +43,14 @@ public class PurchaseController {
     ) {
         purchaseService.verifyPayment(todomonOAuth2User.getId(), req);
         return new BaseResponse("결제 성공");
+    }
+
+    @PostMapping("/payment/cancel/{orderId}")
+    public BaseResponse cancelPayment(
+            @AuthenticationPrincipal TodomonOAuth2User todomonOAuth2User,
+            @PathVariable Long orderId
+    ) {
+        purchaseService.cancelPayment(todomonOAuth2User.getId(), orderId);
+        return new BaseResponse("결제 취소 성공");
     }
 }

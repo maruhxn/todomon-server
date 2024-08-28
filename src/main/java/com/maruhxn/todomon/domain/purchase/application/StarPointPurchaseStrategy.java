@@ -2,10 +2,7 @@ package com.maruhxn.todomon.domain.purchase.application;
 
 import com.maruhxn.todomon.domain.member.domain.Member;
 import com.maruhxn.todomon.domain.purchase.dao.StarPointPaymentHistoryRepository;
-import com.maruhxn.todomon.domain.purchase.domain.Item;
-import com.maruhxn.todomon.domain.purchase.domain.MoneyType;
-import com.maruhxn.todomon.domain.purchase.domain.Order;
-import com.maruhxn.todomon.domain.purchase.domain.StarPointPaymentHistory;
+import com.maruhxn.todomon.domain.purchase.domain.*;
 import com.maruhxn.todomon.domain.purchase.dto.request.PaymentRequest;
 import com.maruhxn.todomon.domain.purchase.dto.request.PreparePaymentRequest;
 import com.maruhxn.todomon.global.error.ErrorCode;
@@ -46,9 +43,22 @@ public class StarPointPurchaseStrategy implements PurchaseStrategy {
                 .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_STAR_POINT_PAYMENT_HISTORY));
 
         if (!Objects.equals(findPaymentHistory.getAmount(), order.getTotalPrice())) {
+            findPaymentHistory.updateStatus(PaymentStatus.FAILED);
             throw new BadRequestException(ErrorCode.INVALID_PAYMENT_AMOUNT_ERROR);
         }
 
         member.subtractStarPoint(order.getTotalPrice());
+    }
+
+    @Override
+    public void refund(Member member, Order order) throws Exception {
+        StarPointPaymentHistory findPaymentHistory = starPointPaymentHistoryRepository
+                .findByMember_IdAndMerchantUid(member.getId(), order.getMerchantUid())
+                .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_STAR_POINT_PAYMENT_HISTORY));
+
+        member.addStarPoint(order.getTotalPrice());
+
+        findPaymentHistory.updateStatus(PaymentStatus.REFUNDED);
+
     }
 }

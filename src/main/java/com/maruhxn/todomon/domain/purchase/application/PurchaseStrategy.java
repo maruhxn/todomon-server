@@ -11,4 +11,6 @@ public interface PurchaseStrategy {
     void preValidate(Member member, Item item, PreparePaymentRequest req) throws Exception;
 
     void postValidate(Member member, Order order, PaymentRequest req) throws Exception;
+
+    void refund(Member member, Order order) throws Exception;
 }
