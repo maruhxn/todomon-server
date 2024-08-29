@@ -13,4 +13,11 @@ public interface Constants {
 
     // Pet
     Double PET_GAUGE_INCREASE_RATE = 2.0;
+
+    // Pet House
+    Integer MAX_PET_HOUSE_SIZE = 20;
+
+    // Items
+    String CHANGE_PET_NAME_ITEM_NAME = "펫 이름 변경권";
+    String UPSERT_TITLE_NAME_ITEM_NAME = "칭호 변경권";
 }

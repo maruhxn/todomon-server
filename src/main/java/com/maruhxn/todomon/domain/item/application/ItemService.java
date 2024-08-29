@@ -1,13 +1,19 @@
 package com.maruhxn.todomon.domain.item.application;
 
+import com.maruhxn.todomon.domain.item.dao.InventoryItemRepository;
 import com.maruhxn.todomon.domain.item.dao.ItemRepository;
+import com.maruhxn.todomon.domain.item.domain.InventoryItem;
 import com.maruhxn.todomon.domain.item.domain.Item;
+import com.maruhxn.todomon.domain.item.domain.item_effect.ItemEffect;
 import com.maruhxn.todomon.domain.item.dto.request.CreateItemRequest;
 import com.maruhxn.todomon.domain.item.dto.request.UpdateItemRequest;
 import com.maruhxn.todomon.domain.item.dto.response.ItemDto;
+import com.maruhxn.todomon.domain.member.domain.Member;
+import com.maruhxn.todomon.domain.purchase.domain.Order;
 import com.maruhxn.todomon.global.error.ErrorCode;
 import com.maruhxn.todomon.global.error.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,7 +24,10 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ItemService {
 
+
     private final ItemRepository itemRepository;
+    private final ApplicationContext applicationContext;
+    private final InventoryItemRepository inventoryItemRepository;
 
 
     public void createItem(CreateItemRequest req) {
@@ -33,11 +42,16 @@ public class ItemService {
     }
 
     @Transactional(readOnly = true)
-    public ItemDto getItem(Long itemId) {
+    public ItemDto getItemDto(Long itemId) {
         Item findItem = itemRepository.findById(itemId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_ITEM));
 
         return ItemDto.from(findItem);
+    }
+
+    public Item getItem(Long itemId) {
+        return itemRepository.findById(itemId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_ITEM));
     }
 
     public void updateItem(Long itemId, UpdateItemRequest req) {
@@ -52,5 +66,37 @@ public class ItemService {
                 .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_ITEM));
 
         itemRepository.delete(findItem);
+    }
+
+    public void postPurchase(Member member, Order order) {
+        Item purchasedItem = order.getItem();
+
+        switch (purchasedItem.getItemType()) {
+            case CONSUMABLE -> inventoryItemRepository
+                    .findByMember_IdAndItem_Id(member.getId(), purchasedItem.getId())
+                    .ifPresentOrElse(
+                            existingItem -> {
+                                // 인벤토리에 해당 아이템이 있으면 수량 수정
+                                existingItem.addQuantity(order.getQuantity());
+                            },
+                            () -> {
+                                // 없다면 생성
+                                InventoryItem newInventoryItem = InventoryItem.of(member, order);
+                                member.addItemToInventory(newInventoryItem);
+                                inventoryItemRepository.save(newInventoryItem);
+                            }
+                    );
+
+            case IMMEDIATE_EFFECT -> {
+                // 즉시 효과 적용
+                applyItemEffect(member, purchasedItem);
+            }
+        }
+    }
+
+    private void applyItemEffect(Member member, Item item) {
+        String effectName = item.getEffectName();
+        ItemEffect itemEffect = (ItemEffect) applicationContext.getBean(effectName);
+        itemEffect.applyEffect(member, null);
     }
 }

@@ -2,7 +2,6 @@ package com.maruhxn.todomon.domain.pet.api;
 
 import com.maruhxn.todomon.domain.pet.application.PetService;
 import com.maruhxn.todomon.domain.pet.application.RepresentPetService;
-import com.maruhxn.todomon.domain.pet.dto.request.CreatePetReq;
 import com.maruhxn.todomon.global.auth.model.TodomonOAuth2User;
 import com.maruhxn.todomon.global.common.dto.response.BaseResponse;
 import jakarta.validation.Valid;
@@ -18,15 +17,15 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/pets/my")
 @RequiredArgsConstructor
 public class MyPetController {
+
     private final PetService petService;
     private final RepresentPetService representPetService;
 
     @PostMapping
     public BaseResponse createPet(
-            @AuthenticationPrincipal TodomonOAuth2User todomonOAuth2User,
-            @RequestBody(required = false) @Valid CreatePetReq req
+            @AuthenticationPrincipal TodomonOAuth2User todomonOAuth2User
     ) {
-        petService.create(todomonOAuth2User.getId(), req);
+        petService.create(todomonOAuth2User.getId());
         return new BaseResponse("펫 생성 성공");
     }
 

@@ -1,12 +1,11 @@
 package com.maruhxn.todomon.domain.purchase.application;
 
+import com.maruhxn.todomon.domain.item.application.ItemService;
+import com.maruhxn.todomon.domain.item.domain.Item;
 import com.maruhxn.todomon.domain.member.dao.MemberRepository;
 import com.maruhxn.todomon.domain.member.domain.Member;
-import com.maruhxn.todomon.domain.item.dao.ItemRepository;
 import com.maruhxn.todomon.domain.purchase.dao.OrderRepository;
-import com.maruhxn.todomon.domain.purchase.dao.PaymentRepository;
 import com.maruhxn.todomon.domain.purchase.dao.StarPointPaymentHistoryRepository;
-import com.maruhxn.todomon.domain.item.domain.Item;
 import com.maruhxn.todomon.domain.purchase.domain.Order;
 import com.maruhxn.todomon.domain.purchase.domain.OrderStatus;
 import com.maruhxn.todomon.domain.purchase.domain.StarPointPaymentHistory;
@@ -28,11 +27,10 @@ import org.springframework.transaction.annotation.Transactional;
 public class PurchaseService {
 
     private final MemberRepository memberRepository;
-    private final ItemRepository itemRepository;
     private final OrderRepository orderRepository;
     private final OrderService orderService;
     private final StarPointPaymentHistoryRepository starPointPaymentHistoryRepository;
-    private final PaymentRepository paymentRepository;
+    private final ItemService itemService;
 
     private final PurchaseStrategyFactory purchaseStrategyFactory;
 
@@ -40,8 +38,7 @@ public class PurchaseService {
         Member findMember = memberRepository.findById(memberId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_MEMBER));
 
-        Item findItem = itemRepository.findById(req.getItemId())
-                .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_ITEM));
+        Item findItem = itemService.getItem(req.getItemId());
 
         Order order = orderService.createOrder(findMember, findItem, req);// 주문 정보 생성
 
@@ -76,7 +73,7 @@ public class PurchaseService {
 
         findOrder.updateStatus(OrderStatus.OK); // order 상태 변경
 
-        // TODO: 아이템 구매 후처리 로직
+        itemService.postPurchase(findMember, findOrder);
 
         log.info("결제 성공! 멤버 아이디: {}, 주문 아이디: {}", memberId, findOrder.getId());
     }

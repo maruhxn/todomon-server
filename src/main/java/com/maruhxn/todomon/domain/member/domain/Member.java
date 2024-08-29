@@ -1,5 +1,6 @@
 package com.maruhxn.todomon.domain.member.domain;
 
+import com.maruhxn.todomon.domain.item.domain.InventoryItem;
 import com.maruhxn.todomon.domain.pet.domain.CollectedPet;
 import com.maruhxn.todomon.domain.pet.domain.Pet;
 import com.maruhxn.todomon.domain.social.domain.Follow;
@@ -147,6 +148,10 @@ public class Member extends BaseEntity {
 
     public void addStar(Long starCnt) {
         this.starPoint += starCnt;
+    }
+
+    public void expandPetHouse() {
+        this.petHouseSize += 1;
     }
 
     /* 연관관계 메서드 */

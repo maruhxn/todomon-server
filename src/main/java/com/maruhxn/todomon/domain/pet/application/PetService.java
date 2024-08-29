@@ -6,9 +6,7 @@ import com.maruhxn.todomon.domain.pet.dao.CollectedPetRepository;
 import com.maruhxn.todomon.domain.pet.dao.PetRepository;
 import com.maruhxn.todomon.domain.pet.domain.CollectedPet;
 import com.maruhxn.todomon.domain.pet.domain.Pet;
-import com.maruhxn.todomon.domain.pet.domain.PetType;
-import com.maruhxn.todomon.domain.pet.domain.Rarity;
-import com.maruhxn.todomon.domain.pet.dto.request.CreatePetReq;
+import com.maruhxn.todomon.domain.pet.dto.request.ChangePetNameRequest;
 import com.maruhxn.todomon.global.error.ErrorCode;
 import com.maruhxn.todomon.global.error.exception.BadRequestException;
 import com.maruhxn.todomon.global.error.exception.NotFoundException;
@@ -27,19 +25,24 @@ public class PetService {
     private final PetRepository petRepository;
     private final CollectedPetRepository collectedPetRepository;
 
-    public void create(Long memberId, CreatePetReq req) {
+    public void create(Long memberId) {
         Member member = memberRepository.findMemberWithPets(memberId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_MEMBER));
-        validateMemberSubscription(member, req);
         validatePetHouseSpace(member);
 
         // 펫 랜덤 생성
-        Pet pet = createPet(member, req);
+        Pet pet = Pet.getRandomPet();
         member.addPet(pet);
         petRepository.save(pet);
 
         // 펫 도감 등록
         updatePetCollection(member, pet);
+    }
+
+    public void updatePetName(Long memberId, ChangePetNameRequest req) {
+        Pet findPet = petRepository.findOneByIdAndMember_Id(req.getPetId(), memberId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_PET));
+        findPet.changeName(req);
     }
 
     private void updatePetCollection(Member member, Pet pet) {
@@ -57,7 +60,7 @@ public class PetService {
                 );
     }
 
-    private void validateMemberSubscription(Member member, CreatePetReq req) {
+    private void validateMemberSubscription(Member member, ChangePetNameRequest req) {
         if (!member.isSubscribed() && req != null) {
             throw new AccessDeniedException(ErrorCode.NOT_SUBSCRIPTION.getMessage());
         }
@@ -68,21 +71,6 @@ public class PetService {
             throw new BadRequestException(ErrorCode.NO_SPACE_PET_HOUSE);
         }
     }
-
-    private Pet createPet(Member member, CreatePetReq req) {
-        Pet.PetBuilder petBuilder = Pet.builder()
-                .rarity(Rarity.getRandomRarity()) // 랜덤
-                .petType(PetType.getRandomPetType()); // 랜덤
-
-        if (member.isSubscribed() && req != null) {
-            petBuilder
-                    .name(req.getName())
-                    .color(req.getColor());
-        }
-
-        return petBuilder.build();
-    }
-
 
     public void feed(Long petId, Member member, Long foodCnt) {
         Pet findPet = petRepository.findOneByIdAndMember_Id(petId, member.getId())

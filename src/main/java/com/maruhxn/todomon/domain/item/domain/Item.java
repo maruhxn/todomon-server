@@ -36,14 +36,18 @@ public class Item extends BaseEntity {
     @Column(nullable = false)
     private Boolean isAvailable = true; // 구매 가능 여부
 
+    @Column(nullable = false)
+    private String effectName;
+
     @Builder
-    public Item(String name, String description, ItemType itemType, MoneyType moneyType, Long price) {
+    public Item(String name, String description, ItemType itemType, MoneyType moneyType, Long price, String effectName) {
         this.name = name;
         this.description = description;
         this.itemType = itemType;
         this.moneyType = moneyType;
         this.price = price;
         this.isAvailable = true;
+        this.effectName = effectName;
     }
 
     public void update(UpdateItemRequest req) {
