@@ -1,6 +1,6 @@
 package com.maruhxn.todomon.domain.member.domain;
 
-import com.maruhxn.todomon.domain.purchase.domain.Item;
+import com.maruhxn.todomon.domain.item.domain.Item;
 import com.maruhxn.todomon.domain.purchase.domain.Order;
 import com.maruhxn.todomon.global.common.BaseEntity;
 import jakarta.persistence.*;

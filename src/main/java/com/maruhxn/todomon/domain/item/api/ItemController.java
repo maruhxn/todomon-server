@@ -1,9 +1,9 @@
-package com.maruhxn.todomon.domain.purchase.api;
+package com.maruhxn.todomon.domain.item.api;
 
-import com.maruhxn.todomon.domain.purchase.application.ItemService;
-import com.maruhxn.todomon.domain.purchase.dto.request.CreateItemRequest;
-import com.maruhxn.todomon.domain.purchase.dto.request.UpdateItemRequest;
-import com.maruhxn.todomon.domain.purchase.dto.response.ItemDto;
+import com.maruhxn.todomon.domain.item.application.ItemService;
+import com.maruhxn.todomon.domain.item.dto.request.CreateItemRequest;
+import com.maruhxn.todomon.domain.item.dto.request.UpdateItemRequest;
+import com.maruhxn.todomon.domain.item.dto.response.ItemDto;
 import com.maruhxn.todomon.global.common.dto.response.BaseResponse;
 import com.maruhxn.todomon.global.common.dto.response.DataResponse;
 import lombok.RequiredArgsConstructor;

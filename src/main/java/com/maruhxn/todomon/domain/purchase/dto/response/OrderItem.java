@@ -1,6 +1,6 @@
 package com.maruhxn.todomon.domain.purchase.dto.response;
 
-import com.maruhxn.todomon.domain.purchase.domain.MoneyType;
+import com.maruhxn.todomon.domain.item.domain.MoneyType;
 import com.maruhxn.todomon.domain.purchase.domain.Order;
 import com.maruhxn.todomon.domain.purchase.domain.OrderStatus;
 import lombok.Builder;

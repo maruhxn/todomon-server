@@ -1,10 +1,10 @@
-package com.maruhxn.todomon.domain.purchase.application;
+package com.maruhxn.todomon.domain.item.application;
 
-import com.maruhxn.todomon.domain.purchase.dao.ItemRepository;
-import com.maruhxn.todomon.domain.purchase.domain.Item;
-import com.maruhxn.todomon.domain.purchase.dto.request.CreateItemRequest;
-import com.maruhxn.todomon.domain.purchase.dto.request.UpdateItemRequest;
-import com.maruhxn.todomon.domain.purchase.dto.response.ItemDto;
+import com.maruhxn.todomon.domain.item.dao.ItemRepository;
+import com.maruhxn.todomon.domain.item.domain.Item;
+import com.maruhxn.todomon.domain.item.dto.request.CreateItemRequest;
+import com.maruhxn.todomon.domain.item.dto.request.UpdateItemRequest;
+import com.maruhxn.todomon.domain.item.dto.response.ItemDto;
 import com.maruhxn.todomon.global.error.ErrorCode;
 import com.maruhxn.todomon.global.error.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;

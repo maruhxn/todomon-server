@@ -1,5 +1,7 @@
 package com.maruhxn.todomon.domain.purchase.domain;
 
+import com.maruhxn.todomon.domain.item.domain.Item;
+import com.maruhxn.todomon.domain.item.domain.MoneyType;
 import com.maruhxn.todomon.domain.member.domain.Member;
 import com.maruhxn.todomon.global.common.BaseEntity;
 import jakarta.persistence.*;

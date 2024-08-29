@@ -1,8 +1,8 @@
-package com.maruhxn.todomon.domain.purchase.dto.response;
+package com.maruhxn.todomon.domain.item.dto.response;
 
-import com.maruhxn.todomon.domain.purchase.domain.Item;
-import com.maruhxn.todomon.domain.purchase.domain.ItemType;
-import com.maruhxn.todomon.domain.purchase.domain.MoneyType;
+import com.maruhxn.todomon.domain.item.domain.Item;
+import com.maruhxn.todomon.domain.item.domain.ItemType;
+import com.maruhxn.todomon.domain.item.domain.MoneyType;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;

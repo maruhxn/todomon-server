@@ -2,11 +2,11 @@ package com.maruhxn.todomon.domain.purchase.application;
 
 import com.maruhxn.todomon.domain.member.dao.MemberRepository;
 import com.maruhxn.todomon.domain.member.domain.Member;
-import com.maruhxn.todomon.domain.purchase.dao.ItemRepository;
+import com.maruhxn.todomon.domain.item.dao.ItemRepository;
 import com.maruhxn.todomon.domain.purchase.dao.OrderRepository;
 import com.maruhxn.todomon.domain.purchase.dao.PaymentRepository;
 import com.maruhxn.todomon.domain.purchase.dao.StarPointPaymentHistoryRepository;
-import com.maruhxn.todomon.domain.purchase.domain.Item;
+import com.maruhxn.todomon.domain.item.domain.Item;
 import com.maruhxn.todomon.domain.purchase.domain.Order;
 import com.maruhxn.todomon.domain.purchase.domain.OrderStatus;
 import com.maruhxn.todomon.domain.purchase.domain.StarPointPaymentHistory;

@@ -1,7 +1,7 @@
-package com.maruhxn.todomon.domain.purchase.dto.request;
+package com.maruhxn.todomon.domain.item.dto.request;
 
-import com.maruhxn.todomon.domain.purchase.domain.ItemType;
-import com.maruhxn.todomon.domain.purchase.domain.MoneyType;
+import com.maruhxn.todomon.domain.item.domain.ItemType;
+import com.maruhxn.todomon.domain.item.domain.MoneyType;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
 import lombok.AccessLevel;

@@ -1,7 +1,7 @@
 package com.maruhxn.todomon.domain.purchase.application;
 
 import com.maruhxn.todomon.domain.member.domain.Member;
-import com.maruhxn.todomon.domain.purchase.domain.Item;
+import com.maruhxn.todomon.domain.item.domain.Item;
 import com.maruhxn.todomon.domain.purchase.domain.Order;
 import com.maruhxn.todomon.domain.purchase.dto.request.PaymentRequest;
 import com.maruhxn.todomon.domain.purchase.dto.request.PreparePaymentRequest;

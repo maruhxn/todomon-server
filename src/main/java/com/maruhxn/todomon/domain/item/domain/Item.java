@@ -1,6 +1,6 @@
-package com.maruhxn.todomon.domain.purchase.domain;
+package com.maruhxn.todomon.domain.item.domain;
 
-import com.maruhxn.todomon.domain.purchase.dto.request.UpdateItemRequest;
+import com.maruhxn.todomon.domain.item.dto.request.UpdateItemRequest;
 import com.maruhxn.todomon.global.common.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

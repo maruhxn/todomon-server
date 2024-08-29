@@ -1,6 +1,6 @@
 package com.maruhxn.todomon.domain.purchase.application;
 
-import com.maruhxn.todomon.domain.purchase.domain.MoneyType;
+import com.maruhxn.todomon.domain.item.domain.MoneyType;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
