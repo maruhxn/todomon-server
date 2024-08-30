@@ -8,6 +8,7 @@ import com.maruhxn.todomon.domain.item.domain.item_effect.ItemEffect;
 import com.maruhxn.todomon.domain.item.dto.request.CreateItemRequest;
 import com.maruhxn.todomon.domain.item.dto.request.ItemEffectRequest;
 import com.maruhxn.todomon.domain.item.dto.request.UpdateItemRequest;
+import com.maruhxn.todomon.domain.item.dto.response.InventoryItemDto;
 import com.maruhxn.todomon.domain.item.dto.response.ItemDto;
 import com.maruhxn.todomon.domain.member.domain.Member;
 import com.maruhxn.todomon.domain.purchase.domain.Order;
@@ -96,7 +97,9 @@ public class ItemService {
 
             case IMMEDIATE_EFFECT -> {
                 // 즉시 효과 적용
-                applyItemEffect(member, purchasedItem, null);
+                for (int i = 0; i < order.getQuantity(); i++) {
+                    applyItemEffect(member, purchasedItem, null);
+                }
             }
         }
     }
@@ -117,4 +120,8 @@ public class ItemService {
         inventoryItemService.consumeItem(findInventoryItem);
     }
 
+    public List<InventoryItemDto> getInventoryItems(Long memberId) {
+        List<InventoryItem> items = inventoryItemRepository.findAllByMember_Id(memberId);
+        return items.stream().map(InventoryItemDto::from).toList();
+    }
 }

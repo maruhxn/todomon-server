@@ -4,6 +4,7 @@ import com.maruhxn.todomon.domain.item.application.ItemService;
 import com.maruhxn.todomon.domain.item.dto.request.CreateItemRequest;
 import com.maruhxn.todomon.domain.item.dto.request.ItemEffectRequest;
 import com.maruhxn.todomon.domain.item.dto.request.UpdateItemRequest;
+import com.maruhxn.todomon.domain.item.dto.response.InventoryItemDto;
 import com.maruhxn.todomon.domain.item.dto.response.ItemDto;
 import com.maruhxn.todomon.global.auth.model.TodomonOAuth2User;
 import com.maruhxn.todomon.global.common.dto.response.BaseResponse;
@@ -37,6 +38,14 @@ public class ItemController {
         return DataResponse.of("아이템 전체 조회 성공", items);
     }
 
+    @GetMapping("/inventory")
+    public DataResponse<List<InventoryItemDto>> getInventoryItems(
+            @AuthenticationPrincipal TodomonOAuth2User todomonOAuth2User
+    ) {
+        List<InventoryItemDto> items = itemService.getInventoryItems(todomonOAuth2User.getId());
+        return DataResponse.of("인벤토리 조회 성공", items);
+    }
+
     @GetMapping("/{itemId}")
     public DataResponse<ItemDto> getItem(@PathVariable Long itemId) {
         ItemDto item = itemService.getItemDto(itemId);
@@ -56,6 +65,7 @@ public class ItemController {
     public void deleteItem(@PathVariable Long itemId) {
         itemService.deleteItem(itemId);
     }
+
 
     @PostMapping("/use")
     @ResponseStatus(HttpStatus.NO_CONTENT)
