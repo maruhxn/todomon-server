@@ -4,8 +4,7 @@ import com.maruhxn.todomon.domain.member.dao.MemberRepository;
 import com.maruhxn.todomon.domain.member.dao.TitleNameRepository;
 import com.maruhxn.todomon.domain.member.domain.Member;
 import com.maruhxn.todomon.domain.member.domain.TitleName;
-import com.maruhxn.todomon.domain.member.dto.request.CreateTitleNameReq;
-import com.maruhxn.todomon.domain.member.dto.request.UpdateTitleNameReq;
+import com.maruhxn.todomon.domain.member.dto.request.UpsertTitleNameRequest;
 import com.maruhxn.todomon.global.auth.model.Role;
 import com.maruhxn.todomon.global.auth.model.provider.OAuth2Provider;
 import com.maruhxn.todomon.util.IntegrationTestSupport;
@@ -32,13 +31,13 @@ class TitleNameServiceTest extends IntegrationTestSupport {
     void createTitleName() {
         // given
         Member member = createMember("tester");
-        CreateTitleNameReq req = CreateTitleNameReq.builder()
+        UpsertTitleNameRequest req = UpsertTitleNameRequest.builder()
                 .name("name")
                 .color("#000000")
                 .build();
 
         // when
-        titleNameService.createTitleName(member, req);
+        titleNameService.upsertTitleName(member, req);
 
         // then
         assertThat(titleNameRepository.findAll())
@@ -60,12 +59,12 @@ class TitleNameServiceTest extends IntegrationTestSupport {
                 .build();
         titleNameRepository.save(titleName);
 
-        UpdateTitleNameReq req = UpdateTitleNameReq.builder()
+        UpsertTitleNameRequest req = UpsertTitleNameRequest.builder()
                 .name("name!")
                 .color("#FFFFFF")
                 .build();
         // when
-        titleNameService.updateTitleName(member, req);
+        titleNameService.upsertTitleName(member, req);
 
         // then
         assertThat(titleNameRepository.findAll())

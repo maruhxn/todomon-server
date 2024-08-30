@@ -43,9 +43,9 @@ public class Pet extends BaseEntity {
     private Member member;
 
     @Builder
-    public Pet(String name, String color, Rarity rarity, PetType petType) {
-        this.name = name != null ? name : petType.getEvolutionStage(0).getName();
-        this.color = color != null ? color : rarity.getColor();
+    public Pet(Rarity rarity, PetType petType) {
+        this.name = petType.getEvolutionStage(0).getName();
+        this.color = rarity.getColor();
         this.rarity = rarity;
         this.petType = petType;
         this.appearance = petType.getEvolutionStage(0).getForm();

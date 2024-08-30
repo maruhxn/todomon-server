@@ -1,6 +1,6 @@
-package com.maruhxn.todomon.domain.member.domain;
+package com.maruhxn.todomon.domain.item.domain;
 
-import com.maruhxn.todomon.domain.item.domain.Item;
+import com.maruhxn.todomon.domain.member.domain.Member;
 import com.maruhxn.todomon.domain.purchase.domain.Order;
 import com.maruhxn.todomon.global.common.BaseEntity;
 import jakarta.persistence.*;
@@ -50,5 +50,9 @@ public class InventoryItem extends BaseEntity {
 
     public void addQuantity(Long quantity) {
         this.quantity = quantity;
+    }
+
+    public void consume() {
+        this.quantity -= 1;
     }
 }

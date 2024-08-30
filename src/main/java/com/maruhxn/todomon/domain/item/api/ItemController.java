@@ -2,13 +2,16 @@ package com.maruhxn.todomon.domain.item.api;
 
 import com.maruhxn.todomon.domain.item.application.ItemService;
 import com.maruhxn.todomon.domain.item.dto.request.CreateItemRequest;
+import com.maruhxn.todomon.domain.item.dto.request.ItemEffectRequest;
 import com.maruhxn.todomon.domain.item.dto.request.UpdateItemRequest;
 import com.maruhxn.todomon.domain.item.dto.response.ItemDto;
+import com.maruhxn.todomon.global.auth.model.TodomonOAuth2User;
 import com.maruhxn.todomon.global.common.dto.response.BaseResponse;
 import com.maruhxn.todomon.global.common.dto.response.DataResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -36,7 +39,7 @@ public class ItemController {
 
     @GetMapping("/{itemId}")
     public DataResponse<ItemDto> getItem(@PathVariable Long itemId) {
-        ItemDto item = itemService.getItem(itemId);
+        ItemDto item = itemService.getItemDto(itemId);
         return DataResponse.of("아이템 조회 성공", item);
     }
 
@@ -52,5 +55,14 @@ public class ItemController {
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public void deleteItem(@PathVariable Long itemId) {
         itemService.deleteItem(itemId);
+    }
+
+    @PostMapping("/use")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void useInventoryItem(
+            @AuthenticationPrincipal TodomonOAuth2User todomonOAuth2User,
+            @RequestParam String itemName,
+            @RequestBody ItemEffectRequest req) {
+        itemService.useInventoryItem(todomonOAuth2User.getMember(), itemName, req);
     }
 }

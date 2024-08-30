@@ -6,6 +6,7 @@ import com.maruhxn.todomon.domain.item.domain.InventoryItem;
 import com.maruhxn.todomon.domain.item.domain.Item;
 import com.maruhxn.todomon.domain.item.domain.item_effect.ItemEffect;
 import com.maruhxn.todomon.domain.item.dto.request.CreateItemRequest;
+import com.maruhxn.todomon.domain.item.dto.request.ItemEffectRequest;
 import com.maruhxn.todomon.domain.item.dto.request.UpdateItemRequest;
 import com.maruhxn.todomon.domain.item.dto.response.ItemDto;
 import com.maruhxn.todomon.domain.member.domain.Member;
@@ -28,6 +29,7 @@ public class ItemService {
     private final ItemRepository itemRepository;
     private final ApplicationContext applicationContext;
     private final InventoryItemRepository inventoryItemRepository;
+    private final InventoryItemService inventoryItemService;
 
 
     public void createItem(CreateItemRequest req) {
@@ -89,14 +91,22 @@ public class ItemService {
 
             case IMMEDIATE_EFFECT -> {
                 // 즉시 효과 적용
-                applyItemEffect(member, purchasedItem);
+                applyItemEffect(member, purchasedItem, null);
             }
         }
     }
 
-    private void applyItemEffect(Member member, Item item) {
+    private void applyItemEffect(Member member, Item item, ItemEffectRequest request) {
         String effectName = item.getEffectName();
         ItemEffect itemEffect = (ItemEffect) applicationContext.getBean(effectName);
-        itemEffect.applyEffect(member, null);
+        itemEffect.applyEffect(member, request);
+    }
+
+    public void useInventoryItem(Member member, String itemName, ItemEffectRequest req) {
+        InventoryItem findInventoryItem = inventoryItemService.getInventoryItem(member.getId(), itemName);
+
+        applyItemEffect(member, findInventoryItem.getItem(), req);
+
+        inventoryItemService.consumeItem(findInventoryItem);
     }
 }
