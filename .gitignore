@@ -40,3 +40,4 @@ out/
 application*.yml
 memo/*
 /src/main/generated/
+/sql
