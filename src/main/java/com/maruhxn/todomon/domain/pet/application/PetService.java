@@ -11,7 +11,6 @@ import com.maruhxn.todomon.global.error.ErrorCode;
 import com.maruhxn.todomon.global.error.exception.BadRequestException;
 import com.maruhxn.todomon.global.error.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -58,12 +57,6 @@ public class PetService {
                             collectedPetRepository.save(collectedPet);
                         }
                 );
-    }
-
-    private void validateMemberSubscription(Member member, ChangePetNameRequest req) {
-        if (!member.isSubscribed() && req != null) {
-            throw new AccessDeniedException(ErrorCode.NOT_SUBSCRIPTION.getMessage());
-        }
     }
 
     private void validatePetHouseSpace(Member member) {

@@ -12,6 +12,7 @@ import com.maruhxn.todomon.domain.purchase.domain.StarPointPaymentHistory;
 import com.maruhxn.todomon.domain.purchase.dto.request.PaymentRequest;
 import com.maruhxn.todomon.domain.purchase.dto.request.PreparePaymentRequest;
 import com.maruhxn.todomon.domain.purchase.dto.request.PurchaseStarPointItemRequest;
+import com.maruhxn.todomon.global.auth.checker.AuthChecker;
 import com.maruhxn.todomon.global.error.ErrorCode;
 import com.maruhxn.todomon.global.error.exception.BadRequestException;
 import com.maruhxn.todomon.global.error.exception.NotFoundException;
@@ -33,12 +34,15 @@ public class PurchaseService {
     private final ItemService itemService;
 
     private final PurchaseStrategyFactory purchaseStrategyFactory;
+    private final AuthChecker authChecker;
 
     public void preparePayment(Long memberId, PreparePaymentRequest req) {
         Member findMember = memberRepository.findById(memberId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_MEMBER));
 
         Item findItem = itemService.getItem(req.getItemId());
+
+        authChecker.isPremiumButNotSubscribing(findMember, findItem);
 
         Order order = orderService.createOrder(findMember, findItem, req);// 주문 정보 생성
 

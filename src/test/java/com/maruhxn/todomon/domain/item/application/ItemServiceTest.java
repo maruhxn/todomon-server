@@ -16,7 +16,9 @@ import com.maruhxn.todomon.domain.purchase.dao.OrderRepository;
 import com.maruhxn.todomon.domain.purchase.domain.Order;
 import com.maruhxn.todomon.global.auth.model.Role;
 import com.maruhxn.todomon.global.auth.model.provider.OAuth2Provider;
+import com.maruhxn.todomon.global.error.ErrorCode;
 import com.maruhxn.todomon.global.error.exception.BadRequestException;
+import com.maruhxn.todomon.global.error.exception.ForbiddenException;
 import com.maruhxn.todomon.util.IntegrationTestSupport;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -80,6 +82,39 @@ class ItemServiceTest extends IntegrationTestSupport {
                 .first()
                 .extracting("member", "item", "quantity")
                 .containsExactly(member, item, 2L);
+
+    }
+
+    @Test
+    @DisplayName("프리미엄 아이템을 구매 요청 시 유료 플랜을 구독 중이지 않으면 실패한다.")
+    void purchaseFAIL() {
+        // given
+        Member member = createMember();
+
+        Item item = Item.builder()
+                .isPremium(true)
+                .name(UPSERT_TITLE_NAME_ITEM_NAME)
+                .price(100L)
+                .itemType(ItemType.CONSUMABLE)
+                .effectName("upsertMemberTitleNameEffect")
+                .description("칭호 변경권")
+                .moneyType(MoneyType.STARPOINT)
+                .build();
+        itemRepository.save(item);
+
+        Order order = Order.builder()
+                .totalPrice(200L)
+                .quantity(2L)
+                .moneyType(MoneyType.STARPOINT)
+                .merchantUid("test-000000")
+                .item(item)
+                .build();
+        orderRepository.save(order);
+
+        // when / then
+        assertThatThrownBy(() -> itemService.postPurchase(member, order))
+                .isInstanceOf(ForbiddenException.class)
+                .hasMessage(ErrorCode.NOT_SUBSCRIPTION.getMessage());
 
     }
 
@@ -250,8 +285,10 @@ class ItemServiceTest extends IntegrationTestSupport {
     void useInventoryItem_UPSERT_TITLE_NAME_ITEM_NAME() {
         // given
         Member member = createMember();
+        member.updateIsSubscribed(true);
 
         Item item = Item.builder()
+                .isPremium(true)
                 .name(UPSERT_TITLE_NAME_ITEM_NAME)
                 .price(100L)
                 .itemType(ItemType.IMMEDIATE_EFFECT)
@@ -288,8 +325,10 @@ class ItemServiceTest extends IntegrationTestSupport {
     void useInventoryItem_CHANGE_PET_NAME_ITEM_NAME() {
         // given
         Member member = createMember();
+        member.updateIsSubscribed(true);
 
         Item item = Item.builder()
+                .isPremium(true)
                 .name(CHANGE_PET_NAME_ITEM_NAME)
                 .price(100L)
                 .itemType(ItemType.IMMEDIATE_EFFECT)

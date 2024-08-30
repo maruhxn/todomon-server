@@ -10,6 +10,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnDefault;
 
 import static org.springframework.util.StringUtils.hasText;
 
@@ -39,8 +40,11 @@ public class Item extends BaseEntity {
     @Column(nullable = false)
     private String effectName;
 
+    @ColumnDefault("0")
+    private Boolean isPremium = false;
+
     @Builder
-    public Item(String name, String description, ItemType itemType, MoneyType moneyType, Long price, String effectName) {
+    public Item(String name, String description, ItemType itemType, MoneyType moneyType, Long price, String effectName, boolean isPremium) {
         this.name = name;
         this.description = description;
         this.itemType = itemType;
@@ -48,6 +52,7 @@ public class Item extends BaseEntity {
         this.price = price;
         this.isAvailable = true;
         this.effectName = effectName;
+        this.isPremium = isPremium;
     }
 
     public void update(UpdateItemRequest req) {

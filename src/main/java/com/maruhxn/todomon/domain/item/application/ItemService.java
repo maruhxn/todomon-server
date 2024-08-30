@@ -11,6 +11,7 @@ import com.maruhxn.todomon.domain.item.dto.request.UpdateItemRequest;
 import com.maruhxn.todomon.domain.item.dto.response.ItemDto;
 import com.maruhxn.todomon.domain.member.domain.Member;
 import com.maruhxn.todomon.domain.purchase.domain.Order;
+import com.maruhxn.todomon.global.auth.checker.AuthChecker;
 import com.maruhxn.todomon.global.error.ErrorCode;
 import com.maruhxn.todomon.global.error.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +31,8 @@ public class ItemService {
     private final ApplicationContext applicationContext;
     private final InventoryItemRepository inventoryItemRepository;
     private final InventoryItemService inventoryItemService;
+
+    private final AuthChecker authChecker;
 
 
     public void createItem(CreateItemRequest req) {
@@ -73,6 +76,8 @@ public class ItemService {
     public void postPurchase(Member member, Order order) {
         Item purchasedItem = order.getItem();
 
+        authChecker.isPremiumButNotSubscribing(member, purchasedItem);
+
         switch (purchasedItem.getItemType()) {
             case CONSUMABLE -> inventoryItemRepository
                     .findByMember_IdAndItem_Id(member.getId(), purchasedItem.getId())
@@ -105,8 +110,11 @@ public class ItemService {
     public void useInventoryItem(Member member, String itemName, ItemEffectRequest req) {
         InventoryItem findInventoryItem = inventoryItemService.getInventoryItem(member.getId(), itemName);
 
+        authChecker.isPremiumButNotSubscribing(member, findInventoryItem.getItem());
+
         applyItemEffect(member, findInventoryItem.getItem(), req);
 
         inventoryItemService.consumeItem(findInventoryItem);
     }
+
 }

@@ -49,6 +49,7 @@ public class MemberQueryRepository {
                                 member.username,
                                 member.email,
                                 member.profileImageUrl,
+                                member.isSubscribed,
                                 diligence.level,
                                 diligence.gauge,
                                 Projections.fields(ProfileDto.TitleNameItem.class,
