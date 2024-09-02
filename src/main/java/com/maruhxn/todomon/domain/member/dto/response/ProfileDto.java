@@ -15,6 +15,7 @@ public class ProfileDto {
     private String username;
     private String email;
     private String profileImageUrl;
+    private boolean isSubscribed;
     private int level;
     private double gauge;
     private TitleNameItem title;
@@ -22,11 +23,12 @@ public class ProfileDto {
     private FollowInfoItem followInfo;
 
     @Builder
-    public ProfileDto(Long id, String username, String email, String profileImageUrl, int level, double gauge, TitleNameItem title, RepresentPetItem representPetItem, FollowInfoItem followInfo) {
+    public ProfileDto(Long id, String username, String email, String profileImageUrl, boolean isSubscribed, int level, double gauge, TitleNameItem title, RepresentPetItem representPetItem, FollowInfoItem followInfo) {
         this.id = id;
         this.username = username;
         this.email = email;
         this.profileImageUrl = profileImageUrl;
+        this.isSubscribed = isSubscribed;
         this.level = level;
         this.gauge = gauge;
         this.title = title;

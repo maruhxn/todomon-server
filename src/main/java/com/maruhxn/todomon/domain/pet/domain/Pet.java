@@ -1,7 +1,9 @@
 package com.maruhxn.todomon.domain.pet.domain;
 
 import com.maruhxn.todomon.domain.member.domain.Member;
+import com.maruhxn.todomon.domain.pet.dto.request.ChangePetNameRequest;
 import com.maruhxn.todomon.global.common.BaseEntity;
+import io.jsonwebtoken.lang.Strings;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -41,12 +43,24 @@ public class Pet extends BaseEntity {
     private Member member;
 
     @Builder
-    public Pet(String name, String color, Rarity rarity, PetType petType) {
-        this.name = name != null ? name : petType.getEvolutionStage(0).getName();
-        this.color = color != null ? color : rarity.getColor();
+    public Pet(Rarity rarity, PetType petType) {
+        this.name = petType.getEvolutionStage(0).getName();
+        this.color = rarity.getColor();
         this.rarity = rarity;
         this.petType = petType;
         this.appearance = petType.getEvolutionStage(0).getForm();
+    }
+
+    public static Pet getRandomPet() {
+        return Pet.builder()
+                .rarity(Rarity.getRandomRarity()) // 랜덤
+                .petType(PetType.getRandomPetType()) // 랜덤
+                .build();
+    }
+
+    public void changeName(ChangePetNameRequest req) {
+        this.name = req.getName();
+        if (Strings.hasText(req.getColor())) this.color = req.getColor();
     }
 
     public void levelUp() {

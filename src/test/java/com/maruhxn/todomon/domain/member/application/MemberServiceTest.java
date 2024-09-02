@@ -175,6 +175,7 @@ class MemberServiceTest extends IntegrationTestSupport {
                     assertThat(dto.getId()).isEqualTo(tester1.getId());
                     assertThat(dto.getUsername()).isEqualTo("tester1");
                     assertThat(dto.getProfileImageUrl()).isEqualTo("profileImageUrl");
+                    assertThat(dto.isSubscribed()).isFalse();
                     assertThat(dto.getLevel()).isEqualTo(1);
                     assertThat(dto.getGauge()).isEqualTo(0.0);
                     assertThat(dto.getRepresentPetItem().getId()).isEqualTo(pet.getId());

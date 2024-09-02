@@ -8,8 +8,6 @@ import com.maruhxn.todomon.domain.pet.domain.CollectedPet;
 import com.maruhxn.todomon.domain.pet.domain.Pet;
 import com.maruhxn.todomon.domain.pet.domain.PetType;
 import com.maruhxn.todomon.domain.pet.domain.Rarity;
-import com.maruhxn.todomon.domain.pet.dto.request.CreatePetReq;
-import com.maruhxn.todomon.domain.pet.dto.request.FeedReq;
 import com.maruhxn.todomon.global.auth.model.Role;
 import com.maruhxn.todomon.global.auth.model.provider.OAuth2Provider;
 import com.maruhxn.todomon.global.error.ErrorCode;
@@ -19,7 +17,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.AccessDeniedException;
 
 import java.util.List;
 
@@ -55,7 +52,7 @@ class PetServiceTest extends IntegrationTestSupport {
         // given
 
         // when
-        petService.create(member.getId(), null);
+        petService.create(member.getId());
 
         // then
         List<Pet> pets = petRepository.findAll();
@@ -71,40 +68,36 @@ class PetServiceTest extends IntegrationTestSupport {
     @DisplayName("랜덤으로 펫을 생성한다.")
     void createPetWithPaidPlan() {
         // given
-        CreatePetReq req = CreatePetReq.builder()
-                .name("테스트")
-                .color("#000000")
-                .build();
         member.updateIsSubscribed(true);
         memberRepository.save(member);
 
         // when
-        petService.create(member.getId(), req);
+        petService.create(member.getId());
 
         // then
         List<Pet> pets = petRepository.findAll();
         assertThat(pets)
                 .hasSize(1)
                 .first()
-                .extracting("name", "color", "level", "gauge", "evolutionCnt")
-                .containsExactly("테스트", "#000000", 1, 0.0, 0);
+                .extracting("level", "gauge", "evolutionCnt")
+                .containsExactly(1, 0.0, 0);
     }
 
-    @Test
-    @DisplayName("구독하지 않은 사용자가 펫의 이름 및 색깔을 변경하려고 할 경우, 에러를 반환한다.")
-    void createPetFailByForbidden() {
-        // given
-        CreatePetReq req = CreatePetReq.builder()
-                .name("테스트")
-                .color("#000000")
-                .build();
-
-        // when / then
-        assertThatThrownBy(() -> petService.create(member.getId(), req))
-                .isInstanceOf(AccessDeniedException.class)
-                .hasMessage(ErrorCode.NOT_SUBSCRIPTION.getMessage());
-
-    }
+//    @Test
+//    @DisplayName("구독하지 않은 사용자가 펫의 이름 및 색깔을 변경하려고 할 경우, 에러를 반환한다.")
+//    void createPetFailByForbidden() {
+//        // given
+//        CreatePetReq req = CreatePetReq.builder()
+//                .name("테스트")
+//                .color("#000000")
+//                .build();
+//
+//        // when / then
+//        assertThatThrownBy(() -> petService.create(member.getId(), req))
+//                .isInstanceOf(AccessDeniedException.class)
+//                .hasMessage(ErrorCode.NOT_SUBSCRIPTION.getMessage());
+//
+//    }
 
     @Test
     @DisplayName("펫 생성 시 펫 하우스 공간에 여유가 없다면 에러를 반환한다.")
@@ -128,7 +121,7 @@ class PetServiceTest extends IntegrationTestSupport {
         petRepository.saveAll(List.of(pet1, pet2, pet3));
 
         // when / then
-        assertThatThrownBy(() -> petService.create(member.getId(), null))
+        assertThatThrownBy(() -> petService.create(member.getId()))
                 .hasMessage(ErrorCode.NO_SPACE_PET_HOUSE.getMessage())
                 .isInstanceOf(BadRequestException.class);
     }

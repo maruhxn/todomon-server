@@ -107,6 +107,7 @@ class MemberIntegrationTest extends ControllerIntegrationTestSupport {
                 .andExpect(jsonPath("data.username").value("tester1"))
                 .andExpect(jsonPath("data.email").value("tester1@test.com"))
                 .andExpect(jsonPath("data.profileImageUrl").value("profileImageUrl"))
+                .andExpect(jsonPath("data.subscribed").value(false))
                 .andExpect(jsonPath("data.level").value(1))
                 .andExpect(jsonPath("data.gauge").value(0.0))
                 .andExpect(jsonPath("data.title.name").value("title"))

@@ -2,7 +2,6 @@ package com.maruhxn.todomon.domain.todo.application;
 
 import com.maruhxn.todomon.domain.member.dao.MemberRepository;
 import com.maruhxn.todomon.domain.member.domain.Member;
-import com.maruhxn.todomon.domain.todo.dao.RepeatInfoRepository;
 import com.maruhxn.todomon.domain.todo.dao.TodoInstanceRepository;
 import com.maruhxn.todomon.domain.todo.dao.TodoRepository;
 import com.maruhxn.todomon.domain.todo.domain.Frequency;
@@ -43,8 +42,6 @@ class TodoServiceTest extends IntegrationTestSupport {
     @Autowired
     TodoInstanceRepository todoInstanceRepository;
 
-    @Autowired
-    RepeatInfoRepository repeatInfoRepository;
     @Autowired
     TodoService todoService;
 

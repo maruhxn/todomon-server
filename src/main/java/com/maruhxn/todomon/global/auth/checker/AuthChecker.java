@@ -1,5 +1,7 @@
 package com.maruhxn.todomon.global.auth.checker;
 
+import com.maruhxn.todomon.domain.item.domain.Item;
+import com.maruhxn.todomon.domain.member.domain.Member;
 import com.maruhxn.todomon.domain.pet.dao.PetRepository;
 import com.maruhxn.todomon.domain.pet.domain.Pet;
 import com.maruhxn.todomon.domain.social.dao.FollowRepository;
@@ -93,6 +95,18 @@ public class AuthChecker {
         }
 
         return true;
+    }
+
+    /**
+     * 프리미엄 아이템을 사용 혹은 구매 시 멤버는 유료 플랜을 구독 중이어야 한다.
+     *
+     * @param member
+     * @param item
+     */
+    public void isPremiumButNotSubscribing(Member member, Item item) {
+        if (item.getIsPremium() && !member.isSubscribed()) {
+            throw new ForbiddenException(ErrorCode.NOT_SUBSCRIPTION);
+        }
     }
 
     private boolean hasAdminAuthority() {

@@ -1,5 +1,6 @@
 package com.maruhxn.todomon.domain.member.domain;
 
+import com.maruhxn.todomon.domain.item.domain.InventoryItem;
 import com.maruhxn.todomon.domain.pet.domain.CollectedPet;
 import com.maruhxn.todomon.domain.pet.domain.Pet;
 import com.maruhxn.todomon.domain.social.domain.Follow;
@@ -80,17 +81,21 @@ public class Member extends BaseEntity {
 
     // 보낸 star
     @OneToMany(mappedBy = "sender", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<StarTransaction> sentStars;
+    private List<StarTransaction> sentStars = new ArrayList<>();
 
     // 받은 star
     @OneToMany(mappedBy = "receiver", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<StarTransaction> receivedStars;
+    private List<StarTransaction> receivedStars = new ArrayList<>();
 
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<TodoAchievementHistory> todoAchievementHistories;
+    private List<TodoAchievementHistory> todoAchievementHistories = new ArrayList<>();
 
     @OneToOne(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     private TitleName titleName;
+
+    // 유저는 여러 인벤토리 아이템을 가질 수 있음
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<InventoryItem> inventoryItems = new ArrayList<>();
 
     @OneToOne
     @JoinColumn(name = "represent_pet_id")
@@ -145,6 +150,10 @@ public class Member extends BaseEntity {
         this.starPoint += starCnt;
     }
 
+    public void expandPetHouse() {
+        this.petHouseSize += 1;
+    }
+
     /* 연관관계 메서드 */
 
     public void setTitleName(TitleName titleName) {
@@ -160,6 +169,11 @@ public class Member extends BaseEntity {
     public void addCollection(CollectedPet collectedPet) {
         this.collectedPets.add(collectedPet);
         collectedPet.setMember(this);
+    }
+
+    public void addItemToInventory(InventoryItem inventoryItem) {
+        this.inventoryItems.add(inventoryItem);
+        inventoryItem.setMember(this);
     }
 
     public void addDailyAchievementCnt(int cnt) {
@@ -186,5 +200,13 @@ public class Member extends BaseEntity {
 
     public void setRepresentPet(Pet pet) {
         this.representPet = pet;
+    }
+
+    public void addStarPoint(Long refundAmount) {
+        this.starPoint += refundAmount;
+    }
+
+    public void subtractStarPoint(Long totalPrice) {
+        this.starPoint -= totalPrice;
     }
 }
