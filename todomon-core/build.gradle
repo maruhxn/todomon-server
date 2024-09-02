@@ -1,0 +1,56 @@
+tasks.named('bootJar') { // bootJar 세팅을 켜기 (dependecies와 클래스 파일을 모두 묶어서 빌드)
+    enabled = true
+}
+
+tasks.named('jar') { // jar 설정은 끄기 (클래스만 묶어서 빌드)
+    enabled = false
+}
+
+repositories {
+    // 아임포트 관련
+    maven { url 'https://jitpack.io' }
+}
+
+ext {
+    set('snippetsDir', file("build/generated-snippets"))
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+
+    // security
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+
+    // jjwt
+    implementation "io.jsonwebtoken:jjwt-api:0.12.3"
+    runtimeOnly "io.jsonwebtoken:jjwt-impl:0.12.3"
+    runtimeOnly "io.jsonwebtoken:jjwt-jackson:0.12.3"
+
+    // QueryDSL
+    implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
+    annotationProcessor "com.querydsl:querydsl-apt:${dependencyManagement.importedProperties['querydsl.version']}:jakarta"
+    annotationProcessor "jakarta.annotation:jakarta.annotation-api"
+    annotationProcessor "jakarta.persistence:jakarta.persistence-api"
+
+    // DB driver
+    runtimeOnly 'com.h2database:h2'
+    runtimeOnly 'com.mysql:mysql-connector-j'
+
+    // AWS S3
+    implementation 'com.amazonaws:aws-java-sdk-s3:1.12.691'
+    testImplementation "io.findify:s3mock_2.13:0.2.6"
+
+    // iamport
+    implementation 'com.github.iamport:iamport-rest-client-java:0.2.23'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.security:spring-security-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('clean') {
+    delete file('src/main/generated')
+}

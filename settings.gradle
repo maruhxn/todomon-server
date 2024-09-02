@@ -1,1 +1,4 @@
 rootProject.name = 'todomon'
+
+include 'todomon-core'
+//include 'todomon-batch'
