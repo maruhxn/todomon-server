@@ -130,7 +130,7 @@ public class Member extends BaseEntity {
         this.foodCnt += foodCnt;
     }
 
-    public void initScheduledReward() {
+    public void resetScheduledReward() {
         this.scheduledReward = 0L;
     }
 
