@@ -14,6 +14,12 @@ allprojects { // 모든 모듈에 적용할 gradle script
         }
     }
 
+    repositories {
+        mavenCentral()
+        // 아임포트 관련
+        maven { url 'https://jitpack.io' }
+    }
+
 }
 
 configurations {
@@ -27,9 +33,6 @@ subprojects { // 각 모듈에 적용할 공통 설정 (프로젝트 수준의 b
     apply plugin: 'org.springframework.boot'
     apply plugin: 'io.spring.dependency-management'
 
-    repositories {
-        mavenCentral()
-    }
 
     dependencies {
         // lombok
@@ -42,4 +45,11 @@ subprojects { // 각 모듈에 적용할 공통 설정 (프로젝트 수준의 b
     tasks.named('test') {
         useJUnitPlatform()
     }
+}
+
+bootJar {
+    enabled = false
+}
+jar {
+    enabled = true
 }

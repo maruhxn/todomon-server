@@ -1,14 +1,7 @@
-tasks.named('bootJar') {
-    enabled = true
-}
-
-tasks.named('jar') {
-    enabled = false
-}
-
 dependencies {
     implementation project(':todomon-core')
     implementation 'org.springframework.boot:spring-boot-starter-batch'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     testImplementation 'org.springframework.batch:spring-batch-test'
     implementation 'org.modelmapper:modelmapper:3.2.0'
 }

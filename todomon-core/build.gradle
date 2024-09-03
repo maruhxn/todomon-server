@@ -1,16 +1,3 @@
-tasks.named('bootJar') { // bootJar 세팅을 켜기 (dependecies와 클래스 파일을 모두 묶어서 빌드)
-    enabled = true
-}
-
-tasks.named('jar') { // jar 설정은 끄기 (클래스만 묶어서 빌드)
-    enabled = false
-}
-
-repositories {
-    // 아임포트 관련
-    maven { url 'https://jitpack.io' }
-}
-
 ext {
     set('snippetsDir', file("build/generated-snippets"))
 }
