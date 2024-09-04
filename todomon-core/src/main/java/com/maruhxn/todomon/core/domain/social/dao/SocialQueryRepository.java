@@ -110,7 +110,7 @@ public class SocialQueryRepository {
                 )
                 .from(member)
                 .leftJoin(follow).on(follow.followee.id.eq(member.id).and(isAccepted()))
-                .join(member.todoAchievementHistories, todoAchievementHistory)
+                .join(todoAchievementHistory).on(todoAchievementHistory.memberId.eq(member.id))
                 .leftJoin(member.titleName, titleName)
                 .where(
                         (
@@ -152,7 +152,7 @@ public class SocialQueryRepository {
                 )
                 .from(member)
                 .leftJoin(follow).on(follow.followee.id.eq(member.id).and(isAccepted()))
-                .join(member.todoAchievementHistories, todoAchievementHistory)
+                .join(todoAchievementHistory).on(todoAchievementHistory.memberId.eq(member.id))
                 .leftJoin(member.titleName, titleName)
                 .where(
                         (

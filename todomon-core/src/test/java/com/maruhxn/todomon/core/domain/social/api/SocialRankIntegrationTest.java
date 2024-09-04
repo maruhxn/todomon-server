@@ -90,7 +90,7 @@ class SocialRankIntegrationTest extends ControllerIntegrationTestSupport {
             }
             // 투두 수행 내역 저장
             TodoAchievementHistory history = TodoAchievementHistory.builder()
-                    .member(member)
+                    .memberId(member.getId())
                     .date(yesterday)
                     .cnt((long) i)
                     .build();
@@ -117,7 +117,7 @@ class SocialRankIntegrationTest extends ControllerIntegrationTestSupport {
 
     @Test
     @DisplayName("GET /api/social/rank/achievement/weekly - 소셜 주간 투두 달성 랭킹 조회")
-    void getSocialRankingOfWeeklyAchievement() throws Exception{
+    void getSocialRankingOfWeeklyAchievement() throws Exception {
         // given
         LocalDate startOfCurrentWeek = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
         LocalDate startOfLastWeek = startOfCurrentWeek.minusWeeks(1);
@@ -160,7 +160,7 @@ class SocialRankIntegrationTest extends ControllerIntegrationTestSupport {
                 Todo todo = todos.get(0);
                 todo.updateIsDone(true);
                 TodoAchievementHistory history = TodoAchievementHistory.builder()
-                        .member(member)
+                        .memberId(member.getId())
                         .date(todo.getStartAt().toLocalDate())
                         .cnt(1L)
                         .build();
@@ -170,7 +170,7 @@ class SocialRankIntegrationTest extends ControllerIntegrationTestSupport {
                     Todo todo = todos.get(j);
                     todo.updateIsDone(true);
                     TodoAchievementHistory history = TodoAchievementHistory.builder()
-                            .member(member)
+                            .memberId(member.getId())
                             .date(todo.getStartAt().toLocalDate())
                             .cnt((long) i)
                             .build();

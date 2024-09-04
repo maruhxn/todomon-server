@@ -164,7 +164,7 @@ class OverallRankQueryServiceTest extends IntegrationTestSupport {
             }
             // 투두 수행 내역 저장
             TodoAchievementHistory history = TodoAchievementHistory.builder()
-                    .member(member)
+                    .memberId(member.getId())
                     .date(yesterday)
                     .cnt((long) i)
                     .build();
@@ -224,7 +224,7 @@ class OverallRankQueryServiceTest extends IntegrationTestSupport {
                 Todo todo = todos.get(j);
                 todo.updateIsDone(true);
                 TodoAchievementHistory history = TodoAchievementHistory.builder()
-                        .member(member)
+                        .memberId(member.getId())
                         .date(todo.getStartAt().toLocalDate())
                         .cnt((long) i)
                         .build();

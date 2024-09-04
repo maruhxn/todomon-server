@@ -94,7 +94,7 @@ public class OverallRankQueryRepository {
                         )
                 )
                 .from(todoAchievementHistory)
-                .join(todoAchievementHistory.member, member)
+                .join(member).on(todoAchievementHistory.memberId.eq(member.id)) // 명시적인 조인
                 .leftJoin(member.titleName, titleName)
                 .where(todoAchievementHistory.date.eq(yesterday))
                 .groupBy(member.id)
@@ -125,7 +125,7 @@ public class OverallRankQueryRepository {
                         )
                 )
                 .from(todoAchievementHistory)
-                .join(todoAchievementHistory.member, member)
+                .join(member).on(todoAchievementHistory.memberId.eq(member.id)) // 명시적인 조인
                 .leftJoin(member.titleName, titleName)
                 .where(todoAchievementHistory.date.between(startOfLastWeek, endOfLastWeek))
                 .groupBy(member.id)

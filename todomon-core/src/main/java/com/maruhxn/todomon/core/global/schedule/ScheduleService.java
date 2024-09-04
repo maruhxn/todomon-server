@@ -31,7 +31,7 @@ public class ScheduleService {
             TodoAchievementHistory history = TodoAchievementHistory.builder()
                     .cnt(member.getDailyAchievementCnt())
                     .date(yesterday)
-                    .member(member)
+                    .memberId(member.getId())
                     .build();
             todoAchievementHistoryRepository.save(history);
             member.addStar(member.getDailyAchievementCnt());

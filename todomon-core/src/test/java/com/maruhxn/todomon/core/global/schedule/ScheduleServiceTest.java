@@ -6,7 +6,6 @@ import com.maruhxn.todomon.core.domain.todo.dao.TodoAchievementHistoryRepository
 import com.maruhxn.todomon.core.domain.todo.domain.TodoAchievementHistory;
 import com.maruhxn.todomon.core.global.auth.model.Role;
 import com.maruhxn.todomon.core.global.auth.model.provider.OAuth2Provider;
-import com.maruhxn.todomon.core.global.schedule.ScheduleService;
 import com.maruhxn.todomon.util.IntegrationTestSupport;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -53,11 +52,11 @@ class ScheduleServiceTest extends IntegrationTestSupport {
 
         assertThat(histories)
                 .hasSize(3)
-                .extracting("member", "cnt", "date")
+                .extracting("memberId", "cnt", "date")
                 .containsExactlyInAnyOrder(
-                        tuple(member1, 1L, yesterday),
-                        tuple(member2, 2L, yesterday),
-                        tuple(member3, 3L, yesterday)
+                        tuple(member1.getId(), 1L, yesterday),
+                        tuple(member2.getId(), 2L, yesterday),
+                        tuple(member3.getId(), 3L, yesterday)
                 );
     }
 

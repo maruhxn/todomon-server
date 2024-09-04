@@ -6,7 +6,6 @@ import com.maruhxn.todomon.core.domain.pet.domain.CollectedPet;
 import com.maruhxn.todomon.core.domain.pet.domain.Pet;
 import com.maruhxn.todomon.core.domain.pet.domain.PetType;
 import com.maruhxn.todomon.core.domain.pet.domain.Rarity;
-import com.maruhxn.todomon.core.domain.social.application.SocialRankQueryService;
 import com.maruhxn.todomon.core.domain.social.dao.FollowRepository;
 import com.maruhxn.todomon.core.domain.social.domain.Follow;
 import com.maruhxn.todomon.core.domain.social.domain.FollowRequestStatus;
@@ -204,7 +203,7 @@ class SocialRankQueryServiceTest extends IntegrationTestSupport {
             }
             // 투두 수행 내역 저장
             TodoAchievementHistory history = TodoAchievementHistory.builder()
-                    .member(member)
+                    .memberId(member.getId())
                     .date(yesterday)
                     .cnt((long) i)
                     .build();
@@ -278,7 +277,7 @@ class SocialRankQueryServiceTest extends IntegrationTestSupport {
                 Todo todo = todos.get(0);
                 todo.updateIsDone(true);
                 TodoAchievementHistory history = TodoAchievementHistory.builder()
-                        .member(member)
+                        .memberId(member.getId())
                         .date(todo.getStartAt().toLocalDate())
                         .cnt(1L)
                         .build();
@@ -288,7 +287,7 @@ class SocialRankQueryServiceTest extends IntegrationTestSupport {
                     Todo todo = todos.get(j);
                     todo.updateIsDone(true);
                     TodoAchievementHistory history = TodoAchievementHistory.builder()
-                            .member(member)
+                            .memberId(member.getId())
                             .date(todo.getStartAt().toLocalDate())
                             .cnt((long) i)
                             .build();

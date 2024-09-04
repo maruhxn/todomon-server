@@ -87,9 +87,6 @@ public class Member extends BaseEntity {
     @OneToMany(mappedBy = "receiver", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<StarTransaction> receivedStars = new ArrayList<>();
 
-    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<TodoAchievementHistory> todoAchievementHistories = new ArrayList<>();
-
     @OneToOne(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     private TitleName titleName;
 
