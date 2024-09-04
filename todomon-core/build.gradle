@@ -33,9 +33,7 @@ dependencies {
     // iamport
     implementation 'com.github.iamport:iamport-rest-client-java:0.2.23'
 
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 tasks.named('clean') {

@@ -40,6 +40,9 @@ subprojects { // 각 모듈에 적용할 공통 설정 (프로젝트 수준의 b
         annotationProcessor 'org.projectlombok:lombok'
         testCompileOnly 'org.projectlombok:lombok'
         testAnnotationProcessor 'org.projectlombok:lombok'
+
+        testImplementation 'org.springframework.boot:spring-boot-starter-test'
+        testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     }
 
     tasks.named('test') {
