@@ -1,6 +1,6 @@
 package com.maruhxn.todomon.batch.chunk.processor;
 
-import com.maruhxn.todomon.core.domain.member.domain.Member;
+import com.maruhxn.todomon.batch.vo.MemberAchievementDTO;
 import com.maruhxn.todomon.core.domain.todo.domain.TodoAchievementHistory;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.beans.factory.annotation.Value;
@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
-public class CreateTodoAchievementHistoryProcessor implements ItemProcessor<Member, TodoAchievementHistory> {
+public class CreateTodoAchievementHistoryProcessor implements ItemProcessor<MemberAchievementDTO, TodoAchievementHistory> {
 
     private final String date;
 
@@ -18,12 +18,12 @@ public class CreateTodoAchievementHistoryProcessor implements ItemProcessor<Memb
     }
 
     @Override
-    public TodoAchievementHistory process(Member member) throws Exception {
+    public TodoAchievementHistory process(MemberAchievementDTO item) throws Exception {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
         return TodoAchievementHistory.builder()
-                .member(member)
-                .cnt(member.getDailyAchievementCnt())
+                .memberId(item.getMemberId())
+                .cnt(item.getAchievementCount())
                 .date(LocalDate.parse(date, formatter))
                 .build();
     }

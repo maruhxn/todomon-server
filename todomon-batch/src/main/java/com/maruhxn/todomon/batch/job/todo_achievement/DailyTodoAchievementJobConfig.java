@@ -1,8 +1,11 @@
 package com.maruhxn.todomon.batch.job.todo_achievement;
 
 import com.maruhxn.todomon.batch.chunk.processor.CreateTodoAchievementHistoryProcessor;
+import com.maruhxn.todomon.batch.chunk.writer.MemberUpdateWriter;
+import com.maruhxn.todomon.batch.listener.MemberStepListener;
 import com.maruhxn.todomon.batch.service.MemberService;
 import com.maruhxn.todomon.batch.validator.DateParameterValidator;
+import com.maruhxn.todomon.batch.vo.MemberAchievementDTO;
 import com.maruhxn.todomon.core.domain.member.domain.Member;
 import com.maruhxn.todomon.core.domain.todo.domain.TodoAchievementHistory;
 import jakarta.persistence.EntityManagerFactory;
@@ -23,11 +26,13 @@ import org.springframework.batch.item.database.JpaItemWriter;
 import org.springframework.batch.item.database.JpaPagingItemReader;
 import org.springframework.batch.item.database.builder.JpaItemWriterBuilder;
 import org.springframework.batch.item.database.builder.JpaPagingItemReaderBuilder;
+import org.springframework.batch.item.support.ListItemReader;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -64,22 +69,30 @@ public class DailyTodoAchievementJobConfig {
                 .<Member, Member>chunk(CHUNK_SIZE, tx) // 한 번에 처리할 청크 크기
                 .reader(memberItemReader)
                 .writer(memberUpdatePWriter)
+                .listener(new MemberStepListener(processedMembers()))
                 .build();
     }
 
     @Bean
     @JobScope
     public Step createTodoAchievementHistoryStep(
-            ItemReader<Member> memberItemReader,
-            ItemProcessor<Member, TodoAchievementHistory> createTodoAchievementHistoryProcessor,
+            ItemReader<MemberAchievementDTO> cachedMemberReader,
+            ItemProcessor<MemberAchievementDTO, TodoAchievementHistory> createTodoAchievementHistoryProcessor,
             ItemWriter<TodoAchievementHistory> todoAchievementHistoryItemWriter
     ) throws Exception {
         return new StepBuilder("createTodoAchievementHistoryStep", jobRepository)
-                .<Member, TodoAchievementHistory>chunk(CHUNK_SIZE, tx) // 한 번에 처리할 청크 크기
-                .reader(memberItemReader)
+                .<MemberAchievementDTO, TodoAchievementHistory>chunk(CHUNK_SIZE, tx) // 한 번에 처리할 청크 크기
+                .reader(cachedMemberReader)
                 .processor(createTodoAchievementHistoryProcessor)
                 .writer(todoAchievementHistoryItemWriter)
                 .build();
+    }
+
+    @Bean
+    @StepScope
+    public ItemReader<MemberAchievementDTO> cachedMemberReader(
+            @Value("#{jobExecutionContext['processedMemberAchievements']}") List<MemberAchievementDTO> processedMemberAchievements) {
+        return new ListItemReader<>(processedMemberAchievements);
     }
 
     @Bean
@@ -95,12 +108,8 @@ public class DailyTodoAchievementJobConfig {
 
     @Bean
     @StepScope
-    public ItemWriter<Member> memberUpdatePWriter(MemberService memberService) {
-        return chunk -> {
-            List<? extends Member> members = chunk.getItems();
-            members.forEach(memberService::addStarAndResetAchieveCnt);
-            log.info("============ Member Status Update Completed ============");
-        };
+    public ItemWriter<Member> memberUpdatePWriter(MemberService memberService, List<MemberAchievementDTO> processedMembers) {
+        return new MemberUpdateWriter(processedMembers, memberService);
     }
 
     @Bean
@@ -117,5 +126,10 @@ public class DailyTodoAchievementJobConfig {
                 .usePersist(true)
                 .entityManagerFactory(entityManagerFactory)
                 .build();
+    }
+
+    @Bean
+    public List<MemberAchievementDTO> processedMembers() {
+        return new ArrayList<>();
     }
 }
