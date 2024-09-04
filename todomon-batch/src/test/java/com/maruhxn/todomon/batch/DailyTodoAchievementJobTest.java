@@ -49,7 +49,7 @@ public class DailyTodoAchievementJobTest {
     void dailyTodoAchievementJobTest() throws Exception {
         // given
         List<Member> members = new ArrayList<>();
-        IntStream.rangeClosed(1, 500)
+        IntStream.rangeClosed(1, 100000)
                 .forEach(i -> {
                     Member member = Member.builder()
                             .username("tester" + i)
@@ -79,7 +79,7 @@ public class DailyTodoAchievementJobTest {
         List<MemberAchievementDTO> processedMembers = (List<MemberAchievementDTO>) jobExecution.getExecutionContext().get("processedMembers");
         assertThat(jobExecution.getStatus()).isEqualTo(BatchStatus.COMPLETED);
         assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
-        assertThat(processedMembers.size()).isEqualTo(500);
-        assertThat(todoAchievementHistoryRepository.findAll().size()).isEqualTo(500);
+        assertThat(processedMembers.size()).isEqualTo(100000);
+        assertThat(todoAchievementHistoryRepository.findAll().size()).isEqualTo(100000);
     }
 }

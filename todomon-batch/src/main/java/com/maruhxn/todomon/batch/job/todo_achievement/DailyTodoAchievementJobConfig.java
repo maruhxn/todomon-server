@@ -1,14 +1,13 @@
 package com.maruhxn.todomon.batch.job.todo_achievement;
 
 import com.maruhxn.todomon.batch.chunk.processor.CreateTodoAchievementHistoryProcessor;
-import com.maruhxn.todomon.batch.chunk.writer.MemberUpdateWriter;
+import com.maruhxn.todomon.batch.chunk.writer.CachingDTOItemWriter;
 import com.maruhxn.todomon.batch.listener.MemberStepListener;
-import com.maruhxn.todomon.batch.service.MemberStateUpdateService;
+import com.maruhxn.todomon.batch.listener.StopWatchJobListener;
+import com.maruhxn.todomon.batch.rowmapper.MemberAchievementRowMapper;
 import com.maruhxn.todomon.batch.validator.DateParameterValidator;
 import com.maruhxn.todomon.batch.vo.MemberAchievementDTO;
-import com.maruhxn.todomon.core.domain.member.domain.Member;
 import com.maruhxn.todomon.core.domain.todo.domain.TodoAchievementHistory;
-import jakarta.persistence.EntityManagerFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
@@ -22,17 +21,21 @@ import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
-import org.springframework.batch.item.database.JpaItemWriter;
-import org.springframework.batch.item.database.JpaPagingItemReader;
-import org.springframework.batch.item.database.builder.JpaItemWriterBuilder;
+import org.springframework.batch.item.database.JdbcBatchItemWriter;
+import org.springframework.batch.item.database.JdbcPagingItemReader;
+import org.springframework.batch.item.database.Order;
+import org.springframework.batch.item.database.PagingQueryProvider;
+import org.springframework.batch.item.database.builder.JdbcBatchItemWriterBuilder;
+import org.springframework.batch.item.database.support.SqlPagingQueryProviderFactoryBean;
+import org.springframework.batch.item.support.CompositeItemWriter;
 import org.springframework.batch.item.support.ListItemReader;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
 
-import java.util.ArrayList;
-import java.util.List;
+import javax.sql.DataSource;
+import java.util.*;
 
 @Slf4j
 @Configuration
@@ -43,7 +46,7 @@ public class DailyTodoAchievementJobConfig {
 
     private final JobRepository jobRepository;
     private final PlatformTransactionManager tx;
-    private final EntityManagerFactory entityManagerFactory;
+    private final DataSource dataSource;
 
     @Bean
     public Job dailyTodoAchievementJob(
@@ -55,17 +58,18 @@ public class DailyTodoAchievementJobConfig {
                 .incrementer(new RunIdIncrementer())
                 .start(updateMemberStep)
                 .next(createTodoAchievementHistoryStep)
+                .listener(new StopWatchJobListener())
                 .build();
     }
 
     @Bean
     @JobScope
     public Step updateMemberStep(
-            ItemReader<Member> memberItemReader,
-            ItemWriter<Member> memberUpdateWriter
+            ItemReader<MemberAchievementDTO> memberItemReader,
+            CompositeItemWriter<MemberAchievementDTO> memberUpdateWriter
     ) throws Exception {
         return new StepBuilder("updateMemberStep", jobRepository)
-                .<Member, Member>chunk(CHUNK_SIZE, tx) // 한 번에 처리할 청크 크기
+                .<MemberAchievementDTO, MemberAchievementDTO>chunk(CHUNK_SIZE, tx) // 한 번에 처리할 청크 크기
                 .reader(memberItemReader)
                 .writer(memberUpdateWriter)
                 .listener(new MemberStepListener(processedMembers()))
@@ -96,8 +100,10 @@ public class DailyTodoAchievementJobConfig {
 
     @Bean
     @StepScope
-    public JpaPagingItemReader<Member> memberItemReader() throws Exception {
-        JpaPagingItemReader<Member> reader = new JpaPagingItemReader<>() {
+    public JdbcPagingItemReader<MemberAchievementDTO> memberItemReader(
+            PagingQueryProvider queryProvider
+    ) throws Exception {
+        JdbcPagingItemReader<MemberAchievementDTO> reader = new JdbcPagingItemReader<>() {
             @Override
             public int getPage() {
                 return 0;
@@ -106,16 +112,54 @@ public class DailyTodoAchievementJobConfig {
 
         reader.setName("memberItemReader");
         reader.setPageSize(CHUNK_SIZE);
-        reader.setEntityManagerFactory(entityManagerFactory);
-        reader.setQueryString("select m from Member m WHERE m.dailyAchievementCnt > 0");
+        reader.setDataSource(dataSource);
+        reader.setRowMapper(new MemberAchievementRowMapper());
+        reader.setQueryProvider(queryProvider);
 
         return reader;
     }
 
     @Bean
+    public PagingQueryProvider queryProvider() throws Exception {
+        SqlPagingQueryProviderFactoryBean queryProvider = new SqlPagingQueryProviderFactoryBean();
+        queryProvider.setDataSource(dataSource);
+        queryProvider.setSelectClause("id, daily_achievement_cnt");
+        queryProvider.setFromClause("from member");
+        queryProvider.setWhereClause("where daily_achievement_cnt > 0");
+
+        Map<String, Order> sortKeys = new HashMap<>();
+        sortKeys.put("id", Order.ASCENDING);
+
+        queryProvider.setSortKeys(sortKeys);
+
+        return queryProvider.getObject();
+    }
+
+    @Bean
     @StepScope
-    public ItemWriter<Member> memberUpdateWriter(MemberStateUpdateService memberStateUpdateService, List<MemberAchievementDTO> processedMembers) {
-        return new MemberUpdateWriter(processedMembers, memberStateUpdateService);
+    public CompositeItemWriter<MemberAchievementDTO> memberUpdateWriter() {
+        JdbcBatchItemWriter<MemberAchievementDTO> jdbcBatchItemWriter = new JdbcBatchItemWriterBuilder<MemberAchievementDTO>()
+                .dataSource(dataSource)
+                .sql("UPDATE member " +
+                        "SET star_point = star_point + scheduled_reward, " +
+                        "daily_achievement_cnt = 0, " +
+                        "scheduled_reward = 0 " +
+                        "WHERE id = ?")
+                .itemPreparedStatementSetter((item, ps) -> {
+                    ps.setLong(1, item.getMemberId());
+                })
+                .build();
+
+        CompositeItemWriter<MemberAchievementDTO> compositeItemWriter = new CompositeItemWriter<>();
+        compositeItemWriter.setDelegates(Arrays.asList(cachingDtoItemWriter(), jdbcBatchItemWriter));
+
+        return compositeItemWriter;
+    }
+
+    @Bean
+    @StepScope
+    public ItemWriter<MemberAchievementDTO> cachingDtoItemWriter() {
+        return new CachingDTOItemWriter(processedMembers());
     }
 
     @Bean
@@ -127,10 +171,11 @@ public class DailyTodoAchievementJobConfig {
 
     @Bean
     @StepScope
-    public JpaItemWriter<TodoAchievementHistory> todoAchievementHistoryItemWriter() {
-        return new JpaItemWriterBuilder<TodoAchievementHistory>()
-                .usePersist(true)
-                .entityManagerFactory(entityManagerFactory)
+    public JdbcBatchItemWriter<TodoAchievementHistory> todoAchievementHistoryItemWriter() {
+        return new JdbcBatchItemWriterBuilder<TodoAchievementHistory>()
+                .dataSource(dataSource)
+                .sql("INSERT INTO todo_achievement_history (member_id, cnt, date, created_at, updated_at) VALUES (:memberId, :cnt, :date, now(), now())")
+                .beanMapped()
                 .build();
     }
 
