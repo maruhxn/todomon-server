@@ -3,7 +3,7 @@ package com.maruhxn.todomon.batch.job.todo_achievement;
 import com.maruhxn.todomon.batch.chunk.processor.CreateTodoAchievementHistoryProcessor;
 import com.maruhxn.todomon.batch.chunk.writer.MemberUpdateWriter;
 import com.maruhxn.todomon.batch.listener.MemberStepListener;
-import com.maruhxn.todomon.batch.service.MemberService;
+import com.maruhxn.todomon.batch.service.MemberStateUpdateService;
 import com.maruhxn.todomon.batch.validator.DateParameterValidator;
 import com.maruhxn.todomon.batch.vo.MemberAchievementDTO;
 import com.maruhxn.todomon.core.domain.member.domain.Member;
@@ -25,7 +25,6 @@ import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.database.JpaItemWriter;
 import org.springframework.batch.item.database.JpaPagingItemReader;
 import org.springframework.batch.item.database.builder.JpaItemWriterBuilder;
-import org.springframework.batch.item.database.builder.JpaPagingItemReaderBuilder;
 import org.springframework.batch.item.support.ListItemReader;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -63,12 +62,12 @@ public class DailyTodoAchievementJobConfig {
     @JobScope
     public Step updateMemberStep(
             ItemReader<Member> memberItemReader,
-            ItemWriter<Member> memberUpdatePWriter
+            ItemWriter<Member> memberUpdateWriter
     ) throws Exception {
         return new StepBuilder("updateMemberStep", jobRepository)
                 .<Member, Member>chunk(CHUNK_SIZE, tx) // 한 번에 처리할 청크 크기
                 .reader(memberItemReader)
-                .writer(memberUpdatePWriter)
+                .writer(memberUpdateWriter)
                 .listener(new MemberStepListener(processedMembers()))
                 .build();
     }
@@ -91,25 +90,32 @@ public class DailyTodoAchievementJobConfig {
     @Bean
     @StepScope
     public ItemReader<MemberAchievementDTO> cachedMemberReader(
-            @Value("#{jobExecutionContext['processedMemberAchievements']}") List<MemberAchievementDTO> processedMemberAchievements) {
+            @Value("#{jobExecutionContext['processedMembers']}") List<MemberAchievementDTO> processedMemberAchievements) {
         return new ListItemReader<>(processedMemberAchievements);
     }
 
     @Bean
     @StepScope
     public JpaPagingItemReader<Member> memberItemReader() throws Exception {
-        return new JpaPagingItemReaderBuilder<Member>()
-                .name("memberItemReader")
-                .entityManagerFactory(entityManagerFactory)
-                .pageSize(CHUNK_SIZE)
-                .queryString("select m from Member m WHERE m.dailyAchievementCnt > 0")
-                .build();
+        JpaPagingItemReader<Member> reader = new JpaPagingItemReader<>() {
+            @Override
+            public int getPage() {
+                return 0;
+            }
+        };
+
+        reader.setName("memberItemReader");
+        reader.setPageSize(CHUNK_SIZE);
+        reader.setEntityManagerFactory(entityManagerFactory);
+        reader.setQueryString("select m from Member m WHERE m.dailyAchievementCnt > 0");
+
+        return reader;
     }
 
     @Bean
     @StepScope
-    public ItemWriter<Member> memberUpdatePWriter(MemberService memberService, List<MemberAchievementDTO> processedMembers) {
-        return new MemberUpdateWriter(processedMembers, memberService);
+    public ItemWriter<Member> memberUpdateWriter(MemberStateUpdateService memberStateUpdateService, List<MemberAchievementDTO> processedMembers) {
+        return new MemberUpdateWriter(processedMembers, memberStateUpdateService);
     }
 
     @Bean

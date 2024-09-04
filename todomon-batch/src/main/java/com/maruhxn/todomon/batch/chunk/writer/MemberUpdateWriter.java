@@ -1,6 +1,6 @@
 package com.maruhxn.todomon.batch.chunk.writer;
 
-import com.maruhxn.todomon.batch.service.MemberService;
+import com.maruhxn.todomon.batch.service.MemberStateUpdateService;
 import com.maruhxn.todomon.batch.vo.MemberAchievementDTO;
 import com.maruhxn.todomon.core.domain.member.domain.Member;
 import lombok.RequiredArgsConstructor;
@@ -15,14 +15,14 @@ import java.util.List;
 public class MemberUpdateWriter implements ItemWriter<Member> {
 
     private final List<MemberAchievementDTO> processedMembers;
-    private final MemberService memberService;
+    private final MemberStateUpdateService memberStateUpdateService;
 
     @Override
     public void write(Chunk<? extends Member> chunk) throws Exception {
         List<? extends Member> members = chunk.getItems();
         members.forEach(member -> {
             processedMembers.add(new MemberAchievementDTO(member.getId(), member.getDailyAchievementCnt()));
-            memberService.addStarAndResetAchieveCnt(member);
+            memberStateUpdateService.addStarAndResetAchieveCnt(member);
         });
 
         log.info("============ Member Status Update Completed ============");
