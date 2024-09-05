@@ -25,6 +25,8 @@ import org.springframework.batch.item.support.CompositeItemWriter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.task.TaskExecutor;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.sql.DataSource;
@@ -37,11 +39,34 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class DailyTodoAchievementJobConfig {
 
-    private static final int CHUNK_SIZE = 100;
-
     private final JobRepository jobRepository;
     private final PlatformTransactionManager tx;
     private final DataSource dataSource;
+
+    private int chunkSize;
+    private int poolSize;
+
+    @Value("${chunkSize:1000}")
+    public void setChunkSize(int chunkSize) {
+        this.chunkSize = chunkSize;
+    }
+
+    @Value("${poolSize:10}") // (1)
+    public void setPoolSize(int poolSize) {
+        this.poolSize = poolSize;
+    }
+
+    @Bean
+    public TaskExecutor executor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(poolSize);
+        executor.setMaxPoolSize(poolSize * 2);
+        executor.setThreadNamePrefix("multi-thread-");
+        executor.setWaitForTasksToCompleteOnShutdown(Boolean.TRUE);
+        executor.initialize();
+        return executor;
+    }
+
 
     @Bean
     public Job dailyTodoAchievementJob(
@@ -64,9 +89,10 @@ public class DailyTodoAchievementJobConfig {
             CompositeItemWriter<MemberAchievementDTO> compositeItemWriter
     ) {
         return new StepBuilder("dailyTodoAchievementStep", jobRepository)
-                .<MemberAchievementDTO, MemberAchievementDTO>chunk(CHUNK_SIZE, tx) // 한 번에 처리할 청크 크기
+                .<MemberAchievementDTO, MemberAchievementDTO>chunk(chunkSize, tx) // 한 번에 처리할 청크 크기
                 .reader(memberItemReader)
                 .writer(compositeItemWriter)
+                .taskExecutor(executor())
                 .build();
     }
 
@@ -76,18 +102,14 @@ public class DailyTodoAchievementJobConfig {
             @Value("#{jobParameters['date']}") String date,
             PagingQueryProvider queryProvider
     ) throws Exception {
-        JdbcPagingItemReader<MemberAchievementDTO> reader = new JdbcPagingItemReader<>() {
-            @Override
-            public int getPage() {
-                return 0;
-            }
-        };
+        JdbcPagingItemReader<MemberAchievementDTO> reader = new JdbcPagingItemReader<>();
 
         reader.setName("memberItemReader");
-        reader.setPageSize(CHUNK_SIZE);
+        reader.setPageSize(chunkSize);
         reader.setDataSource(dataSource);
         reader.setRowMapper(new MemberAchievementRowMapper(date));
         reader.setQueryProvider(queryProvider);
+        reader.setSaveState(false);
 
         return reader;
     }
@@ -115,7 +137,7 @@ public class DailyTodoAchievementJobConfig {
             JdbcBatchItemWriter<MemberAchievementDTO> todoAchievementHistoryItemWriter
     ) {
         CompositeItemWriter<MemberAchievementDTO> compositeItemWriter = new CompositeItemWriter<>();
-        compositeItemWriter.setDelegates(Arrays.asList(updateMemberStateItemWriter, todoAchievementHistoryItemWriter));
+        compositeItemWriter.setDelegates(Arrays.asList(todoAchievementHistoryItemWriter, updateMemberStateItemWriter));
         return compositeItemWriter;
     }
 
