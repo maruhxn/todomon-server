@@ -11,10 +11,12 @@ public class MemberAchievementDTO implements Serializable {
 
     private Long memberId;
     private Long achievementCount;
+    private String date;
 
     @Builder
-    public MemberAchievementDTO(Long memberId, Long achievementCount) {
+    public MemberAchievementDTO(Long memberId, Long achievementCount, String date) {
         this.memberId = memberId;
         this.achievementCount = achievementCount;
+        this.date = date;
     }
 }
