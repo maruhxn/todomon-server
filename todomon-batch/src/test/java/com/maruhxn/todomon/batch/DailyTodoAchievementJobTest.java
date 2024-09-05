@@ -2,6 +2,7 @@ package com.maruhxn.todomon.batch;
 
 import com.maruhxn.todomon.core.domain.member.dao.MemberRepository;
 import com.maruhxn.todomon.core.domain.todo.dao.TodoAchievementHistoryRepository;
+import com.maruhxn.todomon.core.domain.todo.domain.TodoAchievementHistory;
 import com.maruhxn.todomon.core.global.auth.model.Role;
 import com.maruhxn.todomon.core.global.auth.model.provider.OAuth2Provider;
 import lombok.extern.slf4j.Slf4j;
@@ -18,17 +19,31 @@ import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.Comparator;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+
+
+/**
+ * 1 -> 3471
+ * 2 -> 3103
+ * 3 -> 3145
+ * 4 -> 3370
+ * 8 -> 2603
+ * 10 -> 2753
+ */
 
 @Slf4j
 @ActiveProfiles("test")
 @SpringBatchTest
 @SpringBootTest
 @Import(TestBatchConfig.class)
+@TestPropertySource(properties = {"chunkSize=500", "poolSize=8"})
 public class DailyTodoAchievementJobTest {
 
     @Autowired
@@ -56,7 +71,7 @@ public class DailyTodoAchievementJobTest {
     @DisplayName("DailyTodoAchievementJob 테스트")
     void dailyTodoAchievementJobTest() throws Exception {
         // given
-        int totalSize = 100000;
+        int totalSize = 1000000;
         log.info("batch size : {}", batchSize);
         log.info("members size : {}", totalSize);
 
@@ -68,16 +83,20 @@ public class DailyTodoAchievementJobTest {
         log.info("배치 INSERT 작업 완료");
 
         JobParameters jobParameters = new JobParametersBuilder()
-                .addString("date", "2024-01-16")
+                .addString("date", "2024-01-26")
                 .toJobParameters();
 
         // when
         JobExecution jobExecution = jobLauncherTestUtils.launchJob(jobParameters);
 
         // then
+        List<TodoAchievementHistory> todoAchievementHistories = todoAchievementHistoryRepository.findAll();
+        todoAchievementHistories.sort(Comparator.comparingLong(TodoAchievementHistory::getMemberId));
         assertThat(jobExecution.getStatus()).isEqualTo(BatchStatus.COMPLETED);
         assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
-        assertThat(todoAchievementHistoryRepository.findAll().size()).isEqualTo(totalSize);
+        assertThat(todoAchievementHistories).hasSize(totalSize);
+        assertThat(todoAchievementHistories.get(0).getMemberId()).isEqualTo(1L);
+        assertThat(todoAchievementHistories.get(todoAchievementHistories.size() - 1).getMemberId()).isEqualTo(totalSize);
     }
 
     private void batchInsert(int batchCount) {
