@@ -26,7 +26,7 @@ public class DailyTodoAchievementJobRunner extends JobRunner {
         JobDetail jobDetail = buildJobDetail(DailyTodoAchievementSchJob.class, "dailyTodoAchievementJob", "batch", new HashMap());
 
         // 스케줄러 시간 정보
-        Trigger trigger = buildJobTrigger("0 0 1 * * *"); // 매일 01시에 실행
+        Trigger trigger = buildJobTrigger("0 0 1 * * ?"); // 매일 01시에 실행
 
         if (sourceArgs.length <= 0) throw new RuntimeException("date 인자를 전달해주세요.");
         jobDetail.getJobDataMap().put("date", sourceArgs[0]);

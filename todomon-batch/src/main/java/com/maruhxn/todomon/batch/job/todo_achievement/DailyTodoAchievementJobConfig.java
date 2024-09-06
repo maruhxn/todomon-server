@@ -51,7 +51,7 @@ public class DailyTodoAchievementJobConfig {
         this.chunkSize = chunkSize;
     }
 
-    @Value("${poolSize:10}") // (1)
+    @Value("${poolSize:10}")
     public void setPoolSize(int poolSize) {
         this.poolSize = poolSize;
     }
@@ -70,19 +70,17 @@ public class DailyTodoAchievementJobConfig {
 
     @Bean
     public Job dailyTodoAchievementJob(
-            Step updateMemberStep,
-            Step createTodoAchievementHistoryStep
+            Step dailyTodoAchievementStep
     ) throws Exception {
         return new JobBuilder("dailyTodoAchievementJob", jobRepository)
                 .validator(new DateParameterValidator())
                 .incrementer(new RunIdIncrementer())
-                .start(updateMemberStep)
-                .next(createTodoAchievementHistoryStep)
+                .start(dailyTodoAchievementStep)
                 .listener(new StopWatchJobListener())
                 .build();
     }
 
-    @Bean
+    @Bean(name = "dailyTodoAchievementStep")
     @JobScope
     public Step dailyTodoAchievementStep(
             ItemReader<MemberAchievementDTO> memberItemReader,
