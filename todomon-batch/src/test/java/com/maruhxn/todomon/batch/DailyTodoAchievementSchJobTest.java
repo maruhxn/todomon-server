@@ -1,5 +1,6 @@
 package com.maruhxn.todomon.batch;
 
+import com.maruhxn.todomon.batch.job.todo_achievement.DailyTodoAchievementJobConfig;
 import com.maruhxn.todomon.core.domain.member.dao.MemberRepository;
 import com.maruhxn.todomon.core.domain.todo.dao.TodoAchievementHistoryRepository;
 import com.maruhxn.todomon.core.domain.todo.domain.TodoAchievementHistory;
@@ -15,7 +16,6 @@ import org.springframework.batch.test.context.SpringBatchTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
@@ -28,21 +28,10 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-
-/**
- * 1 -> 3471
- * 2 -> 3103
- * 3 -> 3145
- * 4 -> 3370
- * 8 -> 2603
- * 10 -> 2753
- */
-
 @Slf4j
 @ActiveProfiles("test")
 @SpringBatchTest
-@SpringBootTest
-@Import(TestBatchConfig.class)
+@SpringBootTest(classes = {DailyTodoAchievementJobConfig.class, TestBatchConfig.class})
 @TestPropertySource(properties = {"chunkSize=500", "poolSize=8"})
 public class DailyTodoAchievementSchJobTest {
 
@@ -71,7 +60,7 @@ public class DailyTodoAchievementSchJobTest {
     @DisplayName("DailyTodoAchievementJob 테스트")
     void dailyTodoAchievementJobTest() throws Exception {
         // given
-        int totalSize = 1000000;
+        int totalSize = 10000;
         log.info("batch size : {}", batchSize);
         log.info("members size : {}", totalSize);
 
@@ -83,7 +72,7 @@ public class DailyTodoAchievementSchJobTest {
         log.info("배치 INSERT 작업 완료");
 
         JobParameters jobParameters = new JobParametersBuilder()
-                .addString("date", "2024-01-26")
+                .addString("date", "2024-01-01")
                 .toJobParameters();
 
         // when
@@ -108,7 +97,7 @@ public class DailyTodoAchievementSchJobTest {
 
             @Override
             public void setValues(PreparedStatement ps, int i) throws SQLException {
-                int index = 1000 * finalBatchCount + i;
+                int index = batchSize * finalBatchCount + i;
                 ps.setString(1, "tester" + index);
                 ps.setString(2, "test" + index + "@test.com");
                 ps.setString(3, OAuth2Provider.GOOGLE.name());
