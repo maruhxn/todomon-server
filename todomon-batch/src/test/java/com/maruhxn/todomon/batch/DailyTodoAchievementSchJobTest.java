@@ -44,7 +44,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest
 @Import(TestBatchConfig.class)
 @TestPropertySource(properties = {"chunkSize=500", "poolSize=8"})
-public class DailyTodoAchievementJobTest {
+public class DailyTodoAchievementSchJobTest {
 
     @Autowired
     JobLauncherTestUtils jobLauncherTestUtils;
