@@ -2,7 +2,8 @@ package com.maruhxn.todomon.batch.job.send_notification;
 
 import com.maruhxn.todomon.batch.chunk.writer.SendNotificationWriter;
 import com.maruhxn.todomon.batch.listener.StopWatchJobListener;
-import com.maruhxn.todomon.batch.vo.SendNotificationBatchVO;
+import com.maruhxn.todomon.infra.mail.MailService;
+import com.maruhxn.todomon.infra.mail.dto.SendNotificationBatchDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
@@ -67,11 +68,11 @@ public class SendNotificationJobConfig {
     @Bean(name = "sendNotificationStep")
     @JobScope
     public Step sendNotificationStep(
-            ItemReader<SendNotificationBatchVO> sendNotificationReader,
-            ItemWriter<SendNotificationBatchVO> sendNotificationWriter
+            ItemReader<SendNotificationBatchDTO> sendNotificationReader,
+            ItemWriter<SendNotificationBatchDTO> sendNotificationWriter
     ) throws Exception {
         return new StepBuilder("sendNotificationStep", jobRepository)
-                .<SendNotificationBatchVO, SendNotificationBatchVO>chunk(chunkSize, tx)
+                .<SendNotificationBatchDTO, SendNotificationBatchDTO>chunk(chunkSize, tx)
                 .reader(sendNotificationReader)
                 .writer(sendNotificationWriter)
                 .allowStartIfComplete(true)
@@ -80,14 +81,14 @@ public class SendNotificationJobConfig {
 
     @Bean
     @StepScope
-    public ItemReader<SendNotificationBatchVO> sendNotificationReader(
+    public ItemReader<SendNotificationBatchDTO> sendNotificationReader(
             PagingQueryProvider sendNotificationQueryProvider
     ) throws Exception {
-        return new JdbcPagingItemReaderBuilder<SendNotificationBatchVO>()
+        return new JdbcPagingItemReaderBuilder<SendNotificationBatchDTO>()
                 .name("sendNotificationReader")
                 .dataSource(this.dataSource)
                 .pageSize(chunkSize)
-                .beanRowMapper(SendNotificationBatchVO.class)
+                .beanRowMapper(SendNotificationBatchDTO.class)
                 .queryProvider(sendNotificationQueryProvider)
                 .build();
     }
@@ -114,7 +115,7 @@ public class SendNotificationJobConfig {
 
     @Bean
     @StepScope
-    public ItemWriter<SendNotificationBatchVO> sendNotificationWriter() {
-        return new SendNotificationWriter();
+    public ItemWriter<SendNotificationBatchDTO> sendNotificationWriter(MailService mailService) {
+        return new SendNotificationWriter(mailService);
     }
 }
