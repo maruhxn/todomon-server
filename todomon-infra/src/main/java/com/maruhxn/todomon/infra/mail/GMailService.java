@@ -24,7 +24,6 @@ public class GMailService implements MailService {
 
     @Override
     public void sendEmail(String receiverEmail, String message) throws MailSendException {
-        log.info("Send email to {}", receiverEmail);
         try {
             MimeMessage mimeMessage = javaMailSender.createMimeMessage();
             MimeMessageHelper messageHelper = new MimeMessageHelper(mimeMessage, true);

@@ -13,8 +13,13 @@ import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
+import org.springframework.batch.experimental.item.support.CompositeItemReader;
+import org.springframework.batch.integration.async.AsyncItemProcessor;
+import org.springframework.batch.integration.async.AsyncItemWriter;
+import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
+import org.springframework.batch.item.database.JdbcPagingItemReader;
 import org.springframework.batch.item.database.Order;
 import org.springframework.batch.item.database.PagingQueryProvider;
 import org.springframework.batch.item.database.builder.JdbcPagingItemReaderBuilder;
@@ -22,9 +27,11 @@ import org.springframework.batch.item.database.support.SqlPagingQueryProviderFac
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.sql.DataSource;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -65,36 +72,61 @@ public class SendNotificationJobConfig {
                 .build();
     }
 
-    @Bean(name = "sendNotificationStep")
+    @Bean
     @JobScope
     public Step sendNotificationStep(
             ItemReader<SendNotificationBatchDTO> sendNotificationReader,
-            ItemWriter<SendNotificationBatchDTO> sendNotificationWriter
+            ItemProcessor<SendNotificationBatchDTO, SendNotificationBatchDTO> asyncSendNotificationProcessor,
+            ItemWriter<SendNotificationBatchDTO> asyncSendNotificationWriter
     ) throws Exception {
         return new StepBuilder("sendNotificationStep", jobRepository)
                 .<SendNotificationBatchDTO, SendNotificationBatchDTO>chunk(chunkSize, tx)
                 .reader(sendNotificationReader)
-                .writer(sendNotificationWriter)
+                .processor(asyncSendNotificationProcessor)
+                .writer(asyncSendNotificationWriter)
                 .allowStartIfComplete(true)
                 .build();
     }
 
     @Bean
     @StepScope
-    public ItemReader<SendNotificationBatchDTO> sendNotificationReader(
-            PagingQueryProvider sendNotificationQueryProvider
+    public CompositeItemReader<SendNotificationBatchDTO> sendNotificationReader(
+            JdbcPagingItemReader<SendNotificationBatchDTO> todoReader,
+            JdbcPagingItemReader<SendNotificationBatchDTO> todoInstanceReader
+    ) {
+        return new CompositeItemReader<>(Arrays.asList(todoReader, todoInstanceReader));
+    }
+
+    @Bean
+    @StepScope
+    public JdbcPagingItemReader<SendNotificationBatchDTO> todoReader(
+            PagingQueryProvider todoQueryProvider
     ) throws Exception {
         return new JdbcPagingItemReaderBuilder<SendNotificationBatchDTO>()
-                .name("sendNotificationReader")
+                .name("todoReader")
                 .dataSource(this.dataSource)
                 .pageSize(chunkSize)
                 .beanRowMapper(SendNotificationBatchDTO.class)
-                .queryProvider(sendNotificationQueryProvider)
+                .queryProvider(todoQueryProvider)
                 .build();
     }
 
     @Bean
-    public PagingQueryProvider sendNotificationQueryProvider() throws Exception {
+    @StepScope
+    public JdbcPagingItemReader<SendNotificationBatchDTO> todoInstanceReader(
+            PagingQueryProvider todoInstanceQueryProvider
+    ) throws Exception {
+        return new JdbcPagingItemReaderBuilder<SendNotificationBatchDTO>()
+                .name("todoInstanceReader")
+                .dataSource(this.dataSource)
+                .pageSize(chunkSize)
+                .beanRowMapper(SendNotificationBatchDTO.class)
+                .queryProvider(todoInstanceQueryProvider)
+                .build();
+    }
+
+    @Bean
+    public PagingQueryProvider todoQueryProvider() throws Exception {
         SqlPagingQueryProviderFactoryBean queryProvider = new SqlPagingQueryProviderFactoryBean();
         queryProvider.setDataSource(dataSource);
         queryProvider.setSelectClause("t.id, t.start_at, t.content, m.username, m.email");
@@ -114,8 +146,55 @@ public class SendNotificationJobConfig {
     }
 
     @Bean
+    public PagingQueryProvider todoInstanceQueryProvider() throws Exception {
+        SqlPagingQueryProviderFactoryBean queryProvider = new SqlPagingQueryProviderFactoryBean();
+        queryProvider.setDataSource(dataSource);
+        queryProvider.setSelectClause("ti.id, ti.start_at, ti.content, m.username, m.email");
+        queryProvider.setFromClause("from todo_instance ti" +
+                "   inner join todo t on ti.todo_id = t.id" +
+                "   left join member m on t.writer_id = m.id");
+        queryProvider.setWhereClause("where ti.start_at >= now() + INTERVAL 30 minute" +
+                " and ti.start_at < now() + INTERVAL 33 minute" +
+                " and ti.is_all_day = 0");
+
+        Map<String, Order> sortKeys = new HashMap<>();
+        sortKeys.put("ti.start_at", Order.ASCENDING);
+
+        queryProvider.setSortKeys(sortKeys);
+
+        return queryProvider.getObject();
+    }
+
+    @Bean
+    @StepScope
+    public ItemProcessor<SendNotificationBatchDTO, SendNotificationBatchDTO> sendNotificationProcessor() {
+        return item -> {
+            log.info("Send email to = {}", item.getEmail());
+            return item;
+        };
+    }
+
+    @Bean
+    public AsyncItemProcessor<SendNotificationBatchDTO, SendNotificationBatchDTO> asyncSendNotificationProcessor() throws InterruptedException {
+        AsyncItemProcessor<SendNotificationBatchDTO, SendNotificationBatchDTO> asyncItemProcessor = new AsyncItemProcessor<>();
+        asyncItemProcessor.setDelegate(sendNotificationProcessor());
+        asyncItemProcessor.setTaskExecutor(new SimpleAsyncTaskExecutor());
+
+        return asyncItemProcessor;
+    }
+
+    @Bean
     @StepScope
     public ItemWriter<SendNotificationBatchDTO> sendNotificationWriter(MailService mailService) {
         return new SendNotificationWriter(mailService);
+    }
+
+    @Bean
+    public AsyncItemWriter<SendNotificationBatchDTO> asyncSendNotificationWriter(MailService mailService) {
+
+        AsyncItemWriter<SendNotificationBatchDTO> asyncItemWriter = new AsyncItemWriter<>();
+        asyncItemWriter.setDelegate(sendNotificationWriter(mailService));
+
+        return asyncItemWriter;
     }
 }
