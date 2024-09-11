@@ -50,17 +50,12 @@ public class SendNotificationJobConfig {
     private final DataSource dataSource;
 
     private int chunkSize;
-    private int poolSize;
 
     @Value("${chunkSize:1000}")
     public void setChunkSize(int chunkSize) {
         this.chunkSize = chunkSize;
     }
 
-    @Value("${poolSize:10}")
-    public void setPoolSize(int poolSize) {
-        this.poolSize = poolSize;
-    }
 
     @Bean
     public Job sendNotificationJob(
