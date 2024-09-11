@@ -4,18 +4,19 @@ import com.maruhxn.todomon.core.domain.item.application.ItemService;
 import com.maruhxn.todomon.core.domain.item.domain.Item;
 import com.maruhxn.todomon.core.domain.member.dao.MemberRepository;
 import com.maruhxn.todomon.core.domain.member.domain.Member;
+import com.maruhxn.todomon.core.domain.purchase.dao.OrderRepository;
+import com.maruhxn.todomon.core.domain.purchase.dao.StarPointPaymentHistoryRepository;
 import com.maruhxn.todomon.core.domain.purchase.domain.Order;
 import com.maruhxn.todomon.core.domain.purchase.domain.OrderStatus;
 import com.maruhxn.todomon.core.domain.purchase.domain.StarPointPaymentHistory;
 import com.maruhxn.todomon.core.domain.purchase.dto.request.PaymentRequest;
 import com.maruhxn.todomon.core.domain.purchase.dto.request.PreparePaymentRequest;
 import com.maruhxn.todomon.core.domain.purchase.dto.request.PurchaseStarPointItemRequest;
-import com.maruhxn.todomon.core.domain.purchase.dao.OrderRepository;
-import com.maruhxn.todomon.core.domain.purchase.dao.StarPointPaymentHistoryRepository;
 import com.maruhxn.todomon.core.global.auth.checker.AuthChecker;
 import com.maruhxn.todomon.core.global.error.ErrorCode;
 import com.maruhxn.todomon.core.global.error.exception.BadRequestException;
 import com.maruhxn.todomon.core.global.error.exception.NotFoundException;
+import com.maruhxn.todomon.infra.mail.dto.PaymentResourceDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -59,7 +60,7 @@ public class PurchaseService {
 
     }
 
-    public void verifyPayment(Long memberId, PaymentRequest req) {
+    public PaymentResourceDTO verifyPayment(Long memberId, PaymentRequest req) {
         Member findMember = memberRepository.findById(memberId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_MEMBER));
 
@@ -80,6 +81,13 @@ public class PurchaseService {
         itemService.postPurchase(findMember, findOrder);
 
         log.info("결제 성공! 멤버 아이디: {}, 주문 아이디: {}", memberId, findOrder.getId());
+
+        return PaymentResourceDTO.builder()
+                .email(findMember.getEmail())
+                .itemName(findOrder.getItem().getName())
+                .quantity(findOrder.getQuantity())
+                .totalPrice(findOrder.getTotalPrice())
+                .build();
     }
 
     public void purchaseStarPointItem(Long memberId, PurchaseStarPointItemRequest req) {
@@ -90,7 +98,7 @@ public class PurchaseService {
         starPointPaymentHistoryRepository.save(starPointPaymentHistory);
     }
 
-    public void cancelPayment(Long memberId, Long orderId) {
+    public PaymentResourceDTO cancelPayment(Long memberId, Long orderId) {
         Member findMember = memberRepository.findById(memberId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_MEMBER));
 
@@ -109,5 +117,11 @@ public class PurchaseService {
 
         findOrder.updateStatus(OrderStatus.CANCELED);
 
+        return PaymentResourceDTO.builder()
+                .email(findMember.getEmail())
+                .itemName(findOrder.getItem().getName())
+                .quantity(findOrder.getQuantity())
+                .totalPrice(findOrder.getTotalPrice())
+                .build();
     }
 }

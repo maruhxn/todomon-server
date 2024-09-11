@@ -1,5 +1,6 @@
 package com.maruhxn.todomon.infra.mail;
 
+import com.maruhxn.todomon.infra.mail.dto.PaymentResourceDTO;
 import com.maruhxn.todomon.infra.mail.dto.SendNotificationBatchDTO;
 import org.springframework.stereotype.Component;
 
@@ -18,5 +19,21 @@ public class EmailMessageBuilder {
                 item.getContent()
         );
         return content;
+    }
+
+    public String getPaymentMessage(PaymentResourceDTO dto) {
+        return String.format("[TODOMON] 아이템 결제에 성공했습니다.\n'%s' x %d개 / 가격: %d원",
+                dto.getItemName(),
+                dto.getQuantity(),
+                dto.getTotalPrice()
+        );
+    }
+
+    public String getRefundMessage(PaymentResourceDTO dto) {
+        return String.format("[TODOMON] 결제를 취소했습니다.\n'%s' x %d개 / 환불 금액: %d원",
+                dto.getItemName(),
+                dto.getQuantity(),
+                dto.getTotalPrice()
+        );
     }
 }

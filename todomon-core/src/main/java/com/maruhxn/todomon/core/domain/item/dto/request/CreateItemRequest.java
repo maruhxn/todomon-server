@@ -24,15 +24,18 @@ public class CreateItemRequest {
 
     private MoneyType moneyType;
 
+    private String effectName;
+
     @Min(value = 0, message = "가격은 양수만 가능합니다.")
     private Long price;
 
     @Builder
-    public CreateItemRequest(String name, String description, ItemType itemType, MoneyType moneyType, Long price) {
+    public CreateItemRequest(String name, String description, ItemType itemType, MoneyType moneyType, String effectName, Long price) {
         this.name = name;
         this.description = description;
         this.itemType = itemType;
         this.moneyType = moneyType;
+        this.effectName = effectName;
         this.price = price;
     }
 
@@ -41,6 +44,7 @@ public class CreateItemRequest {
                 .name(req.getName())
                 .description(req.getDescription())
                 .itemType(req.getItemType())
+                .effectName(req.getEffectName())
                 .price(req.getPrice())
                 .moneyType(req.getMoneyType())
                 .build();
