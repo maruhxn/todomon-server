@@ -32,7 +32,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ActiveProfiles("test")
 @SpringBatchTest
 @SpringBootTest(classes = {SendNotificationJobConfig.class, TestBatchConfig.class})
-@TestPropertySource(properties = {"chunkSize=500", "poolSize=1"})
+@TestPropertySource(properties = {"chunkSize=500", "poolSize=1", "spring.mail.username=test"})
 @EnableJpaAuditing
 public class SendNotificationJobTest {
 
@@ -70,7 +70,7 @@ public class SendNotificationJobTest {
 
         for (int i = 0; i < members.size(); i++) {
             // 1 3 5 7 9
-            LocalDateTime startAt = i % 2 == 0 ? LocalDateTime.now() : LocalDateTime.now().plusMinutes(30).plusSeconds(3);
+            LocalDateTime startAt = i % 2 == 0 ? LocalDateTime.now() : LocalDateTime.now().plusMinutes(30).plusSeconds(20);
 
             // 1 5 7
             createSingleTodo(

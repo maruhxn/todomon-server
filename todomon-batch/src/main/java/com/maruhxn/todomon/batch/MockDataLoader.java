@@ -1,12 +1,12 @@
 package com.maruhxn.todomon.batch;
 
+import com.maruhxn.todomon.core.domain.todo.dao.TodoRepository;
 import com.maruhxn.todomon.core.global.auth.model.Role;
 import com.maruhxn.todomon.core.global.auth.model.provider.OAuth2Provider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.annotation.Profile;
 import org.springframework.context.event.EventListener;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -19,10 +19,10 @@ import java.sql.SQLException;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-@Profile("dev")
 public class MockDataLoader {
 
     private final JdbcTemplate jdbcTemplate;
+    private final TodoRepository todoRepository;
 
     @Value("${spring.jpa.properties.hibernate.jdbc.batch_size}")
     private int batchSize;
@@ -40,6 +40,8 @@ public class MockDataLoader {
             batchInsertMember(batchCount);
             log.info("batchCount : {}", batchCount);
         }
+
+        batchInsertSingleTodo();
 
         long afterTime = System.currentTimeMillis(); // 코드 실행 후에 시간 받아오기
         long diffTime = afterTime - beforeTime; // 두 개의 실행 시간
@@ -72,4 +74,25 @@ public class MockDataLoader {
             }
         });
     }
+
+    private void batchInsertSingleTodo() {
+        String sql = "INSERT INTO todo" +
+                " (content, start_at, end_at, is_all_day, writer_id, created_at, updated_at)" +
+                " VALUES (?, NOW() + INTERVAL 31 MINUTE, NOW() + INTERVAL 1 HOUR, ?, ?, now(), now())";
+        jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
+
+            @Override
+            public void setValues(PreparedStatement ps, int i) throws SQLException {
+                ps.setString(1, "test" + i);
+                ps.setBoolean(2, false);
+                ps.setLong(3, i + 1);
+            }
+
+            @Override
+            public int getBatchSize() {
+                return 1000;
+            }
+        });
+    }
+
 }
