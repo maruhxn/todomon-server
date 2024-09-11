@@ -1,4 +1,4 @@
-package com.maruhxn.todomon.batch.vo;
+package com.maruhxn.todomon.infra.mail.dto;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 
 @Getter
 @NoArgsConstructor
-public class SendNotificationBatchVO {
+public class SendNotificationBatchDTO {
 
     private Long id;
     private LocalDateTime startAt;
@@ -17,7 +17,7 @@ public class SendNotificationBatchVO {
     private String email;
 
     @Builder
-    public SendNotificationBatchVO(Long id, LocalDateTime startAt, String content, String username, String email) {
+    public SendNotificationBatchDTO(Long id, LocalDateTime startAt, String content, String username, String email) {
         this.id = id;
         this.startAt = startAt;
         this.content = content;
