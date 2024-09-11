@@ -1,0 +1,14 @@
+// Spring Boot 플러그인 적용을 제거하거나 아래와 같이 설정
+bootJar {
+    enabled = false
+}
+
+// 대신 일반 JAR로 빌드되도록 설정
+jar {
+    enabled = true
+}
+
+dependencies {
+    // email
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
+}

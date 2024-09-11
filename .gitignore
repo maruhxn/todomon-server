@@ -39,5 +39,5 @@ out/
 ### ADDITIONAL ###
 application*.yml
 memo/*
-/src/main/generated/
+/todomon-core/src/main/generated/
 /sql
