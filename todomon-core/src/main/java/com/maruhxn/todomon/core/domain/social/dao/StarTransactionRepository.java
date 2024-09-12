@@ -6,8 +6,11 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface StarTransactionRepository extends JpaRepository<StarTransaction, Long> {
+
+    Optional<StarTransaction> findByIdAndReceiver_Id(Long transactionId, Long receiverId);
 
     List<StarTransaction> findAllByReceiver_IdAndStatus(Long receiverId, StarTransactionStatus status);
 

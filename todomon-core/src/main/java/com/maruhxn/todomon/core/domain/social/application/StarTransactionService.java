@@ -2,8 +2,8 @@ package com.maruhxn.todomon.core.domain.social.application;
 
 import com.maruhxn.todomon.core.domain.member.dao.MemberRepository;
 import com.maruhxn.todomon.core.domain.member.domain.Member;
-import com.maruhxn.todomon.core.domain.social.dao.StarTransactionRepository;
 import com.maruhxn.todomon.core.domain.social.dao.StarTransactionQueryRepository;
+import com.maruhxn.todomon.core.domain.social.dao.StarTransactionRepository;
 import com.maruhxn.todomon.core.domain.social.domain.StarTransaction;
 import com.maruhxn.todomon.core.domain.social.dto.response.ReceivedStarItem;
 import com.maruhxn.todomon.core.global.common.dto.PageItem;
@@ -61,7 +61,7 @@ public class StarTransactionService {
     public void receiveOneStar(Long receiverId, Long transactionId) {
         Member receiver = memberRepository.findById(receiverId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_MEMBER));
-        StarTransaction transaction = starTransactionRepository.findById(transactionId)
+        StarTransaction transaction = starTransactionRepository.findByIdAndReceiver_Id(transactionId, receiverId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_STAR_TRANSACTION));
 
         if (transaction.getStatus() == RECEIVED) throw new BadRequestException(ErrorCode.ALREADY_RECEIVED);
