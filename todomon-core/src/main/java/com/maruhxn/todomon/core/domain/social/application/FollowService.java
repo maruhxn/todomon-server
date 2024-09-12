@@ -35,7 +35,7 @@ public class FollowService {
         Optional<Follow> receivedFollowRequest =
                 followRepository.findByFollower_IdAndFollowee_Id(followeeId, follower.getId());
 
-        if (receivedFollowRequest.isPresent()) {
+        if (receivedFollowRequest.isPresent()) { // 이미 받은 팔로우가 있다면 맞팔로우
             Follow receivedFollow = receivedFollowRequest.get();
             if (receivedFollow.getStatus().equals(PENDING)) {
                 receivedFollow.updateStatus(ACCEPTED);
@@ -46,12 +46,7 @@ public class FollowService {
                     .build();
             matFollow.updateStatus(ACCEPTED);
             followRepository.save(matFollow);
-        } else {
-            followRepository.findByFollower_IdAndFollowee_Id(follower.getId(), followeeId)
-                    .ifPresent(f -> {
-                        throw new BadRequestException(ErrorCode.BAD_REQUEST, "이미 팔로우 요청을 보냈습니다.");
-                    });
-
+        } else { // 받은 팔로우가 없다면 팔로우 요청 보내기
             Follow follow = Follow.builder()
                     .follower(follower)
                     .followee(followee)
