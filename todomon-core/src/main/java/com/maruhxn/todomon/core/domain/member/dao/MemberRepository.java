@@ -15,6 +15,9 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     @Query("SELECT m FROM Member m")
     List<Member> findAllWithLock();
 
+    @Query("SELECT m FROM Member m JOIN FETCH m.diligence WHERE m.id = :memberId")
+    Optional<Member> findMemberWithDiligence(Long memberId);
+
     Optional<Member> findByEmail(String email);
 
     @Query("SELECT m FROM Member m LEFT JOIN FETCH m.pets WHERE m.id = :memberId")

@@ -7,10 +7,14 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface TodoInstanceRepository extends JpaRepository<TodoInstance, Long> {
 
     List<TodoInstance> findAllByTodo_Id(Long todoId);
+
+    @Query("SELECT ti from TodoInstance ti JOIN FETCH ti.todo t WHERE ti.id = :instanceId")
+    Optional<TodoInstance> findTodoInstanceWithTodo(Long instanceId);
 
     void deleteAllByTodo_Id(Long todoId);
 

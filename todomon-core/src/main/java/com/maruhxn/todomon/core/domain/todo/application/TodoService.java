@@ -176,7 +176,7 @@ public class TodoService {
         validateUpdateReq(req);
 
         if (params.getIsInstance()) {
-            TodoInstance todoInstance = todoInstanceRepository.findById(objectId)
+            TodoInstance todoInstance = todoInstanceRepository.findTodoInstanceWithTodo(objectId)
                     .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_TODO));
             switch (params.getTargetType()) {
                 case THIS_TASK -> {
@@ -246,19 +246,22 @@ public class TodoService {
      * 반복 정보가 없는 단일 Todo의 경우 -> 단순 상태 업데이트 및 보상 지급
      *
      * @param objectId
-     * @param member
+     * @param memberId
      * @param isInstance
      * @param req
      */
-    public void updateStatusAndReward(Long objectId, Member member, boolean isInstance, UpdateTodoStatusReq req) {
+    public void updateStatusAndReward(Long objectId, Long memberId, boolean isInstance, UpdateTodoStatusReq req) {
+        Member findMember = memberRepository.findMemberWithDiligence(memberId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_MEMBER));
+
         if (isInstance) {
-            TodoInstance todoInstance = todoInstanceRepository.findById(objectId)
+            TodoInstance todoInstance = todoInstanceRepository.findTodoInstanceWithTodo(objectId)
                     .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_TODO));
             if (req.getIsDone()) {
                 todoInstance.updateIsDone(true);
-                rewardForInstance(todoInstance, member);
+                rewardForInstance(todoInstance, findMember);
             } else {
-                withdrawRewardForInstance(todoInstance, member);
+                withdrawRewardForInstance(todoInstance, findMember);
                 todoInstance.updateIsDone(false);
             }
         } else {
@@ -267,13 +270,13 @@ public class TodoService {
             // 반복 정보가 없는 단일 todo의 경우 -> 단순 상태 업데이트 및 보상 지급
             findTodo.updateIsDone(req.getIsDone());
             if (req.getIsDone()) {
-                reward(member, 1);
+                reward(findMember, 1);
             } else {
-                withdrawReward(member, 1);
+                withdrawReward(findMember, 1);
             }
         }
 
-        memberRepository.save(member);
+        memberRepository.save(findMember);
     }
 
     private void withdrawRewardForInstance(TodoInstance todoInstance, Member member) {

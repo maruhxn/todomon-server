@@ -479,7 +479,7 @@ class TodoServiceTest extends IntegrationTestSupport {
                 .build();
 
         // when
-        todoService.updateStatusAndReward(todo.getId(), member, false, req);
+        todoService.updateStatusAndReward(todo.getId(), member.getId(), false, req);
 
         // then
         assertThat(todo.isDone()).isTrue();
@@ -511,7 +511,7 @@ class TodoServiceTest extends IntegrationTestSupport {
                 .build();
 
         // when
-        todoService.updateStatusAndReward(todo.getId(), member, false, req);
+        todoService.updateStatusAndReward(todo.getId(), member.getId(), false, req);
 
         // then
         assertThat(todo.isDone()).isFalse();
@@ -540,7 +540,7 @@ class TodoServiceTest extends IntegrationTestSupport {
                 .isDone(true)
                 .build();
         // when
-        todoService.updateStatusAndReward(todoInstances.get(0).getId(), member, true, req);
+        todoService.updateStatusAndReward(todoInstances.get(0).getId(), member.getId(), true, req);
 
         // then
         assertThat(todoInstanceRepository.findAll()).hasSize(4);
@@ -578,7 +578,7 @@ class TodoServiceTest extends IntegrationTestSupport {
         }
 
         // when
-        todoService.updateStatusAndReward(todoInstances.get(size - 1).getId(), member, true, req);
+        todoService.updateStatusAndReward(todoInstances.get(size - 1).getId(), member.getId(), true, req);
 
         // then
         assertThat(todo.isDone()).isTrue();
@@ -615,7 +615,7 @@ class TodoServiceTest extends IntegrationTestSupport {
         member.getDiligence().increaseGauge(40);
         member.addScheduledReward(100L);
         // when
-        todoService.updateStatusAndReward(firstInstance.getId(), member, true, req);
+        todoService.updateStatusAndReward(firstInstance.getId(), member.getId(), true, req);
 
         // then
         assertThat(firstInstance.isDone()).isFalse();
@@ -651,7 +651,7 @@ class TodoServiceTest extends IntegrationTestSupport {
         member.getDiligence().increaseGauge(40);
         member.addScheduledReward(100L);
         // when
-        todoService.updateStatusAndReward(todoInstances.get(2).getId(), member, true, req);
+        todoService.updateStatusAndReward(todoInstances.get(2).getId(), member.getId(), true, req);
 
         // then
         assertThat(todo.isDone()).isFalse();

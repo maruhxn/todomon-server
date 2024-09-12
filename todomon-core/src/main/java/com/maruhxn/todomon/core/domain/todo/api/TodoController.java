@@ -110,7 +110,7 @@ public class TodoController {
             @RequestParam(required = true) boolean isInstance,
             @RequestBody @Valid UpdateTodoStatusReq req
     ) {
-        todoService.updateStatusAndReward(objectId, todomonOAuth2User.getMember(), isInstance, req);
+        todoService.updateStatusAndReward(objectId, todomonOAuth2User.getId(), isInstance, req);
     }
 
     @DeleteMapping("/{objectId}")
