@@ -43,7 +43,8 @@ public class Todo extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     private Member writer;
 
-    @OneToOne(mappedBy = "todo", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "repeat_info_id", referencedColumnName = "id")
     private RepeatInfo repeatInfo;
 
     @OneToMany(mappedBy = "todo", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
