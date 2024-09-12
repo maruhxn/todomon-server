@@ -73,6 +73,6 @@ public class ItemController {
             @AuthenticationPrincipal TodomonOAuth2User todomonOAuth2User,
             @RequestParam String itemName,
             @RequestBody ItemEffectRequest req) {
-        itemService.useInventoryItem(todomonOAuth2User.getMember(), itemName, req);
+        itemService.useInventoryItem(todomonOAuth2User.getId(), itemName, req);
     }
 }

@@ -128,6 +128,7 @@ class TitleNameIntegrationTest extends ControllerIntegrationTestSupport {
                 .color("#000000")
                 .member(member)
                 .build();
+        member.setTitleName(titleName);
         titleNameRepository.save(titleName);
 
         // when / then

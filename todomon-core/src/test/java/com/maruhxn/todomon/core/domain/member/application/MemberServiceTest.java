@@ -141,7 +141,7 @@ class MemberServiceTest extends IntegrationTestSupport {
                 .name("title")
                 .color("#000000")
                 .build();
-        titleName.setMember(tester1);
+        tester1.setTitleName(titleName);
         titleNameRepository.save(titleName);
 
         Follow following1 = Follow.builder()

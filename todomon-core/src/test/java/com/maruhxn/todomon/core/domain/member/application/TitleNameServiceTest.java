@@ -1,6 +1,5 @@
 package com.maruhxn.todomon.core.domain.member.application;
 
-import com.maruhxn.todomon.core.domain.member.application.TitleNameService;
 import com.maruhxn.todomon.core.domain.member.dao.MemberRepository;
 import com.maruhxn.todomon.core.domain.member.dao.TitleNameRepository;
 import com.maruhxn.todomon.core.domain.member.domain.Member;
@@ -58,6 +57,7 @@ class TitleNameServiceTest extends IntegrationTestSupport {
                 .color("#000000")
                 .member(member)
                 .build();
+        member.setTitleName(titleName);
         titleNameRepository.save(titleName);
 
         UpsertTitleNameRequest req = UpsertTitleNameRequest.builder()
@@ -85,9 +85,10 @@ class TitleNameServiceTest extends IntegrationTestSupport {
                 .color("#000000")
                 .member(member)
                 .build();
+        member.setTitleName(titleName);
         titleNameRepository.save(titleName);
         // when
-        titleNameService.deleteTitleName(member);
+        titleNameService.deleteTitleName(member.getId());
 
         // then
         assertThat(titleNameRepository.findAll()).hasSize(0);
