@@ -119,7 +119,7 @@ public class SocialQueryRepository {
                         )
                                 .and(todoAchievementHistory.date.eq(yesterday))
                 )
-                .groupBy(member.id)
+                .groupBy(member.id, todoAchievementHistory.cnt)
                 .orderBy(todoAchievementHistory.cnt.sum().desc(), todoAchievementHistory.createdAt.max().asc(), member.createdAt.asc())
                 .limit(10)
                 .fetch();
@@ -161,7 +161,7 @@ public class SocialQueryRepository {
                         )
                                 .and(todoAchievementHistory.date.between(startOfLastWeek, endOfLastWeek))
                 )
-                .groupBy(member.id)
+                .groupBy(member.id, todoAchievementHistory.cnt)
                 .orderBy(todoAchievementHistory.cnt.sum().desc(), todoAchievementHistory.createdAt.max().asc(), member.createdAt.asc())
                 .limit(10)
                 .fetch();
