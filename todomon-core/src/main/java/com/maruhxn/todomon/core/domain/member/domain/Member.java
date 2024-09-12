@@ -69,6 +69,10 @@ public class Member extends BaseEntity {
     @JoinColumn(name = "title_name_id", referencedColumnName = "id")
     private TitleName titleName;
 
+    @OneToOne(fetch = FetchType.LAZY) // cascade 설정 시 pet도 삭제되니 따로 추가하지 않음.
+    @JoinColumn(name = "represent_pet_id")
+    private Pet representPet;
+
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Pet> pets = new ArrayList<>();
 
@@ -94,10 +98,6 @@ public class Member extends BaseEntity {
     // 유저는 여러 인벤토리 아이템을 가질 수 있음
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<InventoryItem> inventoryItems = new ArrayList<>();
-
-    @OneToOne
-    @JoinColumn(name = "represent_pet_id")
-    private Pet representPet;
 
     @Builder
     public Member(String username, String email, OAuth2Provider provider, String providerId, String profileImageUrl, Role role) {

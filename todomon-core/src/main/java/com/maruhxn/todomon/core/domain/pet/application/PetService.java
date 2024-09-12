@@ -81,9 +81,18 @@ public class PetService {
         member.decreaseFoodCnt(foodCnt);
     }
 
-    public void deletePet(Long petId) {
+    public void deletePet(Long memberId, Long petId) {
         Pet findPet = petRepository.findById(petId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_PET));
+
+        Member findMember = memberRepository.findById(memberId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_MEMBER));
+
+        findMember.getRepresentPet().ifPresent(representPet -> { // 삭제하려는 펫이 대표 펫이었을 경우, 대표펫을 null로 설정
+            if (representPet.getId().equals(petId)) {
+                findMember.setRepresentPet(null);
+            }
+        });
 
         petRepository.delete(findPet);
     }

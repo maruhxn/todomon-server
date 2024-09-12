@@ -54,9 +54,10 @@ public class MyPetController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("@authChecker.isMyPetOrAdmin(#petId)")
     public void deletePet(
+            @AuthenticationPrincipal TodomonOAuth2User todomonOAuth2User,
             @PathVariable("petId") Long petId
     ) {
-        petService.deletePet(petId);
+        petService.deletePet(todomonOAuth2User.getId(), petId);
     }
 
 }
