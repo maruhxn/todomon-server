@@ -109,7 +109,7 @@ class StarTransactionIntegrationTest extends ControllerIntegrationTestSupport {
         follow.updateStatus(FollowRequestStatus.ACCEPTED);
         followRepository.save(follow);
 
-        StarTransaction transaction = StarTransaction.createTransaction(member, tester1);
+        StarTransaction transaction = StarTransaction.createTransaction(tester1, member);
         starTransactionRepository.save(transaction);
 
         // when / then
@@ -133,7 +133,7 @@ class StarTransactionIntegrationTest extends ControllerIntegrationTestSupport {
         follow.updateStatus(FollowRequestStatus.ACCEPTED);
         followRepository.save(follow);
 
-        StarTransaction transaction = StarTransaction.createTransaction(member, tester1);
+        StarTransaction transaction = StarTransaction.createTransaction(tester1, member);
         transaction.updateStatus(StarTransactionStatus.RECEIVED);
         starTransactionRepository.save(transaction);
 
