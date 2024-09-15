@@ -4,11 +4,11 @@ import com.maruhxn.todomon.core.domain.auth.dao.RefreshTokenRepository;
 import com.maruhxn.todomon.core.domain.auth.domain.RefreshToken;
 import com.maruhxn.todomon.core.domain.member.application.MemberService;
 import com.maruhxn.todomon.core.domain.member.domain.Member;
-import com.maruhxn.todomon.core.global.auth.model.TodomonOAuth2User;
+import com.maruhxn.todomon.core.global.auth.dto.MemberDTO;
 import com.maruhxn.todomon.core.global.auth.dto.TokenDto;
+import com.maruhxn.todomon.core.global.auth.model.TodomonOAuth2User;
 import com.maruhxn.todomon.core.global.error.ErrorCode;
 import com.maruhxn.todomon.core.global.error.exception.NotFoundException;
-import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -26,10 +26,21 @@ public class JwtService {
     private final RefreshTokenRepository refreshTokenRepository;
 
     public TodomonOAuth2User getPrincipal(String accessToken) {
-        Claims payload = jwtProvider.getPayload(accessToken);
-        String email = payload.getSubject();
-        Member findMember = memberService.findMemberByEmail(email);
-        return TodomonOAuth2User.of(findMember);
+        Long id = jwtProvider.getId(accessToken);
+        String username = jwtProvider.getUsername(accessToken);
+        String email = jwtProvider.getEmail(accessToken);
+        String role = jwtProvider.getRole(accessToken);
+        String provider = jwtProvider.getProvider(accessToken);
+
+        MemberDTO dto = MemberDTO.builder()
+                .id(id)
+                .username(username)
+                .email(email)
+                .role(role)
+                .provider(provider)
+                .build();
+
+        return TodomonOAuth2User.from(dto);
     }
 
     public void logout(String bearerRefreshToken) {
@@ -63,8 +74,10 @@ public class JwtService {
 
         Member findMember = memberService.findMemberByEmail(findRefreshToken.getEmail());
 
+        MemberDTO dto = MemberDTO.from(findMember);
+
         // access token 과 refresh token 모두를 재발급
-        TodomonOAuth2User todomonOAuth2User = TodomonOAuth2User.of(findMember);
+        TodomonOAuth2User todomonOAuth2User = TodomonOAuth2User.from(dto);
 
         String newAccessToken = jwtProvider.generateAccessToken(todomonOAuth2User, new Date());
         String newRefreshToken = jwtProvider.generateRefreshToken(todomonOAuth2User.getEmail(), new Date());

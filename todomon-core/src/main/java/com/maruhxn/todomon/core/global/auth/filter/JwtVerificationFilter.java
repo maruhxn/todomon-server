@@ -42,7 +42,7 @@ public class JwtVerificationFilter extends OncePerRequestFilter {
                 new OAuth2AuthenticationToken(
                         todomonOAuth2User,
                         todomonOAuth2User.getAuthorities(),
-                        todomonOAuth2User.getProvider().name()
+                        todomonOAuth2User.getProvider()
                 );
         SecurityContextHolder.getContext().setAuthentication(authentication);
     }

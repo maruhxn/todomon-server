@@ -71,7 +71,7 @@ class TodoServiceTest extends IntegrationTestSupport {
                 .build();
 
         // when
-        todoService.create(member, req);
+        todoService.create(member.getId(), req);
 
         // then
         Todo todo = todoRepository.findAll().get(0);
@@ -101,7 +101,7 @@ class TodoServiceTest extends IntegrationTestSupport {
                 .build();
 
         // when
-        todoService.create(member, req);
+        todoService.create(member.getId(), req);
 
         // then
         List<TodoInstance> all = todoInstanceRepository.findAll();
@@ -129,7 +129,7 @@ class TodoServiceTest extends IntegrationTestSupport {
                 .build();
 
         // when
-        todoService.create(member, req);
+        todoService.create(member.getId(), req);
 
         // then
         List<TodoInstance> all = todoInstanceRepository.findAll();
@@ -157,7 +157,7 @@ class TodoServiceTest extends IntegrationTestSupport {
                 .build();
 
         // when
-        todoService.create(member, req);
+        todoService.create(member.getId(), req);
 
         // then
         List<TodoInstance> all = todoInstanceRepository.findAll();
@@ -187,7 +187,7 @@ class TodoServiceTest extends IntegrationTestSupport {
                 .build();
 
         // when
-        todoService.create(member, req);
+        todoService.create(member.getId(), req);
 
         // then
         List<TodoInstance> all = todoInstanceRepository.findAll();
@@ -216,7 +216,7 @@ class TodoServiceTest extends IntegrationTestSupport {
                 .build();
 
         // when
-        todoService.create(member, req);
+        todoService.create(member.getId(), req);
 
         // then
         List<TodoInstance> all = todoInstanceRepository.findAll();
@@ -246,7 +246,7 @@ class TodoServiceTest extends IntegrationTestSupport {
                 .build();
 
         // when
-        todoService.create(member, req);
+        todoService.create(member.getId(), req);
 
         // then
         List<TodoInstance> all = todoInstanceRepository.findAll();
@@ -275,7 +275,7 @@ class TodoServiceTest extends IntegrationTestSupport {
                 .build();
 
         // when
-        todoService.create(member, req);
+        todoService.create(member.getId(), req);
 
         // then
         Todo todo = todoRepository.findAll().get(0);

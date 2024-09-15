@@ -1,8 +1,7 @@
 package com.maruhxn.todomon.core.global.auth.application;
 
-import com.maruhxn.todomon.core.global.auth.model.TodomonOAuth2User;
-import com.maruhxn.todomon.core.global.auth.model.provider.OAuth2Provider;
 import com.maruhxn.todomon.core.global.auth.dto.TokenDto;
+import com.maruhxn.todomon.core.global.auth.model.TodomonOAuth2User;
 import com.maruhxn.todomon.core.global.error.ErrorCode;
 import com.maruhxn.todomon.core.global.error.exception.UnauthorizedException;
 import io.jsonwebtoken.*;
@@ -56,15 +55,17 @@ public class JwtProvider {
     }
 
     public String generateAccessToken(TodomonOAuth2User todomonOAuth2User, Date now) {
+        Long id = todomonOAuth2User.getId();
         String email = todomonOAuth2User.getEmail();
         String username = todomonOAuth2User.getName();
-        OAuth2Provider provider = todomonOAuth2User.getProvider();
+        String provider = todomonOAuth2User.getProvider();
         ArrayList<? extends GrantedAuthority> authorities =
                 (ArrayList<? extends GrantedAuthority>) todomonOAuth2User.getAuthorities();
         return Jwts.builder()
                 .subject(email)
+                .claim("id", id)
                 .claim("username", username)
-                .claim("provider", provider.name())
+                .claim("provider", provider)
                 .claim("role", authorities.get(0).getAuthority())
                 .issuedAt(now)
                 .expiration(new Date(now.getTime() + accessTokenExpiration))
@@ -120,6 +121,26 @@ public class JwtProvider {
         return jwtParser
                 .parseSignedClaims(token)
                 .getPayload();
+    }
+
+    public Long getId(String token) {
+        return getPayload(token).get("id", Long.class);
+    }
+
+    public String getUsername(String token) {
+        return getPayload(token).get("username", String.class);
+    }
+
+    public String getEmail(String token) {
+        return getPayload(token).getSubject();
+    }
+
+    public String getProvider(String token) {
+        return getPayload(token).get("provider", String.class);
+    }
+
+    public String getRole(String token) {
+        return getPayload(token).get("role", String.class);
     }
 
     /**

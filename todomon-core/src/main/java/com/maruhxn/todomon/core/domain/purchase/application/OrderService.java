@@ -1,10 +1,10 @@
 package com.maruhxn.todomon.core.domain.purchase.application;
 
-import com.maruhxn.todomon.core.domain.member.domain.Member;
-import com.maruhxn.todomon.core.domain.purchase.dto.request.PreparePaymentRequest;
-import com.maruhxn.todomon.core.domain.purchase.dao.OrderRepository;
 import com.maruhxn.todomon.core.domain.item.domain.Item;
+import com.maruhxn.todomon.core.domain.member.domain.Member;
+import com.maruhxn.todomon.core.domain.purchase.dao.OrderRepository;
 import com.maruhxn.todomon.core.domain.purchase.domain.Order;
+import com.maruhxn.todomon.core.domain.purchase.dto.request.PreparePaymentRequest;
 import com.maruhxn.todomon.core.domain.purchase.dto.response.OrderItem;
 import com.maruhxn.todomon.core.global.error.ErrorCode;
 import com.maruhxn.todomon.core.global.error.exception.NotFoundException;
@@ -39,8 +39,8 @@ public class OrderService {
                 .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_ORDER));
     }
 
-    public List<OrderItem> getMyOrders(Member member) {
-        List<Order> orders = orderRepository.findAllByMember_IdOrderByUpdatedAtDesc(member.getId());
+    public List<OrderItem> getMyOrders(Long memberId) {
+        List<Order> orders = orderRepository.findAllByMember_IdOrderByUpdatedAtDesc(memberId);
         return orders.stream().map(OrderItem::from).toList();
     }
 }

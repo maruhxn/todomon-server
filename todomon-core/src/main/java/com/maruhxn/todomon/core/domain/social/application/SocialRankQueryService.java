@@ -18,20 +18,20 @@ public class SocialRankQueryService {
 
     private final SocialQueryRepository socialQueryRepository;
 
-    public List<DiligenceRankItem> getSocialRankingOfDiligence(Member member) {
-        return socialQueryRepository.findTop10MembersByDiligenceLevelAndGauge(member);
+    public List<DiligenceRankItem> getSocialRankingOfDiligence(Long memberId) {
+        return socialQueryRepository.findTop10MembersByDiligenceLevelAndGauge(memberId);
     }
 
-    public List<CollectedPetRankItem> getSocialRankingOfCollection(Member member) {
-        return socialQueryRepository.findTop10MembersByCollectedPetCnt(member);
+    public List<CollectedPetRankItem> getSocialRankingOfCollection(Long memberId) {
+        return socialQueryRepository.findTop10MembersByCollectedPetCnt(memberId);
     }
 
-    public List<TodoAchievementRankItem> getSocialRankingOfDailyAchievement(Member member) {
-        return socialQueryRepository.findTop10MembersByYesterdayAchievement(member);
+    public List<TodoAchievementRankItem> getSocialRankingOfDailyAchievement(Long memberId) {
+        return socialQueryRepository.findTop10MembersByYesterdayAchievement(memberId);
     }
 
-    public List<TodoAchievementRankItem> getSocialRankingOfWeeklyAchievement(Member member) {
-        return socialQueryRepository.findTop10MembersByWeeklyAchievement(member);
+    public List<TodoAchievementRankItem> getSocialRankingOfWeeklyAchievement(Long memberId) {
+        return socialQueryRepository.findTop10MembersByWeeklyAchievement(memberId);
     }
 
 }

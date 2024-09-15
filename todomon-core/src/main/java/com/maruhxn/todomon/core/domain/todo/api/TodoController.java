@@ -35,7 +35,7 @@ public class TodoController {
             @RequestBody @Valid CreateTodoReq req,
             @AuthenticationPrincipal TodomonOAuth2User todomonOAuth2User
     ) {
-        todoService.create(todomonOAuth2User.getMember(), req);
+        todoService.create(todomonOAuth2User.getId(), req);
         return new BaseResponse("투두 생성 성공");
     }
 
@@ -47,7 +47,7 @@ public class TodoController {
         List<TodoItem> todos = todoQueryService.getTodosByDay(
                 date == null
                         ? LocalDate.now()
-                        : date, todomonOAuth2User.getMember()
+                        : date, todomonOAuth2User.getId()
         );
         return DataResponse.of("일별 조회 성공", todos);
     }
@@ -60,7 +60,7 @@ public class TodoController {
         List<TodoItem> todos = todoQueryService.getTodosByWeek(
                 startOfWeek == null
                         ? LocalDate.now()
-                        : startOfWeek, todomonOAuth2User.getMember()
+                        : startOfWeek, todomonOAuth2User.getId()
         );
         return DataResponse.of("주별 조회 성공", todos);
     }
@@ -73,7 +73,7 @@ public class TodoController {
         List<TodoItem> todos = todoQueryService.getTodosByMonth(
                 yearMonth == null
                         ? YearMonth.now()
-                        : YearMonth.parse(yearMonth), todomonOAuth2User.getMember()
+                        : YearMonth.parse(yearMonth), todomonOAuth2User.getId()
         );
         return DataResponse.of("월별 조회 성공", todos);
     }

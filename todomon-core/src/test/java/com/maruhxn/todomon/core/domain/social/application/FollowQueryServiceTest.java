@@ -4,7 +4,6 @@ import com.maruhxn.todomon.core.domain.member.dao.MemberRepository;
 import com.maruhxn.todomon.core.domain.member.dao.TitleNameRepository;
 import com.maruhxn.todomon.core.domain.member.domain.Member;
 import com.maruhxn.todomon.core.domain.member.domain.TitleName;
-import com.maruhxn.todomon.core.domain.social.application.FollowQueryService;
 import com.maruhxn.todomon.core.domain.social.dao.FollowRepository;
 import com.maruhxn.todomon.core.domain.social.domain.Follow;
 import com.maruhxn.todomon.core.domain.social.dto.response.FollowRequestItem;
@@ -204,7 +203,7 @@ class FollowQueryServiceTest extends IntegrationTestSupport {
         PagingCond pagingCond = new PagingCond(1);
 
         // when
-        PageItem<FollowRequestItem> pendingList = followQueryService.getPendingFollowRequests(targetMember, pagingCond);
+        PageItem<FollowRequestItem> pendingList = followQueryService.getPendingFollowRequests(targetMember.getId(), pagingCond);
 
         // then
         assertThat(pendingList)

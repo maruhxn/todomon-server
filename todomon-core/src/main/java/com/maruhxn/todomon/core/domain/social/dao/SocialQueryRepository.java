@@ -1,6 +1,5 @@
 package com.maruhxn.todomon.core.domain.social.dao;
 
-import com.maruhxn.todomon.core.domain.member.domain.Member;
 import com.maruhxn.todomon.core.domain.social.domain.FollowRequestStatus;
 import com.maruhxn.todomon.core.domain.social.dto.response.AbstractMemberInfoItem;
 import com.maruhxn.todomon.core.domain.social.dto.response.CollectedPetRankItem;
@@ -30,7 +29,7 @@ public class SocialQueryRepository {
 
     private final JPAQueryFactory query;
 
-    public List<DiligenceRankItem> findTop10MembersByDiligenceLevelAndGauge(Member currentMember) {
+    public List<DiligenceRankItem> findTop10MembersByDiligenceLevelAndGauge(Long currentMemberId) {
         List<DiligenceRankItem> results = query
                 .select(
                         Projections.fields(DiligenceRankItem.class,
@@ -49,8 +48,8 @@ public class SocialQueryRepository {
                 .join(member.diligence, diligence)
                 .leftJoin(member.titleName, titleName)
                 .where(
-                        followerIsCurrentMember(currentMember.getId())
-                                .or(isCurrentMember(currentMember.getId()))
+                        followerIsCurrentMember(currentMemberId)
+                                .or(isCurrentMember(currentMemberId))
                 )
                 .orderBy(diligence.level.desc(), diligence.gauge.desc(), member.createdAt.asc())
                 .limit(10)
@@ -61,7 +60,7 @@ public class SocialQueryRepository {
         return results;
     }
 
-    public List<CollectedPetRankItem> findTop10MembersByCollectedPetCnt(Member currentMember) {
+    public List<CollectedPetRankItem> findTop10MembersByCollectedPetCnt(Long currentMemberId) {
         List<CollectedPetRankItem> results = query.select(
                         Projections.fields(CollectedPetRankItem.class,
                                 member.id.as("memberId"),
@@ -80,8 +79,8 @@ public class SocialQueryRepository {
                 .leftJoin(member.collectedPets, collectedPet)
                 .leftJoin(member.titleName, titleName)
                 .where(
-                        followerIsCurrentMember(currentMember.getId())
-                                .or(isCurrentMember(currentMember.getId()))
+                        followerIsCurrentMember(currentMemberId)
+                                .or(isCurrentMember(currentMemberId))
                 )
                 .groupBy(member.id, member.username, member.profileImageUrl)
                 .orderBy(collectedPet.id.count().desc(), collectedPet.createdAt.max().desc(), member.createdAt.asc())
@@ -93,7 +92,7 @@ public class SocialQueryRepository {
         return results;
     }
 
-    public List<TodoAchievementRankItem> findTop10MembersByYesterdayAchievement(Member currentMember) {
+    public List<TodoAchievementRankItem> findTop10MembersByYesterdayAchievement(Long currentMemberId) {
         LocalDate yesterday = LocalDate.now().minusDays(1);
 
         List<TodoAchievementRankItem> results = query.select(
@@ -114,8 +113,8 @@ public class SocialQueryRepository {
                 .leftJoin(member.titleName, titleName)
                 .where(
                         (
-                                followerIsCurrentMember(currentMember.getId())
-                                        .or(isCurrentMember(currentMember.getId()))
+                                followerIsCurrentMember(currentMemberId)
+                                        .or(isCurrentMember(currentMemberId))
                         )
                                 .and(todoAchievementHistory.date.eq(yesterday))
                 )
@@ -133,7 +132,7 @@ public class SocialQueryRepository {
         return follow.status.eq(FollowRequestStatus.ACCEPTED);
     }
 
-    public List<TodoAchievementRankItem> findTop10MembersByWeeklyAchievement(Member currentMember) {
+    public List<TodoAchievementRankItem> findTop10MembersByWeeklyAchievement(Long currentMemberId) {
         LocalDate startOfCurrentWeek = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
         LocalDate startOfLastWeek = startOfCurrentWeek.minusWeeks(1);
         LocalDate endOfLastWeek = startOfCurrentWeek.minusDays(1);
@@ -156,8 +155,8 @@ public class SocialQueryRepository {
                 .leftJoin(member.titleName, titleName)
                 .where(
                         (
-                                followerIsCurrentMember(currentMember.getId())
-                                        .or(isCurrentMember(currentMember.getId()))
+                                followerIsCurrentMember(currentMemberId)
+                                        .or(isCurrentMember(currentMemberId))
                         )
                                 .and(todoAchievementHistory.date.between(startOfLastWeek, endOfLastWeek))
                 )

@@ -2,6 +2,7 @@ package com.maruhxn.todomon.util;
 
 import com.maruhxn.todomon.config.TestConfig;
 import com.maruhxn.todomon.core.domain.member.domain.Member;
+import com.maruhxn.todomon.core.global.auth.dto.MemberDTO;
 import com.maruhxn.todomon.core.global.auth.model.TodomonOAuth2User;
 import com.maruhxn.todomon.core.infra.file.FileService;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -25,11 +26,12 @@ public abstract class IntegrationTestSupport {
 
     protected static void saveMemberToContext(Member member) {
         SecurityContext context = SecurityContextHolder.createEmptyContext();
-        TodomonOAuth2User todomonOAuth2User = TodomonOAuth2User.of(member); // 사용자의 커스텀 정보 설정
+        MemberDTO dto = MemberDTO.from(member);
+        TodomonOAuth2User todomonOAuth2User = TodomonOAuth2User.from(dto); // 사용자의 커스텀 정보 설정
         OAuth2AuthenticationToken auth = new OAuth2AuthenticationToken(
                 todomonOAuth2User,
                 todomonOAuth2User.getAuthorities(),
-                todomonOAuth2User.getProvider().name()
+                todomonOAuth2User.getProvider()
         );
         context.setAuthentication(auth);
         SecurityContextHolder.setContext(context);

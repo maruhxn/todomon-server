@@ -2,7 +2,6 @@ package com.maruhxn.todomon.core.domain.todo.application;
 
 import com.maruhxn.todomon.core.domain.member.dao.MemberRepository;
 import com.maruhxn.todomon.core.domain.member.domain.Member;
-import com.maruhxn.todomon.core.domain.todo.application.TodoQueryService;
 import com.maruhxn.todomon.core.domain.todo.domain.Frequency;
 import com.maruhxn.todomon.core.domain.todo.domain.RepeatInfo;
 import com.maruhxn.todomon.core.domain.todo.domain.Todo;
@@ -77,8 +76,8 @@ class TodoQueryServiceTest extends IntegrationTestSupport {
         );
         // when
         List<TodoItem> todosByDay = todoQueryService
-                .getTodosByDay(LocalDate.of(2024, 7, 7), member);
-        List<TodoItem> todosByDay2 = todoQueryService.getTodosByDay(LocalDate.of(2024, 7, 9), member);
+                .getTodosByDay(LocalDate.of(2024, 7, 7), member.getId());
+        List<TodoItem> todosByDay2 = todoQueryService.getTodosByDay(LocalDate.of(2024, 7, 9), member.getId());
 
         // then
         assertThat(todosByDay).hasSize(3);
@@ -133,7 +132,7 @@ class TodoQueryServiceTest extends IntegrationTestSupport {
         );
         // when
         List<TodoItem> todosByDay = todoQueryService
-                .getTodosByWeek(LocalDate.of(2024, 7, 5), member);
+                .getTodosByWeek(LocalDate.of(2024, 7, 5), member.getId());
         // then
         assertThat(todosByDay).hasSize(8);
     }
@@ -191,7 +190,7 @@ class TodoQueryServiceTest extends IntegrationTestSupport {
         );
         // when
         List<TodoItem> todosByDay = todoQueryService
-                .getTodosByMonth(YearMonth.of(2024, 7), member);
+                .getTodosByMonth(YearMonth.of(2024, 7), member.getId());
         // then
         assertThat(todosByDay).hasSize(7);
     }

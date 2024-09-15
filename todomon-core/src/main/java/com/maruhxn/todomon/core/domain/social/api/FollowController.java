@@ -12,7 +12,6 @@ import com.maruhxn.todomon.core.global.common.dto.response.DataResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,7 +28,7 @@ public class FollowController {
             @AuthenticationPrincipal TodomonOAuth2User todomonOAuth2User,
             @ModelAttribute @Valid PagingCond pagingCond
     ) {
-        PageItem<FollowRequestItem> results = followQueryService.getPendingFollowRequests(todomonOAuth2User.getMember(), pagingCond);
+        PageItem<FollowRequestItem> results = followQueryService.getPendingFollowRequests(todomonOAuth2User.getId(), pagingCond);
         return DataResponse.of("팔로우 요청 조회 성공", results);
     }
 
@@ -39,36 +38,17 @@ public class FollowController {
             @AuthenticationPrincipal TodomonOAuth2User todomonOAuth2User,
             @PathVariable("memberId") Long memberId
     ) {
-        followService.sendFollowRequestOrMatFollow(todomonOAuth2User.getMember(), memberId);
+        followService.sendFollowRequestOrMatFollow(todomonOAuth2User.getId(), memberId);
     }
 
     @PatchMapping("/requests/{followId}/respond")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("@authChecker.isMyFollowOrAdmin(#followId)")
     public void respondToFollowRequest(
             @PathVariable Long followId,
             @RequestParam(required = true) Boolean isAccepted
     ) {
         followService.respondToFollowRequest(followId, isAccepted);
     }
-
-//    /**
-//     * 나를 팔로우하고 있는 팔로워를 맞팔로우한다.
-//     * <p>
-//     * 팔로우 요청을 건 쪽은 팔로우 요청을 보내어 'ACCEPTED' 받아야 하지만,
-//     * 팔로우 요청을 받은 쪽은 따로 팔로우 요청을 보내지 않는다.
-//     *
-//     * @param todomonOAuth2User
-//     * @param followerId
-//     */
-//    @PostMapping("/{followerId}/mutual")
-//    @ResponseStatus(HttpStatus.CREATED)
-//    public void matFollow(
-//            @AuthenticationPrincipal TodomonOAuth2User todomonOAuth2User,
-//            @PathVariable Long followerId
-//    ) {
-//        followService.matFollow(todomonOAuth2User.getMember(), followerId);
-//    }
 
     @DeleteMapping("/{followerId}/remove")
     @ResponseStatus(HttpStatus.NO_CONTENT)

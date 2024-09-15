@@ -35,7 +35,7 @@ class FollowServiceTest extends IntegrationTestSupport {
         Member tester2 = createMember("tester2");
 
         // when
-        followService.sendFollowRequestOrMatFollow(tester1, tester2.getId());
+        followService.sendFollowRequestOrMatFollow(tester1.getId(), tester2.getId());
 
         // then
         assertThat(followRepository.findAll())
@@ -51,6 +51,7 @@ class FollowServiceTest extends IntegrationTestSupport {
         // given
         Member tester1 = createMember("tester1");
         Member tester2 = createMember("tester2");
+        saveMemberToContext(tester2);
         Follow follow = Follow.builder()
                 .follower(tester1)
                 .followee(tester2)
@@ -78,6 +79,7 @@ class FollowServiceTest extends IntegrationTestSupport {
                 .follower(tester1)
                 .followee(tester2)
                 .build();
+        saveMemberToContext(tester2);
         followRepository.save(follow);
 
         // when

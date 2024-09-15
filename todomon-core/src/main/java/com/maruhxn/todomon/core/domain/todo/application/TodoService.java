@@ -42,10 +42,13 @@ public class TodoService {
     /**
      * Todo를 생성한다.
      *
-     * @param member
+     * @param memberId
      * @param req
      */
-    public void create(Member member, CreateTodoReq req) {
+    public void create(Long memberId, CreateTodoReq req) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_MEMBER));
+
         Todo todo = req.toEntity(member);
         RepeatInfo repeatInfo = null;
         if (req.getRepeatInfoReqItem() != null) {

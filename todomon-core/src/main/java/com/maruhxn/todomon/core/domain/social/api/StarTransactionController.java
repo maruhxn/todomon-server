@@ -32,14 +32,14 @@ public class StarTransactionController {
     }
 
     // 내가 팔로우하고 있는 사람에게 별을 보낼 수 있다.
-    @PostMapping("/send/{memberId}")
+    @PostMapping("/send/{receiverId}")
     @ResponseStatus(HttpStatus.CREATED)
     public BaseResponse sendStar(
             @AuthenticationPrincipal TodomonOAuth2User todomonOAuth2User,
-            @PathVariable("memberId") Long memberId
+            @PathVariable("receiverId") Long receiverId
     ) {
-        starTransactionService.sendStar(todomonOAuth2User.getMember(), memberId, LocalDateTime.now());
-        return new BaseResponse("별 보내기 성공 - " + memberId);
+        starTransactionService.sendStar(todomonOAuth2User.getId(), receiverId, LocalDateTime.now());
+        return new BaseResponse("별 보내기 성공 - " + receiverId);
     }
 
     @PatchMapping("/receive/{transactionId}")
@@ -56,6 +56,6 @@ public class StarTransactionController {
     public void receiveAllStars(
             @AuthenticationPrincipal TodomonOAuth2User todomonOAuth2User
     ) {
-        starTransactionService.receiveAllStars(todomonOAuth2User.getMember());
+        starTransactionService.receiveAllStars(todomonOAuth2User.getId());
     }
 }

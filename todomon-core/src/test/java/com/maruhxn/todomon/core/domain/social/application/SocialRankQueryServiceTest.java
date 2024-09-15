@@ -81,7 +81,7 @@ class SocialRankQueryServiceTest extends IntegrationTestSupport {
         }
 
         // when
-        List<DiligenceRankItem> result = socialRankQueryService.getSocialRankingOfDiligence(currentMember);
+        List<DiligenceRankItem> result = socialRankQueryService.getSocialRankingOfDiligence(currentMember.getId());
         Member tester10 = members.get(9);
         Member tester8 = members.get(7);
         Member tester6 = members.get(5);
@@ -135,7 +135,7 @@ class SocialRankQueryServiceTest extends IntegrationTestSupport {
         }
 
         // when
-        List<CollectedPetRankItem> result = socialRankQueryService.getSocialRankingOfCollection(currentMember);
+        List<CollectedPetRankItem> result = socialRankQueryService.getSocialRankingOfCollection(currentMember.getId());
         Member tester10 = members.get(9);
         Member tester8 = members.get(7);
         Member tester6 = members.get(5);
@@ -212,7 +212,7 @@ class SocialRankQueryServiceTest extends IntegrationTestSupport {
         }
 
         // when
-        List<TodoAchievementRankItem> result = socialRankQueryService.getSocialRankingOfDailyAchievement(currentMember);
+        List<TodoAchievementRankItem> result = socialRankQueryService.getSocialRankingOfDailyAchievement(currentMember.getId());
         Member tester2 = members.get(1);
         Member tester4 = members.get(3);
         Member tester6 = members.get(5);
@@ -298,7 +298,7 @@ class SocialRankQueryServiceTest extends IntegrationTestSupport {
         }
 
         // when
-        List<TodoAchievementRankItem> result = socialRankQueryService.getSocialRankingOfWeeklyAchievement(currentMember);
+        List<TodoAchievementRankItem> result = socialRankQueryService.getSocialRankingOfWeeklyAchievement(currentMember.getId());
         Member tester2 = members.get(1);
         Member tester4 = members.get(3);
         Member tester6 = members.get(5);
