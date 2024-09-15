@@ -13,8 +13,8 @@ import com.maruhxn.todomon.core.domain.item.dto.response.ItemDto;
 import com.maruhxn.todomon.core.domain.member.dao.MemberRepository;
 import com.maruhxn.todomon.core.domain.member.domain.Member;
 import com.maruhxn.todomon.core.domain.purchase.domain.Order;
-import com.maruhxn.todomon.core.global.auth.checker.AuthChecker;
 import com.maruhxn.todomon.core.global.error.ErrorCode;
+import com.maruhxn.todomon.core.global.error.exception.ForbiddenException;
 import com.maruhxn.todomon.core.global.error.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationContext;
@@ -34,8 +34,6 @@ public class ItemService {
     private final ApplicationContext applicationContext;
     private final InventoryItemRepository inventoryItemRepository;
     private final InventoryItemService inventoryItemService;
-
-    private final AuthChecker authChecker;
 
 
     public void createItem(CreateItemRequest req) {
@@ -79,7 +77,9 @@ public class ItemService {
     public void postPurchase(Member member, Order order) {
         Item purchasedItem = order.getItem();
 
-        authChecker.isPremiumButNotSubscribing(member, purchasedItem);
+        if (purchasedItem.getIsPremium() && !member.isSubscribed()) {
+            throw new ForbiddenException(ErrorCode.NOT_SUBSCRIPTION);
+        }
 
         switch (purchasedItem.getItemType()) {
             case CONSUMABLE -> inventoryItemRepository
@@ -118,7 +118,9 @@ public class ItemService {
 
         InventoryItem findInventoryItem = inventoryItemService.getInventoryItem(memberId, itemName);
 
-        authChecker.isPremiumButNotSubscribing(findMember, findInventoryItem.getItem());
+        if (findInventoryItem.getItem().getIsPremium() && !findMember.isSubscribed()) {
+            throw new ForbiddenException(ErrorCode.NOT_SUBSCRIPTION);
+        }
 
         applyItemEffect(findMember, findInventoryItem.getItem(), req);
 

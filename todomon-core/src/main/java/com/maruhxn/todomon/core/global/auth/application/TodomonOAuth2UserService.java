@@ -36,7 +36,7 @@ public class TodomonOAuth2UserService implements OAuth2UserService<OAuth2UserReq
         OAuth2ProviderUser oAuth2ProviderUser = this.getOAuth2ProviderUser(clientRegistration, oAuth2User);
 
         // 회원가입
-        Member member = memberService.createOrUpdate(oAuth2ProviderUser);
+        Member member = memberService.getOrCreate(oAuth2ProviderUser);
         return TodomonOAuth2User.of(member, oAuth2ProviderUser);
     }
 

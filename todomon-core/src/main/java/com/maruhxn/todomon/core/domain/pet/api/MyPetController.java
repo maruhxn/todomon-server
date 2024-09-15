@@ -31,7 +31,6 @@ public class MyPetController {
 
     @PatchMapping("/represent-pet")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("@authChecker.isMyPetOrAdmin(#petId)")
     public void updateRepresentPet(
             @AuthenticationPrincipal TodomonOAuth2User todomonOAuth2User,
             @RequestParam(required = false) Long petId
@@ -41,18 +40,16 @@ public class MyPetController {
 
     @PatchMapping("/{petId}/feed")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("@authChecker.isMyPetOrAdmin(#petId)")
     public void feedToPet(
             @AuthenticationPrincipal TodomonOAuth2User todomonOAuth2User,
             @PathVariable("petId") Long petId,
             @RequestParam(required = true) @Valid @Min(value = 1, message = "1개 이상의 먹이 수를 입력해주세요") Long foodCnt
     ) {
-        petService.feed(petId, todomonOAuth2User.getMember(), foodCnt);
+        petService.feed(todomonOAuth2User.getId(), petId, foodCnt);
     }
 
     @DeleteMapping("/{petId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("@authChecker.isMyPetOrAdmin(#petId)")
     public void deletePet(
             @AuthenticationPrincipal TodomonOAuth2User todomonOAuth2User,
             @PathVariable("petId") Long petId

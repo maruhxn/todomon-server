@@ -9,6 +9,7 @@ import com.maruhxn.todomon.core.domain.todo.domain.RepeatInfo;
 import com.maruhxn.todomon.core.domain.todo.domain.Todo;
 import com.maruhxn.todomon.core.domain.todo.domain.TodoInstance;
 import com.maruhxn.todomon.core.domain.todo.dto.request.*;
+import com.maruhxn.todomon.core.global.auth.checker.IsMyTodoOrAdmin;
 import com.maruhxn.todomon.core.global.error.ErrorCode;
 import com.maruhxn.todomon.core.global.error.exception.BadRequestException;
 import com.maruhxn.todomon.core.global.error.exception.NotFoundException;
@@ -172,6 +173,7 @@ public class TodoService {
         return true;
     }
 
+    @IsMyTodoOrAdmin
     public void update(Long objectId, UpdateAndDeleteTodoQueryParams params, UpdateTodoReq req) {
         validateUpdateReq(req);
 
@@ -250,7 +252,8 @@ public class TodoService {
      * @param isInstance
      * @param req
      */
-    public void updateStatusAndReward(Long objectId, Long memberId, boolean isInstance, UpdateTodoStatusReq req) {
+    @IsMyTodoOrAdmin
+    public void updateStatusAndReward(Long objectId, boolean isInstance, Long memberId, UpdateTodoStatusReq req) {
         Member findMember = memberRepository.findMemberWithDiligence(memberId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_MEMBER));
 
@@ -336,7 +339,7 @@ public class TodoService {
         return notCompletedInstancesSize == 0;
     }
 
-
+    @IsMyTodoOrAdmin
     public void deleteTodo(Long objectId, UpdateAndDeleteTodoQueryParams params) {
         if (params.getIsInstance()) {
             TodoInstance todoInstance = todoInstanceRepository.findById(objectId)

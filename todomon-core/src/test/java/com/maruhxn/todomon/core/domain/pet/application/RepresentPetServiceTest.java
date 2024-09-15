@@ -40,6 +40,7 @@ class RepresentPetServiceTest extends IntegrationTestSupport {
                 .rarity(Rarity.COMMON)
                 .build();
         member.addPet(pet);
+        saveMemberToContext(member);
         petRepository.save(pet);
 
         // when

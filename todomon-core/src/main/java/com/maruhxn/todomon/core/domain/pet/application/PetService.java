@@ -7,6 +7,7 @@ import com.maruhxn.todomon.core.domain.pet.dao.PetRepository;
 import com.maruhxn.todomon.core.domain.pet.domain.CollectedPet;
 import com.maruhxn.todomon.core.domain.pet.domain.Pet;
 import com.maruhxn.todomon.core.domain.pet.dto.request.ChangePetNameRequest;
+import com.maruhxn.todomon.core.global.auth.checker.IsMyPetOrAdmin;
 import com.maruhxn.todomon.core.global.error.ErrorCode;
 import com.maruhxn.todomon.core.global.error.exception.BadRequestException;
 import com.maruhxn.todomon.core.global.error.exception.NotFoundException;
@@ -65,9 +66,14 @@ public class PetService {
         }
     }
 
-    public void feed(Long petId, Member member, Long foodCnt) {
-        Pet findPet = petRepository.findOneByIdAndMember_Id(petId, member.getId())
+    @IsMyPetOrAdmin
+    public void feed(Long memberId, Long petId, Long foodCnt) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_MEMBER));
+
+        Pet findPet = petRepository.findById(petId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_PET));
+
         int prevEvolutionCnt = findPet.getEvolutionCnt();
         if (foodCnt > member.getFoodCnt()) {
             throw new BadRequestException(ErrorCode.OVER_FOOD_CNT);
@@ -81,6 +87,7 @@ public class PetService {
         member.decreaseFoodCnt(foodCnt);
     }
 
+    @IsMyPetOrAdmin
     public void deletePet(Long memberId, Long petId) {
         Pet findPet = petRepository.findById(petId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_PET));

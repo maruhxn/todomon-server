@@ -2,7 +2,6 @@ package com.maruhxn.todomon.core.domain.todo.application;
 
 import com.maruhxn.todomon.core.domain.member.dao.MemberRepository;
 import com.maruhxn.todomon.core.domain.member.domain.Member;
-import com.maruhxn.todomon.core.domain.todo.application.TodoService;
 import com.maruhxn.todomon.core.domain.todo.dao.TodoInstanceRepository;
 import com.maruhxn.todomon.core.domain.todo.dao.TodoRepository;
 import com.maruhxn.todomon.core.domain.todo.domain.Frequency;
@@ -292,6 +291,7 @@ class TodoServiceTest extends IntegrationTestSupport {
     @DisplayName("todo를 수정한다.")
     void update_single_todo() {
         // given
+        saveMemberToContext(member);
         Todo todo = testTodoFactory.createSingleTodo(
                 LocalDateTime.of(2024, 7, 7, 7, 0),
                 LocalDateTime.of(2024, 7, 7, 8, 0),
@@ -332,6 +332,7 @@ class TodoServiceTest extends IntegrationTestSupport {
     @DisplayName("todoinstance 하나를 수정한다.")
     void update_todoInstance_THIS_TASK() {
         // given
+        saveMemberToContext(member);
         Todo todo = testTodoFactory.createRepeatedTodo(
                 LocalDateTime.of(2024, 7, 7, 7, 0),
                 LocalDateTime.of(2024, 7, 7, 8, 0),
@@ -371,6 +372,7 @@ class TodoServiceTest extends IntegrationTestSupport {
     @DisplayName("todoinstance 전체를 수정한다.")
     void update_todoInstance_ALL_TASKS() {
         // given
+        saveMemberToContext(member);
         Todo todo = testTodoFactory.createRepeatedTodo(
                 LocalDateTime.of(2024, 7, 7, 7, 0),
                 LocalDateTime.of(2024, 7, 7, 8, 0),
@@ -414,6 +416,7 @@ class TodoServiceTest extends IntegrationTestSupport {
     @DisplayName("todoinstance 전체의 반복 정보를 수정한다.")
     void update_todoInstance_ALL_TASKS_with_new_repeat_info() {
         // given
+        saveMemberToContext(member);
         Todo todo = testTodoFactory.createRepeatedTodo(
                 LocalDateTime.of(2024, 7, 7, 7, 0),
                 LocalDateTime.of(2024, 7, 7, 8, 0),
@@ -462,6 +465,7 @@ class TodoServiceTest extends IntegrationTestSupport {
     @DisplayName("단일 일정 완료 처리")
     void completeSingleTodoAndReward() {
         // given
+        saveMemberToContext(member);
         Todo todo = testTodoFactory.createRepeatedTodo(
                 LocalDateTime.of(2024, 7, 7, 7, 0),
                 LocalDateTime.of(2024, 7, 7, 8, 0),
@@ -479,7 +483,7 @@ class TodoServiceTest extends IntegrationTestSupport {
                 .build();
 
         // when
-        todoService.updateStatusAndReward(todo.getId(), member.getId(), false, req);
+        todoService.updateStatusAndReward(todo.getId(), false, member.getId(), req);
 
         // then
         assertThat(todo.isDone()).isTrue();
@@ -491,6 +495,7 @@ class TodoServiceTest extends IntegrationTestSupport {
     @DisplayName("단일 일정 취소 처리")
     void cancelSingleTodoAndWithdraw() {
         // given
+        saveMemberToContext(member);
         Todo todo = testTodoFactory.createRepeatedTodo(
                 LocalDateTime.of(2024, 7, 7, 7, 0),
                 LocalDateTime.of(2024, 7, 7, 8, 0),
@@ -511,7 +516,7 @@ class TodoServiceTest extends IntegrationTestSupport {
                 .build();
 
         // when
-        todoService.updateStatusAndReward(todo.getId(), member.getId(), false, req);
+        todoService.updateStatusAndReward(todo.getId(), false, member.getId(), req);
 
         // then
         assertThat(todo.isDone()).isFalse();
@@ -523,6 +528,7 @@ class TodoServiceTest extends IntegrationTestSupport {
     @DisplayName("반복 일정 완료 처리")
     void completeRepeatedTodoAndReward() {
         // given
+        saveMemberToContext(member);
         Todo todo = testTodoFactory.createRepeatedTodo(
                 LocalDateTime.of(2024, 7, 7, 7, 0),
                 LocalDateTime.of(2024, 7, 7, 8, 0),
@@ -540,7 +546,7 @@ class TodoServiceTest extends IntegrationTestSupport {
                 .isDone(true)
                 .build();
         // when
-        todoService.updateStatusAndReward(todoInstances.get(0).getId(), member.getId(), true, req);
+        todoService.updateStatusAndReward(todoInstances.get(0).getId(), true, member.getId(), req);
 
         // then
         assertThat(todoInstanceRepository.findAll()).hasSize(4);
@@ -553,6 +559,7 @@ class TodoServiceTest extends IntegrationTestSupport {
     @DisplayName("일간 반복 일정 전체 완료 처리")
     void completeAllRepeatedTodoAndReward() {
         // given
+        saveMemberToContext(member);
         Todo todo = testTodoFactory.createRepeatedTodo(
                 LocalDateTime.of(2024, 7, 7, 7, 0),
                 LocalDateTime.of(2024, 7, 7, 8, 0),
@@ -578,7 +585,7 @@ class TodoServiceTest extends IntegrationTestSupport {
         }
 
         // when
-        todoService.updateStatusAndReward(todoInstances.get(size - 1).getId(), member.getId(), true, req);
+        todoService.updateStatusAndReward(todoInstances.get(size - 1).getId(), true, member.getId(), req);
 
         // then
         assertThat(todo.isDone()).isTrue();
@@ -592,6 +599,7 @@ class TodoServiceTest extends IntegrationTestSupport {
     @DisplayName("반복 일정 취소 처리")
     void cancelRepeatedTodoAndWithdraw() {
         // given
+        saveMemberToContext(member);
         Todo todo = testTodoFactory.createRepeatedTodo(
                 LocalDateTime.of(2024, 7, 7, 7, 0),
                 LocalDateTime.of(2024, 7, 7, 8, 0),
@@ -615,7 +623,7 @@ class TodoServiceTest extends IntegrationTestSupport {
         member.getDiligence().increaseGauge(40);
         member.addScheduledReward(100L);
         // when
-        todoService.updateStatusAndReward(firstInstance.getId(), member.getId(), true, req);
+        todoService.updateStatusAndReward(firstInstance.getId(), true, member.getId(), req);
 
         // then
         assertThat(firstInstance.isDone()).isFalse();
@@ -627,6 +635,7 @@ class TodoServiceTest extends IntegrationTestSupport {
     @DisplayName("전체 완료되었던 일간 반복 일정 부분 취소 처리")
     void cancelAllRepeatedTodoAndWithdraw() {
         // given
+        saveMemberToContext(member);
         Todo todo = testTodoFactory.createRepeatedTodo(
                 LocalDateTime.of(2024, 7, 7, 7, 0),
                 LocalDateTime.of(2024, 7, 7, 8, 0),
@@ -651,7 +660,7 @@ class TodoServiceTest extends IntegrationTestSupport {
         member.getDiligence().increaseGauge(40);
         member.addScheduledReward(100L);
         // when
-        todoService.updateStatusAndReward(todoInstances.get(2).getId(), member.getId(), true, req);
+        todoService.updateStatusAndReward(todoInstances.get(2).getId(), true, member.getId(), req);
 
         // then
         assertThat(todo.isDone()).isFalse();
@@ -664,6 +673,8 @@ class TodoServiceTest extends IntegrationTestSupport {
     @DisplayName("todo를 삭제한다.")
     void deleteSingleTodo() {
         // given
+        saveMemberToContext(member);
+        saveMemberToContext(member);
         Todo todo = testTodoFactory.createSingleTodo(
                 LocalDateTime.of(2024, 7, 7, 7, 0),
                 LocalDateTime.of(2024, 7, 7, 8, 0),
@@ -686,6 +697,7 @@ class TodoServiceTest extends IntegrationTestSupport {
     @DisplayName("한 개의 반복 일정을 삭제할 수 있다.")
     void deleteRepeatedTodo_THIS_TASK() {
         // given
+        saveMemberToContext(member);
         Todo todo = testTodoFactory.createRepeatedTodo(
                 LocalDateTime.of(2024, 7, 7, 7, 0),
                 LocalDateTime.of(2024, 7, 7, 8, 0),
@@ -714,6 +726,7 @@ class TodoServiceTest extends IntegrationTestSupport {
     @DisplayName("전체 반복 일정을 삭제할 수 있다.")
     void deleteRepeatedTodo_ALL_TASKS() {
         // given
+        saveMemberToContext(member);
         Todo todo = testTodoFactory.createRepeatedTodo(
                 LocalDateTime.of(2024, 7, 7, 7, 0),
                 LocalDateTime.of(2024, 7, 7, 8, 0),

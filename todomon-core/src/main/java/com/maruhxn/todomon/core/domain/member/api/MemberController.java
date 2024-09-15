@@ -43,7 +43,6 @@ public class MemberController {
 
     @PatchMapping("/{memberId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("@authChecker.isMeOrAdmin(#memberId)")
     public void updateProfile(
             @PathVariable("memberId") Long memberId,
             @ModelAttribute @Valid UpdateMemberProfileReq updateMemberProfileReq
@@ -53,7 +52,6 @@ public class MemberController {
 
     @DeleteMapping("/{memberId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("@authChecker.isMeOrAdmin(#memberId)")
     public void withdraw(
             @PathVariable("memberId") Long memberId
     ) {

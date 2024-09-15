@@ -1,9 +1,9 @@
 package com.maruhxn.todomon.core.domain.todo.api;
 
-import com.maruhxn.todomon.core.domain.todo.application.TodoService;
-import com.maruhxn.todomon.core.domain.todo.dto.request.UpdateAndDeleteTodoQueryParams;
 import com.maruhxn.todomon.core.domain.todo.application.TodoQueryService;
+import com.maruhxn.todomon.core.domain.todo.application.TodoService;
 import com.maruhxn.todomon.core.domain.todo.dto.request.CreateTodoReq;
+import com.maruhxn.todomon.core.domain.todo.dto.request.UpdateAndDeleteTodoQueryParams;
 import com.maruhxn.todomon.core.domain.todo.dto.request.UpdateTodoReq;
 import com.maruhxn.todomon.core.domain.todo.dto.request.UpdateTodoStatusReq;
 import com.maruhxn.todomon.core.domain.todo.dto.response.TodoItem;
@@ -14,7 +14,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -86,7 +85,7 @@ public class TodoController {
      */
     @PatchMapping("/{objectId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("@authChecker.isMyTodoOrAdmin(#objectId, #params.isInstance)")
+//    @PreAuthorize("@authChecker.isMyTodoOrAdmin(#objectId, #params.isInstance)")
     public void updateTodo(
             @PathVariable Long objectId,
             @ModelAttribute @Valid UpdateAndDeleteTodoQueryParams params,
@@ -103,19 +102,19 @@ public class TodoController {
      */
     @PatchMapping("/{objectId}/status")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("@authChecker.isMyTodoOrAdmin(#objectId, #isInstance)")
+//    @PreAuthorize("@authChecker.isMyTodoOrAdmin(#objectId, #isInstance)")
     public void updateTodoStatus(
             @PathVariable Long objectId,
             @AuthenticationPrincipal TodomonOAuth2User todomonOAuth2User,
             @RequestParam(required = true) boolean isInstance,
             @RequestBody @Valid UpdateTodoStatusReq req
     ) {
-        todoService.updateStatusAndReward(objectId, todomonOAuth2User.getId(), isInstance, req);
+        todoService.updateStatusAndReward(objectId, isInstance, todomonOAuth2User.getId(), req);
     }
 
     @DeleteMapping("/{objectId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("@authChecker.isMyTodoOrAdmin(#objectId, #params.isInstance)")
+//    @PreAuthorize("@authChecker.isMyTodoOrAdmin(#objectId, #params.isInstance)")
     public void deleteTodo(
             @PathVariable Long objectId,
             @Valid UpdateAndDeleteTodoQueryParams params
