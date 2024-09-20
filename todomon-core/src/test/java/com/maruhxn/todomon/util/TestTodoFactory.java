@@ -51,8 +51,8 @@ public class TestTodoFactory {
                 .writer(member)
                 .build();
         todo.setRepeatInfo(repeatInfo);
-        repeatInfoRepository.save(repeatInfo);
         todoRepository.save(todo);
+        repeatInfoRepository.save(repeatInfo);
 
         createTodoInstances(todo);
         return todo;
@@ -160,7 +160,7 @@ public class TestTodoFactory {
 
     // 현재 시간이 규칙에 의해 정의된 종료 시점이나 반복 횟수 조건을 초과하지 않았는지 확인
     private boolean shouldGenerateMoreInstances(LocalDateTime currentStart, RepeatInfo repeatInfo, int size) {
-        if (repeatInfo.getUntil() != null && currentStart.isAfter(repeatInfo.getUntil().plusDays(1).atStartOfDay()))
+        if (repeatInfo.getUntil() != null && currentStart.toLocalDate().isAfter(repeatInfo.getUntil()))
             return false;
         if (repeatInfo.getCount() != null && size >= repeatInfo.getCount()) return false;
         return true;

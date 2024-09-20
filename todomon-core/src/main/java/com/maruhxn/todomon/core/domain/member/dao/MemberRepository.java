@@ -15,8 +15,9 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     @Query("SELECT m FROM Member m")
     List<Member> findAllWithLock();
 
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT m FROM Member m JOIN FETCH m.diligence WHERE m.id = :memberId")
-    Optional<Member> findMemberWithDiligence(Long memberId);
+    Optional<Member> findMemberWithDiligenceUsingLock(Long memberId);
 
     Optional<Member> findByEmail(String email);
 

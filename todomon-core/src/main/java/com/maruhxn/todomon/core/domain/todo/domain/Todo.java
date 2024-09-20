@@ -33,7 +33,6 @@ public class Todo extends BaseEntity {
     private boolean isDone = false;
 
     @Column(nullable = false)
-    @ColumnDefault("1")
     private boolean isAllDay = false;
 
     @Column(nullable = false, length = 7, columnDefinition = "varchar(7) default '#ffffff'")

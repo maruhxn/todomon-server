@@ -10,6 +10,7 @@ import com.maruhxn.todomon.core.domain.todo.domain.Todo;
 import com.maruhxn.todomon.core.domain.todo.domain.TodoInstance;
 import com.maruhxn.todomon.core.domain.todo.dto.request.*;
 import com.maruhxn.todomon.core.global.auth.checker.IsMyTodoOrAdmin;
+import com.maruhxn.todomon.core.global.auth.checker.IsTodayTodoOrAdmin;
 import com.maruhxn.todomon.core.global.error.ErrorCode;
 import com.maruhxn.todomon.core.global.error.exception.BadRequestException;
 import com.maruhxn.todomon.core.global.error.exception.NotFoundException;
@@ -170,12 +171,13 @@ public class TodoService {
 
     // 현재 시간이 규칙에 의해 정의된 종료 시점이나 반복 횟수 조건을 초과하지 않았는지 확인
     private boolean shouldGenerateMoreInstances(LocalDateTime currentStart, RepeatInfo repeatInfo, int size) {
-        if (repeatInfo.getUntil() != null && currentStart.isAfter(repeatInfo.getUntil().plusDays(1).atStartOfDay()))
+        if (repeatInfo.getUntil() != null && currentStart.toLocalDate().isAfter(repeatInfo.getUntil()))
             return false;
         if (repeatInfo.getCount() != null && size >= repeatInfo.getCount()) return false;
         return true;
     }
 
+    @IsTodayTodoOrAdmin
     @IsMyTodoOrAdmin
     public void update(Long objectId, UpdateAndDeleteTodoQueryParams params, UpdateTodoReq req) {
         validateUpdateReq(req);
@@ -236,8 +238,6 @@ public class TodoService {
                 createTodoInstances(findTodo);
             }
         }
-
-
     }
 
     private static void validateUpdateReq(UpdateTodoReq req) {
@@ -255,34 +255,38 @@ public class TodoService {
      * @param isInstance
      * @param req
      */
+    @IsTodayTodoOrAdmin
     @IsMyTodoOrAdmin
     public void updateStatusAndReward(Long objectId, boolean isInstance, Long memberId, UpdateTodoStatusReq req) {
-        Member findMember = memberRepository.findMemberWithDiligence(memberId)
+        Member findMember = memberRepository.findMemberWithDiligenceUsingLock(memberId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_MEMBER));
-
         if (isInstance) {
             TodoInstance todoInstance = todoInstanceRepository.findTodoInstanceWithTodo(objectId)
                     .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_TODO));
+
             if (req.getIsDone()) {
-                todoInstance.updateIsDone(true);
-                rewardForInstance(todoInstance, findMember);
+                if (!todoInstance.isDone()) {
+                    todoInstance.updateIsDone(true);
+                    rewardForInstance(todoInstance, findMember);
+                }
             } else {
-                withdrawRewardForInstance(todoInstance, findMember);
-                todoInstance.updateIsDone(false);
+                if (todoInstance.isDone()) {
+                    withdrawRewardForInstance(todoInstance, findMember);
+                    todoInstance.updateIsDone(false);
+                }
             }
         } else {
             Todo findTodo = todoRepository.findById(objectId)
                     .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_TODO));
             // 반복 정보가 없는 단일 todo의 경우 -> 단순 상태 업데이트 및 보상 지급
-            findTodo.updateIsDone(req.getIsDone());
-            if (req.getIsDone()) {
+            if (!findTodo.isDone() && req.getIsDone()) {
+                findTodo.updateIsDone(true);
                 reward(findMember, 1);
-            } else {
+            } else if (findTodo.isDone() && !req.getIsDone()) {
+                findTodo.updateIsDone(false);
                 withdrawReward(findMember, 1);
             }
         }
-
-        memberRepository.save(findMember);
     }
 
     private void withdrawRewardForInstance(TodoInstance todoInstance, Member member) {
@@ -312,7 +316,7 @@ public class TodoService {
     // 단일 일정에 대한 보상 로직
     private void reward(Member member, int leverage) {
         // 일간 달성 수 1 증가
-        member.addDailyAchievementCnt(1);
+        if (leverage == 1) member.addDailyAchievementCnt(1);
         // 유저 일관성 게이지 업데이트
         member.getDiligence().increaseGauge(GAUGE_INCREASE_RATE * leverage);
         // 보상 지급

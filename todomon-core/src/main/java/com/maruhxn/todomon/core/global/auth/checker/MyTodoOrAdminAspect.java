@@ -14,14 +14,9 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import java.util.Objects;
-
-import static com.maruhxn.todomon.core.global.auth.model.Role.ROLE_ADMIN;
 
 @Aspect
 @Component
@@ -51,7 +46,6 @@ public class MyTodoOrAdminAspect extends AuthAspect {
         if (isInstance) {
             TodoInstance todoInstance = todoInstanceRepository.findById(objectId)
                     .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_TODO));
-
             todo = todoInstance.getTodo();
         } else {
             todo = todoRepository.findById(objectId)
@@ -68,13 +62,5 @@ public class MyTodoOrAdminAspect extends AuthAspect {
 
     private static boolean isNotMyTodo(TodomonOAuth2User todomonOAuth2User, Todo todo) {
         return !Objects.equals(todomonOAuth2User.getId(), todo.getWriter().getId());
-    }
-    public boolean hasAdminAuthority() {
-        return getPrincipal().getAuthorities().contains(new SimpleGrantedAuthority(ROLE_ADMIN.name()));
-    }
-
-    public TodomonOAuth2User getPrincipal() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        return (TodomonOAuth2User) authentication.getPrincipal();
     }
 }
