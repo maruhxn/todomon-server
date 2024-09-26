@@ -17,9 +17,45 @@ services:
     networks:
       - spring-mysql-network
 
+  todomon-app:
+    image: todomon-app
+    container_name: todomon-app-container
+    ports:
+      - "8080:8080"
+      - "9292:9292"
+    networks:
+      - spring-mysql-network
+    depends_on:
+      - mysql
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus-container
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    networks:
+      - spring-mysql-network
+    depends_on:
+      - todomon-app
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana-container
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - spring-mysql-network
+    depends_on:
+      - prometheus
+
 networks:
   spring-mysql-network:
     driver: bridge
 
 volumes:
   mysql_data:
+  grafana_data:
