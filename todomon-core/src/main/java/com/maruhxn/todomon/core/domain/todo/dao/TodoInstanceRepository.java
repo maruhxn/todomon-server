@@ -18,7 +18,7 @@ public interface TodoInstanceRepository extends JpaRepository<TodoInstance, Long
 
     void deleteAllByTodo_Id(Long todoId);
 
-    @Query("SELECT DISTINCT ti from TodoInstance ti" +
+    @Query("SELECT ti from TodoInstance ti" +
             " JOIN FETCH ti.todo t" +
             " JOIN FETCH t.repeatInfo" +
             " WHERE t.writer.id = :writerId" +

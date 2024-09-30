@@ -69,7 +69,7 @@ public class OverallRankQueryRepository {
                 .leftJoin(member.collectedPets, collectedPet)
                 .leftJoin(member.titleName, titleName)
                 .groupBy(member.id, member.username, member.profileImageUrl)
-                .orderBy(collectedPet.id.count().desc(), collectedPet.createdAt.max().desc(), member.createdAt.asc())
+                .orderBy(collectedPet.id.count().desc(), collectedPet.createdAt.max().asc(), member.createdAt.asc())
                 .limit(10)
                 .fetch();
 
