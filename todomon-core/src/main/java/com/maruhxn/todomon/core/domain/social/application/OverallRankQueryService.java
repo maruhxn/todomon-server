@@ -18,22 +18,22 @@ public class OverallRankQueryService {
 
     private final OverallRankQueryRepository overallRankQueryRepository;
 
-    @Cacheable(value = "diligenceRankCache", key = "'top10Members'", cacheManager = "dailyCacheManager")
+    @Cacheable(value = "overallDiligenceRankCache", key = "'overall'", cacheManager = "dailyCacheManager")
     public List<DiligenceRankItem> getTop10MembersByDiligenceLevelAndGauge() {
         return overallRankQueryRepository.findTop10MembersByDiligenceLevelAndGauge();
     }
 
-    @Cacheable(value = "collectedPetRankCache", key = "'top10Members'", cacheManager = "dailyCacheManager")
+    @Cacheable(value = "overallCollectedPetRankCache", key = "'overall'", cacheManager = "dailyCacheManager")
     public List<CollectedPetRankItem> getTop10MembersByCollectedPetCnt() {
         return overallRankQueryRepository.findTop10MembersByCollectedPetCnt();
     }
 
-    @Cacheable(value = "dailyAchievementRankCache", key = "'dailyAchievement'", cacheManager = "dailyCacheManager")
+    @Cacheable(value = "overallDailyAchievementRankCache", key = "'overall'", cacheManager = "dailyCacheManager")
     public List<TodoAchievementRankItem> getRankingOfDailyAchievement() {
         return overallRankQueryRepository.findTop10MembersByYesterdayAchievement();
     }
 
-    @Cacheable(value = "weeklyAchievementRankCache", key = "'weeklyAchievement'", cacheManager = "weeklyCacheManager")
+    @Cacheable(value = "overallWeeklyAchievementRankCache", key = "'overall'", cacheManager = "weeklyCacheManager")
     public List<TodoAchievementRankItem> getRankingOfWeeklyAchievement() {
         return overallRankQueryRepository.findTop10MembersByWeeklyAchievement();
     }
