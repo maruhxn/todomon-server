@@ -18,7 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 @SpringBootTest
 @Transactional
 @Import(TestConfig.class)
-public abstract class IntegrationTestSupport {
+public abstract class IntegrationTestSupport extends RedisTestContainersConfig {
 
     @MockBean
     protected FileService fileService;

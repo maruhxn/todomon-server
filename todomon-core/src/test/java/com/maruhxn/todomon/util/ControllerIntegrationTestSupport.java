@@ -14,12 +14,14 @@ import com.maruhxn.todomon.core.global.auth.model.Role;
 import com.maruhxn.todomon.core.global.auth.model.TodomonOAuth2User;
 import com.maruhxn.todomon.core.global.auth.model.provider.OAuth2Provider;
 import com.maruhxn.todomon.core.infra.file.FileService;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -36,7 +38,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Import({MockS3Config.class, TestConfig.class})
-public abstract class ControllerIntegrationTestSupport {
+public abstract class ControllerIntegrationTestSupport extends RedisTestContainersConfig {
     @Autowired
     protected MockMvc mockMvc;
 
@@ -54,6 +56,9 @@ public abstract class ControllerIntegrationTestSupport {
 
     @Autowired
     protected TitleNameRepository titleNameRepository;
+
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     protected Member member;
     protected Member admin;
@@ -93,6 +98,11 @@ public abstract class ControllerIntegrationTestSupport {
 
         memberTokenDto = getTokenDto(member);
         adminTokenDto = getTokenDto(admin);
+    }
+
+    @AfterEach
+    void cleanUp() {
+        redisTemplate.delete(redisTemplate.keys("*"));
     }
 
     private TokenDto getTokenDto(Member member) {

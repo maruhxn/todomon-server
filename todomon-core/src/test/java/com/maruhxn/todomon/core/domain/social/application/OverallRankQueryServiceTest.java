@@ -7,7 +7,6 @@ import com.maruhxn.todomon.core.domain.pet.domain.CollectedPet;
 import com.maruhxn.todomon.core.domain.pet.domain.Pet;
 import com.maruhxn.todomon.core.domain.pet.domain.PetType;
 import com.maruhxn.todomon.core.domain.pet.domain.Rarity;
-import com.maruhxn.todomon.core.domain.social.application.OverallRankQueryService;
 import com.maruhxn.todomon.core.domain.social.dto.response.CollectedPetRankItem;
 import com.maruhxn.todomon.core.domain.social.dto.response.DiligenceRankItem;
 import com.maruhxn.todomon.core.domain.social.dto.response.TodoAchievementRankItem;
@@ -129,9 +128,9 @@ class OverallRankQueryServiceTest extends IntegrationTestSupport {
                 .containsExactly(
                         tuple(tester6.getId(), tester6.getUsername(), tester6.getProfileImageUrl(), 3, "TEST", "#000000"),
                         tuple(tester4.getId(), tester4.getUsername(), tester4.getProfileImageUrl(), 2, "TEST", "#000000"),
-                        tuple(tester10.getId(), tester10.getUsername(), tester10.getProfileImageUrl(), 1, "TEST", "#000000"),
-                        tuple(tester8.getId(), tester8.getUsername(), tester8.getProfileImageUrl(), 1, "TEST", "#000000"),
                         tuple(tester2.getId(), tester2.getUsername(), tester2.getProfileImageUrl(), 1, "TEST", "#000000"),
+                        tuple(tester8.getId(), tester8.getUsername(), tester8.getProfileImageUrl(), 1, "TEST", "#000000"),
+                        tuple(tester10.getId(), tester10.getUsername(), tester10.getProfileImageUrl(), 1, "TEST", "#000000"),
                         tuple(tester1.getId(), tester1.getUsername(), tester1.getProfileImageUrl(), 0, null, null),
                         tuple(tester3.getId(), tester3.getUsername(), tester3.getProfileImageUrl(), 0, null, null),
                         tuple(tester5.getId(), tester5.getUsername(), tester5.getProfileImageUrl(), 0, null, null),
