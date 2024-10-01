@@ -289,7 +289,7 @@ class SocialRankQueryServiceTest extends IntegrationTestSupport {
                     TodoAchievementHistory history = TodoAchievementHistory.builder()
                             .memberId(member.getId())
                             .date(todo.getStartAt().toLocalDate())
-                            .cnt((long) i)
+                            .cnt((long) 1)
                             .build();
                     todoAchievementHistoryRepository.save(history);
                 }
@@ -314,6 +314,82 @@ class SocialRankQueryServiceTest extends IntegrationTestSupport {
                         tuple(tester8.getId(), tester8.getUsername(), tester8.getProfileImageUrl(), 4L),
                         tuple(tester6.getId(), tester6.getUsername(), tester6.getProfileImageUrl(), 3L),
                         tuple(tester4.getId(), tester4.getUsername(), tester4.getProfileImageUrl(), 2L),
+                        tuple(currentMember.getId(), currentMember.getUsername(), currentMember.getProfileImageUrl(), 1L),
+                        tuple(tester2.getId(), tester2.getUsername(), tester2.getProfileImageUrl(), 1L)
+                );
+    }
+
+    @Test
+    @DisplayName("아무도 팔로우 하지 않으면 자신만 랭킹에 조회된다.")
+    void getSocialRankingOfWeeklyAchievementOnlyMe_No_Follow() {
+        LocalDate startOfCurrentWeek = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+        LocalDate startOfLastWeek = startOfCurrentWeek.minusWeeks(1);
+        LocalDate endOfLastWeek = startOfCurrentWeek.minusDays(1);
+        List<Member> members = createAndSaveMembers(20);
+        memberRepository.saveAll(members);
+        Member currentMember = members.get(0);
+
+        Follow follow = Follow.builder()
+                .follower(currentMember)
+                .followee(members.get(1))
+                .build();
+        follow.updateStatus(FollowRequestStatus.ACCEPTED);
+        followRepository.save(follow);
+
+        // 투두 생성 작업
+        members.forEach(member -> {
+            List<Todo> todos = new ArrayList<>();
+            for (int i = 0; i < 7; i++) {
+                Todo todo = getSingleAlldayTodo(startOfLastWeek.plusDays(i), member);
+                todos.add(todo);
+            }
+            todoRepository.saveAll(todos);
+        });
+
+        // 투두 수행
+        for (int i = 0; i <= 5; i++) { // tester2, tester4, tester6, tester8, tester10
+            int index = 2 * i - 1;
+            Member member = members.get(Math.max(index, 0));
+            LocalDateTime startAt = startOfLastWeek.atStartOfDay();
+            LocalDateTime endAt = LocalDateTime.of(
+                    endOfLastWeek,
+                    LocalTime.of(23, 59, 59, 999999999)
+            );
+            List<Todo> todos = todoRepository.findSingleTodosByWriterIdAndDate(member.getId(), startAt, endAt);
+            // 각각 1, 1, 2, 3, 4, 5개 수행
+            if (i == 0) {
+                Todo todo = todos.get(0);
+                todo.updateIsDone(true);
+                TodoAchievementHistory history = TodoAchievementHistory.builder()
+                        .memberId(member.getId())
+                        .date(todo.getStartAt().toLocalDate())
+                        .cnt(1L)
+                        .build();
+                todoAchievementHistoryRepository.save(history);
+            } else {
+                for (int j = 0; j < i; j++) {
+                    Todo todo = todos.get(j);
+                    todo.updateIsDone(true);
+                    TodoAchievementHistory history = TodoAchievementHistory.builder()
+                            .memberId(member.getId())
+                            .date(todo.getStartAt().toLocalDate())
+                            .cnt((long) i)
+                            .build();
+                    todoAchievementHistoryRepository.save(history);
+                }
+            }
+
+        }
+
+        // when
+        List<TodoAchievementRankItem> result = socialRankQueryService.getSocialRankingOfWeeklyAchievement(currentMember.getId());
+        // then
+        Member tester2 = members.get(1);
+
+        assertThat(result)
+                .hasSize(2)
+                .extracting("memberId", "username", "profileImageUrl", "cnt")
+                .containsExactly(
                         tuple(currentMember.getId(), currentMember.getUsername(), currentMember.getProfileImageUrl(), 1L),
                         tuple(tester2.getId(), tester2.getUsername(), tester2.getProfileImageUrl(), 1L)
                 );
