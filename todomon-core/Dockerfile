@@ -5,7 +5,7 @@ FROM openjdk:17-jdk-slim
 WORKDIR /app
 
 # Copy the built jar file into the container
-COPY todomon-core/build/libs/todomon-app.jar /app/todomon-app.jar
+COPY build/libs/todomon-app.jar /app/todomon-app.jar
 
 # Expose the port that the application will run on
 EXPOSE 8080
