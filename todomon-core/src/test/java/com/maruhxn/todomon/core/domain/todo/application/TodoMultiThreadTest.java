@@ -9,6 +9,8 @@ import com.maruhxn.todomon.core.domain.todo.domain.Frequency;
 import com.maruhxn.todomon.core.domain.todo.domain.RepeatInfo;
 import com.maruhxn.todomon.core.domain.todo.domain.Todo;
 import com.maruhxn.todomon.core.domain.todo.domain.TodoInstance;
+import com.maruhxn.todomon.core.domain.todo.dto.request.CreateTodoReq;
+import com.maruhxn.todomon.core.domain.todo.dto.request.RepeatInfoReqItem;
 import com.maruhxn.todomon.core.domain.todo.dto.request.UpdateTodoStatusReq;
 import com.maruhxn.todomon.core.global.auth.dto.MemberDTO;
 import com.maruhxn.todomon.core.global.auth.model.Role;
@@ -28,10 +30,13 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -66,6 +71,125 @@ class TodoMultiThreadTest {
         todoInstanceRepository.deleteAllInBatch();
         todoRepository.deleteAllInBatch();
         memberRepository.deleteAllInBatch();
+    }
+
+    @Test
+    @DisplayName("100명의 유저가 todo를 생성")
+    void multiThreadCreate_Todo() throws InterruptedException {
+        // given
+        int threadCount = 100;
+        int TODO_CNT_PER_MEMBER = 3;
+        ExecutorService executorService = Executors.newFixedThreadPool(32);
+        CountDownLatch latch = new CountDownLatch(threadCount * TODO_CNT_PER_MEMBER);
+
+        List<Member> testers = new ArrayList<>();
+        for (int i = 0; i < threadCount; i++) {
+            Member tester = createMember(i);
+            testers.add(tester);
+        }
+        memberRepository.saveAll(testers);
+
+        // when
+        for (int k = 0; k < TODO_CNT_PER_MEMBER; k++) {
+            for (int i = 0; i < threadCount; i++) {
+                int finalK = k; // 로컬 변수로 복사
+                int finalI = i;
+                executorService.submit(() -> {
+                    try {
+                        int index = threadCount * finalK + finalI; // 각 스레드에서 독립적으로 사용할 수 있도록 수정
+                        Member tester = testers.get(finalI);
+                        saveMemberToContext(tester);
+
+                        Random random = new Random(index);
+                        LocalDateTime startAt = LocalDate.now().atStartOfDay().plusHours(random.nextInt(22));
+                        LocalDateTime endAt = startAt.plusHours(random.nextInt(1));
+                        CreateTodoReq req = CreateTodoReq.builder()
+                                .content("test")
+                                .startAt(startAt)
+                                .endAt(endAt)
+                                .isAllDay(random.nextBoolean())
+                                .build();
+
+                        todoService.create(tester.getId(), req);
+                    } finally {
+                        latch.countDown();
+                    }
+                });
+            }
+        }
+
+        latch.await();
+        // then
+        assertThat(todoRepository.findAll())
+                .hasSize(threadCount * TODO_CNT_PER_MEMBER);
+    }
+
+    @Test
+    @DisplayName("100명의 유저가 todo instance를 생성")
+    void multiThreadCreate_TodoInstance() throws InterruptedException {
+        // given
+        int threadCount = 300;
+        int TODO_CNT_PER_MEMBER = 5;
+        ExecutorService executorService = Executors.newFixedThreadPool(32);
+        CountDownLatch latch = new CountDownLatch(threadCount * TODO_CNT_PER_MEMBER);
+
+        List<Member> testers = new ArrayList<>();
+        for (int i = 0; i < threadCount; i++) {
+            Member tester = createMember(i);
+            testers.add(tester);
+        }
+        memberRepository.saveAll(testers);
+
+        // 성능 측정을 위한 시간 시작
+        Instant start = Instant.now();
+        // when
+        for (int k = 0; k < TODO_CNT_PER_MEMBER; k++) {
+            for (int i = 0; i < threadCount; i++) {
+                int finalK = k; // 로컬 변수로 복사
+                int finalI = i;
+                executorService.submit(() -> {
+                    try {
+                        int index = threadCount * finalK + finalI; // 각 스레드에서 독립적으로 사용할 수 있도록 수정
+                        Member tester = testers.get(finalI);
+                        saveMemberToContext(tester);
+
+                        Random random = new Random(index);
+                        LocalDateTime startAt = LocalDate.now().atStartOfDay().plusHours(random.nextInt(22));
+                        LocalDateTime endAt = startAt.plusHours(random.nextInt(1));
+                        CreateTodoReq req = CreateTodoReq.builder()
+                                .content("test")
+                                .startAt(startAt)
+                                .endAt(endAt)
+                                .isAllDay(random.nextBoolean())
+                                .repeatInfoReqItem(
+                                        RepeatInfoReqItem.builder()
+                                                .frequency(Frequency.DAILY)
+                                                .interval(2)
+                                                .count(3)
+                                                .build()
+                                )
+                                .build();
+
+                        todoService.create(tester.getId(), req);
+                    } finally {
+                        latch.countDown();
+                    }
+                });
+            }
+        }
+
+        latch.await();
+        Instant finish = Instant.now();
+        Duration timeElapsed = Duration.between(start, finish);
+        System.out.println("Elapsed time in milliseconds: " + timeElapsed.toMillis());
+
+        Thread.sleep(15000);
+
+        // then
+        assertThat(todoRepository.findAll())
+                .hasSize(threadCount * TODO_CNT_PER_MEMBER);
+        assertThat(todoInstanceRepository.findAll())
+                .hasSize(threadCount * 3 * TODO_CNT_PER_MEMBER);
     }
 
     @Test

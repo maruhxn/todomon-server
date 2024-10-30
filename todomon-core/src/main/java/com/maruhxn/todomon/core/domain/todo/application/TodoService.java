@@ -23,6 +23,7 @@ import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static com.maruhxn.todomon.core.global.common.Constants.*;
@@ -71,47 +72,50 @@ public class TodoService {
     }
 
     private void createTodoInstances(Todo todo) {
+        List<TodoInstance> instances = generateInstances(todo);
+
+        if (instances.size() > 1) {
+            todo.setTodoInstances(instances);
+            todoInstanceRepository.saveAll(instances);
+            updateTodoDateRange(todo, instances);
+        }
+    }
+
+    // 공통 로직을 함수로 분리하여 코드 중복 제거
+    private void updateTodoDateRange(Todo todo, List<TodoInstance> instances) {
+        LocalDateTime repeatStartAt = instances.get(0).getStartAt();
+        LocalDateTime repeatEndAt = instances.get(instances.size() - 1).getEndAt();
+        todo.update(UpdateTodoReq.builder()
+                .startAt(repeatStartAt)
+                .endAt(repeatEndAt)
+                .build());
+    }
+
+    private List<TodoInstance> generateInstances(Todo todo) {
         RepeatInfo repeatInfo = todo.getRepeatInfo();
         LocalDateTime startAt = todo.getStartAt();
         LocalDateTime endAt = todo.getEndAt();
 
-        List<TodoInstance> instances = new ArrayList<>();
-
         switch (repeatInfo.getFrequency()) {
-            case DAILY -> instances.addAll(generateDailyInstances(todo, startAt, endAt, repeatInfo));
-            case WEEKLY -> instances.addAll(generateWeeklyInstances(todo, startAt, endAt, repeatInfo));
-            case MONTHLY -> instances.addAll(generateMonthlyInstances(todo, startAt, endAt, repeatInfo));
-        }
-
-        if (instances.size() > 1) { // 최소 반복 횟수를 넘지 못하면 인스턴스를 생성하지 않고, 단일 투두로 처리
-            todo.setTodoInstances(instances);
-            todoInstanceRepository.saveAll(instances);
-            LocalDateTime repeatStartAt = instances.get(0).getStartAt();
-            LocalDateTime repeatEndAt = instances.get(instances.size() - 1).getEndAt();
-            todo.update(UpdateTodoReq.builder()
-                    .startAt(repeatStartAt)
-                    .endAt(repeatEndAt)
-                    .build());
+            case DAILY:
+                return generateDailyInstances(todo, startAt, endAt, repeatInfo);
+            case WEEKLY:
+                return generateWeeklyInstances(todo, startAt, endAt, repeatInfo);
+            case MONTHLY:
+                return generateMonthlyInstances(todo, startAt, endAt, repeatInfo);
+            default:
+                return Collections.emptyList();
         }
     }
 
     private List<TodoInstance> generateMonthlyInstances(Todo todo, LocalDateTime startAt, LocalDateTime endAt, RepeatInfo repeatInfo) {
         List<TodoInstance> instances = new ArrayList<>();
-        Integer dayOfMonth = repeatInfo.getByMonthDay();
-        LocalDateTime currentStart = startAt;
-        LocalDateTime currentEnd = endAt;
-
-        currentStart = adjustDayOfMonth(currentStart, dayOfMonth, repeatInfo.getInterval());
-        currentEnd = adjustDayOfMonth(currentEnd, dayOfMonth, repeatInfo.getInterval());
-
-        if (startAt.isAfter(currentStart)) {
-            currentStart = currentStart.plusMonths(repeatInfo.getInterval());
-            currentEnd = currentEnd.plusMonths(repeatInfo.getInterval());
-        }
+        LocalDateTime currentStart = adjustDayOfMonth(startAt, repeatInfo.getByMonthDay(), repeatInfo.getInterval());
+        LocalDateTime currentEnd = adjustDayOfMonth(endAt, repeatInfo.getByMonthDay(), repeatInfo.getInterval());
 
         while (shouldGenerateMoreInstances(currentStart, repeatInfo, instances.size())) {
-            currentStart = adjustDayOfMonth(currentStart, dayOfMonth, repeatInfo.getInterval());
-            currentEnd = adjustDayOfMonth(currentEnd, dayOfMonth, repeatInfo.getInterval());
+            currentStart = adjustDayOfMonth(currentStart, repeatInfo.getByMonthDay(), repeatInfo.getInterval());
+            currentEnd = adjustDayOfMonth(currentEnd, repeatInfo.getByMonthDay(), repeatInfo.getInterval());
             instances.add(TodoInstance.of(todo, currentStart, currentEnd));
             currentStart = currentStart.plusMonths(repeatInfo.getInterval());
             currentEnd = currentEnd.plusMonths(repeatInfo.getInterval());
@@ -120,6 +124,7 @@ public class TodoService {
         return instances;
     }
 
+    // 불필요한 조건문 제거 및 메소드 간소화
     private LocalDateTime adjustDayOfMonth(LocalDateTime dateTime, int dayOfMonth, int interval) {
         int maxDayOfMonth = dateTime.getMonth().length(dateTime.toLocalDate().isLeapYear());
         if (dayOfMonth > maxDayOfMonth) {
@@ -128,32 +133,37 @@ public class TodoService {
         return dateTime.withDayOfMonth(dayOfMonth);
     }
 
+    // 주 반복 인스턴스 생성 로직 개선
     private List<TodoInstance> generateWeeklyInstances(Todo todo, LocalDateTime startAt, LocalDateTime endAt, RepeatInfo repeatInfo) {
         List<TodoInstance> instances = new ArrayList<>();
         LocalDateTime currentStart = startAt;
         LocalDateTime currentEnd = endAt;
-
-        // 주어진 요일 목록 파싱
-        List<DayOfWeek> byDays = Arrays.stream(repeatInfo.getByDay().split(","))
-                .map(TimeUtil::convertToDayOfWeek)
-                .toList();
+        List<DayOfWeek> byDays = convertToDayOfWeeks(repeatInfo.getByDay());
 
         while (shouldGenerateMoreInstances(currentStart, repeatInfo, instances.size())) {
-            if (byDays.contains(currentStart.getDayOfWeek())) { // 현재 날짜가 byDays에 포함되는지 확인
-                instances.add(TodoInstance.of(todo, currentStart, currentEnd)); // 포함된다면 인스턴스 생성
-            }
-            currentStart = currentStart.plusDays(1);
-            currentEnd = currentEnd.plusDays(1);
-            if (currentStart.getDayOfWeek() == DayOfWeek.MONDAY) {
-                currentStart = currentStart.plusWeeks(repeatInfo.getInterval() - 1);
-                currentEnd = currentEnd.plusDays(repeatInfo.getInterval() - 1);
+            if (byDays.contains(currentStart.getDayOfWeek())) {
+                instances.add(TodoInstance.of(todo, currentStart, currentEnd));
             }
 
+            currentStart = currentStart.plusDays(1);
+            currentEnd = currentEnd.plusDays(1);
+
+            if (currentStart.getDayOfWeek() == DayOfWeek.MONDAY) {
+                currentStart = currentStart.plusWeeks(repeatInfo.getInterval() - 1);
+                currentEnd = currentEnd.plusWeeks(repeatInfo.getInterval() - 1);
+            }
         }
 
         return instances;
     }
 
+    // 문자열을 DayOfWeek 리스트로 변환하는 로직을 분리
+    private List<DayOfWeek> convertToDayOfWeeks(String byDay) {
+        return Arrays.stream(byDay.split(",")).map(TimeUtil::convertToDayOfWeek).toList();
+    }
+
+
+    // 일 반복 인스턴스 생성 로직 개선 및 리팩터링
     private List<TodoInstance> generateDailyInstances(Todo todo, LocalDateTime startAt, LocalDateTime endAt, RepeatInfo repeatInfo) {
         List<TodoInstance> instances = new ArrayList<>();
         LocalDateTime currentStart = startAt;
@@ -169,12 +179,10 @@ public class TodoService {
     }
 
 
-    // 현재 시간이 규칙에 의해 정의된 종료 시점이나 반복 횟수 조건을 초과하지 않았는지 확인
+    // 조건문 간소화
     private boolean shouldGenerateMoreInstances(LocalDateTime currentStart, RepeatInfo repeatInfo, int size) {
-        if (repeatInfo.getUntil() != null && currentStart.toLocalDate().isAfter(repeatInfo.getUntil()))
-            return false;
-        if (repeatInfo.getCount() != null && size >= repeatInfo.getCount()) return false;
-        return true;
+        return (repeatInfo.getUntil() == null || !currentStart.toLocalDate().isAfter(repeatInfo.getUntil()))
+                && (repeatInfo.getCount() == null || size < repeatInfo.getCount());
     }
 
     @IsTodayTodoOrAdmin
