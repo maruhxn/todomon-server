@@ -1,6 +1,5 @@
 package com.maruhxn.todomon.core.global.config;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -12,19 +11,16 @@ import java.util.concurrent.Executor;
 @EnableAsync
 public class AsyncConfig {
 
-    private int poolSize;
-
-    @Value("${poolSize:8}")
-    public void setPoolSize(int poolSize) {
-        this.poolSize = poolSize;
-    }
-
     @Bean
     public Executor asyncThreadPool() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(poolSize);
-        executor.setMaxPoolSize(poolSize * 2);
-        executor.setThreadNamePrefix("Todomon Thread - ");
+        int numOfCores = Runtime.getRuntime().availableProcessors();
+        float targetCpuUtilization = 0.3f;
+        float blockingCoefficient = 0.2f;
+        int corePoolSize = (int) (numOfCores * targetCpuUtilization * (1 + blockingCoefficient));
+        executor.setCorePoolSize(corePoolSize);
+        executor.setThreadNamePrefix("TodomonAsyncThread - ");
+        executor.initialize();
         return executor;
     }
 }
