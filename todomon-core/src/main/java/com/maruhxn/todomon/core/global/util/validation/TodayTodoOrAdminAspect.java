@@ -1,10 +1,11 @@
-package com.maruhxn.todomon.core.global.auth.checker;
+package com.maruhxn.todomon.core.global.util.validation;
 
 import com.maruhxn.todomon.core.domain.todo.dao.TodoInstanceRepository;
 import com.maruhxn.todomon.core.domain.todo.dao.TodoRepository;
 import com.maruhxn.todomon.core.domain.todo.domain.Todo;
 import com.maruhxn.todomon.core.domain.todo.domain.TodoInstance;
 import com.maruhxn.todomon.core.domain.todo.dto.request.UpdateAndDeleteTodoQueryParams;
+import com.maruhxn.todomon.core.global.auth.checker.AuthAspect;
 import com.maruhxn.todomon.core.global.error.ErrorCode;
 import com.maruhxn.todomon.core.global.error.exception.BadRequestException;
 import com.maruhxn.todomon.core.global.error.exception.NotFoundException;
@@ -25,7 +26,7 @@ public class TodayTodoOrAdminAspect extends AuthAspect {
     private final TodoRepository todoRepository;
     private final TodoInstanceRepository todoInstanceRepository;
 
-    @Pointcut("@annotation(com.maruhxn.todomon.core.global.auth.checker.IsTodayTodoOrAdmin)")
+    @Pointcut("@annotation(com.maruhxn.todomon.core.global.util.validation.IsTodayTodoOrAdmin)")
     public void IsTodayTodoOrAdminPointcut() {
     }
 

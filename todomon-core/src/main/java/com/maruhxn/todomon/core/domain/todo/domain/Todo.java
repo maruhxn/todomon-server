@@ -12,6 +12,7 @@ import org.hibernate.annotations.ColumnDefault;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -62,7 +63,7 @@ public class Todo extends BaseEntity {
 
     public void updateToAllDay() {
         this.startAt = LocalDateTime.of(startAt.toLocalDate(), LocalDateTime.MIN.toLocalTime());
-        this.endAt = LocalDateTime.of(endAt.toLocalDate(), LocalDateTime.MAX.toLocalTime());
+        this.endAt = LocalDateTime.of(endAt.toLocalDate(), LocalDateTime.MAX.toLocalTime()).truncatedTo(ChronoUnit.MICROS);
     }
 
     /* 연관관계 메서드 */

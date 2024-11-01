@@ -22,6 +22,8 @@ services:
     ports:
       - "8080:8080"
       - "9292:9292"
+    environment:
+      TZ: Asia/Seoul
     volumes:
       - ./todomon-core/build/libs/todomon-app.jar:/app/todomon-app.jar  # JAR 파일을 컨테이너에 매핑
     networks:
@@ -53,19 +55,19 @@ services:
       - todomon-network
     depends_on:
       - prometheus
-  cadvisor:
-    image: gcr.io/cadvisor/cadvisor
-    container_name: cadvisor
-    volumes:
-      - /:/rootfs:ro
-      - /var/run:/var/run:rw
-      - /sys:/sys:ro
-      - /var/lib/docker/:/var/lib/docker:ro
-      - /dev/disk/:/dev/disk:ro
-    ports:
-      - "8081:8080"
-    networks:
-      - todomon-network
+  #  cadvisor:
+  #    image: gcr.io/cadvisor/cadvisor
+  #    container_name: cadvisor
+  #    volumes:
+  #      - /:/rootfs:ro
+  #      - /var/run:/var/run:rw
+  #      - /sys:/sys:ro
+  #      - /var/lib/docker/:/var/lib/docker:ro
+  #      - /dev/disk/:/dev/disk:ro
+  #    ports:
+  #      - "8081:8080"
+  #    networks:
+  #      - todomon-network
   redis:
     image: "redis:latest"
     container_name: redis-container

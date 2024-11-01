@@ -34,6 +34,38 @@ public class TodoIntegrationTest extends ControllerIntegrationTestSupport {
     TestTodoFactory testTodoFactory;
 
     @Test
+    @DisplayName("반복 투두 생성 시 count 값은 0보다 작을 수 없다.")
+    void createTodo() throws Exception {
+        // given
+        CreateTodoReq req = CreateTodoReq.builder()
+                .startAt(LocalDateTime.now())
+                .endAt(LocalDateTime.now().plusHours(1))
+                .content("test")
+                .color("#000000")
+                .isAllDay(false)
+                .repeatInfoReqItem(RepeatInfoReqItem.builder()
+                        .count(0)
+                        .frequency(Frequency.DAILY)
+                        .interval(1)
+                        .build())
+                .build();
+
+        // when / then
+        mockMvc.perform(
+                        post(TODO_BASE_URL)
+                                .content(objectMapper.writeValueAsString(req))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .characterEncoding(StandardCharsets.UTF_8)
+                                .header(ACCESS_TOKEN_HEADER, BEARER_PREFIX + memberTokenDto.getAccessToken())
+                                .header(REFRESH_TOKEN_HEADER, BEARER_PREFIX + memberTokenDto.getRefreshToken())
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("code").value(ErrorCode.VALIDATION_ERROR.name()))
+                .andExpect(jsonPath("message").value(ErrorCode.VALIDATION_ERROR.getMessage()))
+                .andExpect(jsonPath("errors[0].reason").value("최소 반복 횟수는 2번입니다."));
+    }
+
+    @Test
     @DisplayName("GET /api/todo/day - 일별 조회")
     void getTodoByDay() throws Exception {
         // given
@@ -158,6 +190,38 @@ public class TodoIntegrationTest extends ControllerIntegrationTestSupport {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("code").value("OK"))
                 .andExpect(jsonPath("message").value("투두 생성 성공"));
+    }
+
+    @Test
+    @DisplayName("PATCH /api/todo/{objectId}?instance=false")
+    void updateSingleTodoSimple() throws Exception {
+        // given
+        LocalDateTime now = LocalDate.now().atStartOfDay();
+        Todo todo = testTodoFactory.createSingleTodo(
+                now,
+                now.plusHours(1),
+                false,
+                member
+        );
+
+        UpdateTodoReq req = UpdateTodoReq.builder()
+                .content("수정됨")
+                .isAllDay(true)
+                .startAt(now.plusHours(1))
+                .endAt(now.plusHours(2))
+                .build();
+
+        // when / then
+        mockMvc.perform(
+                        patch(TODO_BASE_URL + "/{objectId}", todo.getId())
+                                .queryParam("isInstance", String.valueOf(false))
+                                .content(objectMapper.writeValueAsString(req))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .characterEncoding(StandardCharsets.UTF_8)
+                                .header(ACCESS_TOKEN_HEADER, BEARER_PREFIX + memberTokenDto.getAccessToken())
+                                .header(REFRESH_TOKEN_HEADER, BEARER_PREFIX + memberTokenDto.getRefreshToken())
+                )
+                .andExpect(status().isNoContent());
     }
 
     @Test
@@ -415,6 +479,7 @@ public class TodoIntegrationTest extends ControllerIntegrationTestSupport {
                                 .header(REFRESH_TOKEN_HEADER, BEARER_PREFIX + memberTokenDto.getRefreshToken())
                 )
                 .andExpect(status().isNoContent());
+
     }
 
     @Test

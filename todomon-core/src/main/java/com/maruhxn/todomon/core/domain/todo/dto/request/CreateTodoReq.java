@@ -3,6 +3,7 @@ package com.maruhxn.todomon.core.domain.todo.dto.request;
 import com.maruhxn.todomon.core.domain.member.domain.Member;
 import com.maruhxn.todomon.core.domain.todo.domain.Todo;
 import com.maruhxn.todomon.core.global.util.validation.ValidDateRange;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -28,6 +29,8 @@ public class CreateTodoReq implements DateRangeDto {
     private Boolean isAllDay;
     @NotNull(message = "색을 입력해주세요.")
     private String color;
+
+    @Valid
     private RepeatInfoReqItem repeatInfoReqItem;
 
     @Builder
