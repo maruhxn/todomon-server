@@ -22,7 +22,7 @@ public class SendNotificationJobRunner extends JobRunner {
         JobDetail jobDetail = buildJobDetail(SendNotificationSchJob.class, "sendNotificationJob", "batch", new HashMap());
 
         // 스케줄러 시간 정보
-        Trigger trigger = buildJobTrigger("0/10 * * * * ?"); // 매일 01시에 실행
+        Trigger trigger = buildJobTrigger("0/10 * * * * ?"); // 10초마다 실행
 
         try {
             scheduler.scheduleJob(jobDetail, trigger);

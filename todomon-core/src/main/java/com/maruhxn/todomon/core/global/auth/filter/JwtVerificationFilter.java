@@ -36,6 +36,11 @@ public class JwtVerificationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        return super.shouldNotFilter(request);
+    }
+
     private void setAuthenticationToContext(String token) {
         TodomonOAuth2User todomonOAuth2User = jwtService.getPrincipal(token);
         OAuth2AuthenticationToken authentication =
@@ -46,6 +51,4 @@ public class JwtVerificationFilter extends OncePerRequestFilter {
                 );
         SecurityContextHolder.getContext().setAuthentication(authentication);
     }
-
-
 }

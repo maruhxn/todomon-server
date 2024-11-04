@@ -32,6 +32,20 @@ services:
       - mysql
       - redis
 
+  todomon-batch:
+    build: ./todomon-batch
+    container_name: todomon-batch-container
+    ports:
+      - "8081:8081"
+    environment:
+      TZ: Asia/Seoul
+    volumes:
+      - ./todomon-batch/build/libs/todomon-batch.jar:/app/todomon-batch.jar  # JAR 파일을 컨테이너에 매핑
+    networks:
+      - todomon-network
+    depends_on:
+      - mysql
+
   prometheus:
     image: prom/prometheus:latest
     container_name: prometheus-container
