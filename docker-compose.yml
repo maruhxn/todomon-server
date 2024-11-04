@@ -13,38 +13,6 @@ services:
       - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
-    networks:
-      - todomon-network
-
-  todomon-app:
-    build: ./todomon-core
-    container_name: todomon-app-container
-    ports:
-      - "8080:8080"
-      - "9292:9292"
-    environment:
-      TZ: Asia/Seoul
-    volumes:
-      - ./todomon-core/build/libs/todomon-app.jar:/app/todomon-app.jar  # JAR 파일을 컨테이너에 매핑
-    networks:
-      - todomon-network
-    depends_on:
-      - mysql
-      - redis
-
-  todomon-batch:
-    build: ./todomon-batch
-    container_name: todomon-batch-container
-    ports:
-      - "8081:8081"
-    environment:
-      TZ: Asia/Seoul
-    volumes:
-      - ./todomon-batch/build/libs/todomon-batch.jar:/app/todomon-batch.jar  # JAR 파일을 컨테이너에 매핑
-    networks:
-      - todomon-network
-    depends_on:
-      - mysql
 
   prometheus:
     image: prom/prometheus:latest
@@ -53,10 +21,10 @@ services:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
     ports:
       - "9090:9090"
-    networks:
-      - todomon-network
     depends_on:
-      - todomon-app
+      - todomon-app1
+      - todomon-app2
+      - todomon-app3
 
   grafana:
     image: grafana/grafana:latest
@@ -65,8 +33,6 @@ services:
       - "3000:3000"
     volumes:
       - grafana_data:/var/lib/grafana
-    networks:
-      - todomon-network
     depends_on:
       - prometheus
   #  cadvisor:
@@ -89,8 +55,69 @@ services:
       - "6379:6379"  # Redis 기본 포트 매핑
     volumes:
       - redis-data:/data  # Redis 데이터를 유지할 볼륨
-    networks:
-      - todomon-network
+
+  todomon-app1:
+    build: ./todomon-core
+    container_name: todomon-app-container1
+    ports:
+      - "8080:8080"
+      - "9290:9290"
+    environment:
+      TZ: Asia/Seoul
+    volumes:
+      - ./todomon-core/build/libs/todomon-app.jar:/app/todomon-app.jar  # JAR 파일을 컨테이너에 매핑
+    depends_on:
+      - mysql
+      - redis
+
+  todomon-app2:
+    build: ./todomon-core
+    container_name: todomon-app-container2
+    ports:
+      - "8081:8080"
+      - "9291:9290"
+    environment:
+      TZ: Asia/Seoul
+    volumes:
+      - ./todomon-core/build/libs/todomon-app.jar:/app/todomon-app.jar  # JAR 파일을 컨테이너에 매핑
+    depends_on:
+      - mysql
+      - redis
+
+  todomon-app3:
+    build: ./todomon-core
+    container_name: todomon-app-container3
+    ports:
+      - "8082:8080"
+      - "9292:9290"
+    environment:
+      TZ: Asia/Seoul
+    volumes:
+      - ./todomon-core/build/libs/todomon-app.jar:/app/todomon-app.jar  # JAR 파일을 컨테이너에 매핑
+    depends_on:
+      - mysql
+      - redis
+
+
+  todomon-batch:
+    build: ./todomon-batch
+    container_name: todomon-batch-container
+    ports:
+      - "8000:8000"
+    environment:
+      TZ: Asia/Seoul
+    volumes:
+      - ./todomon-batch/build/libs/todomon-batch.jar:/app/todomon-batch.jar  # JAR 파일을 컨테이너에 매핑
+    depends_on:
+      - mysql
+
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"  # 외부 포트 80을 Nginx의 80 포트로 매핑
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf  # Nginx 설정 파일을 로드
+
 
 networks:
   todomon-network:

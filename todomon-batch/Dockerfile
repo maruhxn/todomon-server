@@ -8,7 +8,7 @@ WORKDIR /app
 COPY build/libs/todomon-batch.jar /app/todomon-batch.jar
 
 # Expose the port that the application will run on
-EXPOSE 8081
+EXPOSE 8000
 
 # Run the jar file when the container starts with Pinpoint agent
 ENTRYPOINT ["java", "-Dspring.profiles.active=prod", "-jar", "/app/todomon-batch.jar", "--date=${%Y-%m-%d}"]
