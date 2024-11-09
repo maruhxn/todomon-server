@@ -10,10 +10,11 @@ import com.maruhxn.todomon.core.domain.item.dto.request.ItemEffectRequest;
 import com.maruhxn.todomon.core.domain.item.dto.request.UpdateItemRequest;
 import com.maruhxn.todomon.core.domain.item.dto.response.InventoryItemDto;
 import com.maruhxn.todomon.core.domain.item.dto.response.ItemDto;
+import com.maruhxn.todomon.core.domain.member.dao.MemberRepository;
 import com.maruhxn.todomon.core.domain.member.domain.Member;
 import com.maruhxn.todomon.core.domain.purchase.domain.Order;
-import com.maruhxn.todomon.core.global.auth.checker.AuthChecker;
 import com.maruhxn.todomon.core.global.error.ErrorCode;
+import com.maruhxn.todomon.core.global.error.exception.ForbiddenException;
 import com.maruhxn.todomon.core.global.error.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationContext;
@@ -29,11 +30,10 @@ public class ItemService {
 
 
     private final ItemRepository itemRepository;
+    private final MemberRepository memberRepository;
     private final ApplicationContext applicationContext;
     private final InventoryItemRepository inventoryItemRepository;
     private final InventoryItemService inventoryItemService;
-
-    private final AuthChecker authChecker;
 
 
     public void createItem(CreateItemRequest req) {
@@ -77,7 +77,9 @@ public class ItemService {
     public void postPurchase(Member member, Order order) {
         Item purchasedItem = order.getItem();
 
-        authChecker.isPremiumButNotSubscribing(member, purchasedItem);
+        if (purchasedItem.getIsPremium() && !member.isSubscribed()) {
+            throw new ForbiddenException(ErrorCode.NOT_SUBSCRIPTION);
+        }
 
         switch (purchasedItem.getItemType()) {
             case CONSUMABLE -> inventoryItemRepository
@@ -110,12 +112,17 @@ public class ItemService {
         itemEffect.applyEffect(member, request);
     }
 
-    public void useInventoryItem(Member member, String itemName, ItemEffectRequest req) {
-        InventoryItem findInventoryItem = inventoryItemService.getInventoryItem(member.getId(), itemName);
+    public void useInventoryItem(Long memberId, String itemName, ItemEffectRequest req) {
+        Member findMember = memberRepository.findById(memberId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_MEMBER));
 
-        authChecker.isPremiumButNotSubscribing(member, findInventoryItem.getItem());
+        InventoryItem findInventoryItem = inventoryItemService.getInventoryItem(memberId, itemName);
 
-        applyItemEffect(member, findInventoryItem.getItem(), req);
+        if (findInventoryItem.getItem().getIsPremium() && !findMember.isSubscribed()) {
+            throw new ForbiddenException(ErrorCode.NOT_SUBSCRIPTION);
+        }
+
+        applyItemEffect(findMember, findInventoryItem.getItem(), req);
 
         inventoryItemService.consumeItem(findInventoryItem);
     }

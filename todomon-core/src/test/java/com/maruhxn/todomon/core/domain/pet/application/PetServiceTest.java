@@ -2,7 +2,6 @@ package com.maruhxn.todomon.core.domain.pet.application;
 
 import com.maruhxn.todomon.core.domain.member.dao.MemberRepository;
 import com.maruhxn.todomon.core.domain.member.domain.Member;
-import com.maruhxn.todomon.core.domain.pet.application.PetService;
 import com.maruhxn.todomon.core.domain.pet.dao.CollectedPetRepository;
 import com.maruhxn.todomon.core.domain.pet.dao.PetRepository;
 import com.maruhxn.todomon.core.domain.pet.domain.CollectedPet;
@@ -137,10 +136,11 @@ class PetServiceTest extends IntegrationTestSupport {
                 .build();
         member.addPet(pet);
         member.addFood(10);
+        saveMemberToContext(member);
         petRepository.save(pet);
 
         // when
-        petService.feed(pet.getId(), member, 1L);
+        petService.feed(member.getId(), pet.getId(), 1L);
 
         // then
         assertThat(pet)
@@ -160,10 +160,11 @@ class PetServiceTest extends IntegrationTestSupport {
         pet.increaseGauge(99.0);
         member.addPet(pet);
         member.addFood(10);
+        saveMemberToContext(member);
         petRepository.save(pet);
 
         // when
-        petService.feed(pet.getId(), member, 1L);
+        petService.feed(member.getId(), pet.getId(), 1L);
 
         // then
         assertThat(pet)
@@ -188,6 +189,7 @@ class PetServiceTest extends IntegrationTestSupport {
         pet.increaseGauge(80.0);
         member.addPet(pet);
         member.addFood(10);
+        saveMemberToContext(member);
         petRepository.save(pet);
 
         CollectedPet collectedPet = CollectedPet.of(pet);
@@ -195,7 +197,7 @@ class PetServiceTest extends IntegrationTestSupport {
         collectedPetRepository.save(collectedPet);
 
         // when
-        petService.feed(pet.getId(), member, 10L);
+        petService.feed(member.getId(), pet.getId(), 10L);
 
         // then
         assertThat(prevAppearance).isNotEqualTo(pet.getAppearance());
@@ -215,10 +217,11 @@ class PetServiceTest extends IntegrationTestSupport {
                 .build();
         member.addPet(pet);
         member.addFood(1);
+        saveMemberToContext(member);
         petRepository.save(pet);
 
         // when
-        assertThatThrownBy(() -> petService.feed(pet.getId(), member, 10L))
+        assertThatThrownBy(() -> petService.feed(member.getId(), pet.getId(), 10L))
                 .hasMessage(ErrorCode.OVER_FOOD_CNT.getMessage())
                 .isInstanceOf(BadRequestException.class);
     }

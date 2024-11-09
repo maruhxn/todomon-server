@@ -69,7 +69,7 @@ public class OverallRankQueryRepository {
                 .leftJoin(member.collectedPets, collectedPet)
                 .leftJoin(member.titleName, titleName)
                 .groupBy(member.id, member.username, member.profileImageUrl)
-                .orderBy(collectedPet.id.count().desc(), collectedPet.createdAt.max().desc(), member.createdAt.asc())
+                .orderBy(collectedPet.id.count().desc(), collectedPet.createdAt.max().asc(), member.createdAt.asc())
                 .limit(10)
                 .fetch();
 
@@ -97,7 +97,7 @@ public class OverallRankQueryRepository {
                 .join(member).on(todoAchievementHistory.memberId.eq(member.id)) // 명시적인 조인
                 .leftJoin(member.titleName, titleName)
                 .where(todoAchievementHistory.date.eq(yesterday))
-                .groupBy(member.id)
+                .groupBy(member.id, todoAchievementHistory.cnt)
                 .orderBy(todoAchievementHistory.cnt.sum().desc(), todoAchievementHistory.createdAt.max().asc(), member.createdAt.asc())
                 .limit(10)
                 .fetch();
@@ -128,7 +128,7 @@ public class OverallRankQueryRepository {
                 .join(member).on(todoAchievementHistory.memberId.eq(member.id)) // 명시적인 조인
                 .leftJoin(member.titleName, titleName)
                 .where(todoAchievementHistory.date.between(startOfLastWeek, endOfLastWeek))
-                .groupBy(member.id)
+                .groupBy(member.id, todoAchievementHistory.cnt)
                 .orderBy(todoAchievementHistory.cnt.sum().desc(), todoAchievementHistory.createdAt.max().asc(), member.createdAt.asc())
                 .limit(10)
                 .fetch();

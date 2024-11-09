@@ -27,6 +27,6 @@ public class MyTitleNameController {
     public void deleteTitleName(
             @AuthenticationPrincipal TodomonOAuth2User todomonOAuth2User
     ) {
-        titleNameService.deleteTitleName(todomonOAuth2User.getMember());
+        titleNameService.deleteTitleName(todomonOAuth2User.getId());
     }
 }

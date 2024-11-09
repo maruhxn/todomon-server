@@ -1,6 +1,5 @@
 package com.maruhxn.todomon.core.domain.item.application;
 
-import com.maruhxn.todomon.core.domain.item.application.ItemService;
 import com.maruhxn.todomon.core.domain.item.dao.InventoryItemRepository;
 import com.maruhxn.todomon.core.domain.item.dao.ItemRepository;
 import com.maruhxn.todomon.core.domain.item.domain.InventoryItem;
@@ -312,7 +311,7 @@ class ItemServiceTest extends IntegrationTestSupport {
                 .build();
 
         // when
-        itemService.useInventoryItem(member, UPSERT_TITLE_NAME_ITEM_NAME, req);
+        itemService.useInventoryItem(member.getId(), UPSERT_TITLE_NAME_ITEM_NAME, req);
 
         // then
         assertThat(inventoryItem.getQuantity()).isEqualTo(1L);
@@ -357,7 +356,7 @@ class ItemServiceTest extends IntegrationTestSupport {
                 .build();
 
         // when
-        itemService.useInventoryItem(member, CHANGE_PET_NAME_ITEM_NAME, req);
+        itemService.useInventoryItem(member.getId(), CHANGE_PET_NAME_ITEM_NAME, req);
 
         // then
         assertThat(inventoryItem.getQuantity()).isEqualTo(1L);

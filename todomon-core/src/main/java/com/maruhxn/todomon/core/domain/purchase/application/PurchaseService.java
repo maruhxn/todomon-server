@@ -12,9 +12,9 @@ import com.maruhxn.todomon.core.domain.purchase.domain.StarPointPaymentHistory;
 import com.maruhxn.todomon.core.domain.purchase.dto.request.PaymentRequest;
 import com.maruhxn.todomon.core.domain.purchase.dto.request.PreparePaymentRequest;
 import com.maruhxn.todomon.core.domain.purchase.dto.request.PurchaseStarPointItemRequest;
-import com.maruhxn.todomon.core.global.auth.checker.AuthChecker;
 import com.maruhxn.todomon.core.global.error.ErrorCode;
 import com.maruhxn.todomon.core.global.error.exception.BadRequestException;
+import com.maruhxn.todomon.core.global.error.exception.ForbiddenException;
 import com.maruhxn.todomon.core.global.error.exception.NotFoundException;
 import com.maruhxn.todomon.infra.mail.dto.PaymentResourceDTO;
 import lombok.RequiredArgsConstructor;
@@ -35,7 +35,6 @@ public class PurchaseService {
     private final ItemService itemService;
 
     private final PurchaseStrategyFactory purchaseStrategyFactory;
-    private final AuthChecker authChecker;
 
     public void preparePayment(Long memberId, PreparePaymentRequest req) {
         Member findMember = memberRepository.findById(memberId)
@@ -43,7 +42,9 @@ public class PurchaseService {
 
         Item findItem = itemService.getItem(req.getItemId());
 
-        authChecker.isPremiumButNotSubscribing(findMember, findItem);
+        if (findItem.getIsPremium() && !findMember.isSubscribed()) {
+            throw new ForbiddenException(ErrorCode.NOT_SUBSCRIPTION);
+        }
 
         Order order = orderService.createOrder(findMember, findItem, req);// 주문 정보 생성
 

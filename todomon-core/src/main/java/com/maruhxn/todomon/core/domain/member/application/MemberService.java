@@ -4,9 +4,10 @@ import com.maruhxn.todomon.core.domain.auth.dao.RefreshTokenRepository;
 import com.maruhxn.todomon.core.domain.member.dao.MemberQueryRepository;
 import com.maruhxn.todomon.core.domain.member.dao.MemberRepository;
 import com.maruhxn.todomon.core.domain.member.domain.Member;
+import com.maruhxn.todomon.core.domain.member.dto.request.UpdateMemberProfileReq;
 import com.maruhxn.todomon.core.domain.member.dto.response.ProfileDto;
 import com.maruhxn.todomon.core.domain.member.dto.response.SearchDto;
-import com.maruhxn.todomon.core.domain.member.dto.request.UpdateMemberProfileReq;
+import com.maruhxn.todomon.core.global.auth.checker.IsMeOrAdmin;
 import com.maruhxn.todomon.core.global.auth.model.Role;
 import com.maruhxn.todomon.core.global.auth.model.provider.OAuth2Provider;
 import com.maruhxn.todomon.core.global.auth.model.provider.OAuth2ProviderUser;
@@ -31,12 +32,13 @@ public class MemberService {
 
     private final FileService fileService;
 
+    @Transactional(readOnly = true)
     public Member findMemberByEmail(String email) {
         return memberRepository.findByEmail(email)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_MEMBER));
     }
 
-    public Member createOrUpdate(OAuth2ProviderUser oAuth2ProviderUser) {
+    public Member getOrCreate(OAuth2ProviderUser oAuth2ProviderUser) {
         return memberRepository.findByEmail(oAuth2ProviderUser.getEmail())
                 .orElseGet(() -> this.registerByOAuth2(oAuth2ProviderUser));
     }
@@ -66,6 +68,7 @@ public class MemberService {
                 .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_MEMBER));
     }
 
+    @IsMeOrAdmin
     public void updateProfile(Long memberId, UpdateMemberProfileReq req) {
         validateUpdateProfileRequest(req);
         Member findMember = memberRepository.findById(memberId)
@@ -98,6 +101,7 @@ public class MemberService {
         fileService.deleteFile(profileImageUrl);
     }
 
+    @IsMeOrAdmin
     public void withdraw(Long memberId) {
         Member findMember = memberRepository.findById(memberId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_MEMBER));

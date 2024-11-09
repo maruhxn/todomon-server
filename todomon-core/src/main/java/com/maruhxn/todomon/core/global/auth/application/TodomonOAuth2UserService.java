@@ -2,11 +2,12 @@ package com.maruhxn.todomon.core.global.auth.application;
 
 import com.maruhxn.todomon.core.domain.member.application.MemberService;
 import com.maruhxn.todomon.core.domain.member.domain.Member;
+import com.maruhxn.todomon.core.global.auth.dto.MemberDTO;
 import com.maruhxn.todomon.core.global.auth.model.TodomonOAuth2User;
-import com.maruhxn.todomon.core.global.auth.model.provider.KakaoUser;
-import com.maruhxn.todomon.core.global.auth.model.provider.OAuth2ProviderUser;
 import com.maruhxn.todomon.core.global.auth.model.provider.GoogleUser;
+import com.maruhxn.todomon.core.global.auth.model.provider.KakaoUser;
 import com.maruhxn.todomon.core.global.auth.model.provider.NaverUser;
+import com.maruhxn.todomon.core.global.auth.model.provider.OAuth2ProviderUser;
 import com.maruhxn.todomon.core.global.error.ErrorCode;
 import com.maruhxn.todomon.core.global.error.exception.BadRequestException;
 import lombok.RequiredArgsConstructor;
@@ -36,8 +37,9 @@ public class TodomonOAuth2UserService implements OAuth2UserService<OAuth2UserReq
         OAuth2ProviderUser oAuth2ProviderUser = this.getOAuth2ProviderUser(clientRegistration, oAuth2User);
 
         // 회원가입
-        Member member = memberService.createOrUpdate(oAuth2ProviderUser);
-        return TodomonOAuth2User.of(member, oAuth2ProviderUser);
+        Member member = memberService.getOrCreate(oAuth2ProviderUser);
+        MemberDTO dto = MemberDTO.from(member);
+        return TodomonOAuth2User.of(dto, oAuth2ProviderUser);
     }
 
     private OAuth2ProviderUser getOAuth2ProviderUser(ClientRegistration clientRegistration, OAuth2User oAuth2User) {

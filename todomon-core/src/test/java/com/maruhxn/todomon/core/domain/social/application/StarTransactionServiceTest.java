@@ -2,7 +2,6 @@ package com.maruhxn.todomon.core.domain.social.application;
 
 import com.maruhxn.todomon.core.domain.member.dao.MemberRepository;
 import com.maruhxn.todomon.core.domain.member.domain.Member;
-import com.maruhxn.todomon.core.domain.social.application.StarTransactionService;
 import com.maruhxn.todomon.core.domain.social.dao.FollowRepository;
 import com.maruhxn.todomon.core.domain.social.dao.StarTransactionRepository;
 import com.maruhxn.todomon.core.domain.social.domain.Follow;
@@ -59,7 +58,7 @@ class StarTransactionServiceTest extends IntegrationTestSupport {
         followRepository.save(follow);
 
         // when
-        starTransactionService.sendStar(tester1, tester2.getId(), LocalDateTime.now());
+        starTransactionService.sendStar(tester1.getId(), tester2.getId(), LocalDateTime.now());
 
         // then
         assertThat(starTransactionRepository.findAll())
@@ -80,7 +79,7 @@ class StarTransactionServiceTest extends IntegrationTestSupport {
                 .build();
         followRepository.save(follow);
         // when / then
-        assertThatThrownBy(() -> starTransactionService.sendStar(tester1, tester2.getId(), LocalDateTime.now()))
+        assertThatThrownBy(() -> starTransactionService.sendStar(tester1.getId(), tester2.getId(), LocalDateTime.now()))
                 .isInstanceOf(ForbiddenException.class)
                 .hasMessage(ErrorCode.NOT_ACCEPTED_FOLLOW.getMessage());
     }
@@ -101,7 +100,7 @@ class StarTransactionServiceTest extends IntegrationTestSupport {
         starTransactionRepository.save(transaction);
 
         // when / then
-        assertThatThrownBy(() -> starTransactionService.sendStar(tester1, tester2.getId(), LocalDateTime.now()))
+        assertThatThrownBy(() -> starTransactionService.sendStar(tester1.getId(), tester2.getId(), LocalDateTime.now()))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessage(ErrorCode.ALREADY_SENT_STAR.getMessage());
     }
@@ -185,7 +184,7 @@ class StarTransactionServiceTest extends IntegrationTestSupport {
         starTransactionRepository.saveAll(List.of(transaction1, transaction2, transaction3));
 
         // when
-        starTransactionService.receiveAllStars(tester1);
+        starTransactionService.receiveAllStars(tester1.getId());
 
         // then
         assertThat(tester1.getStarPoint()).isEqualTo(2);

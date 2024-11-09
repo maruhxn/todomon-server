@@ -6,6 +6,7 @@ import com.maruhxn.todomon.core.domain.member.dao.MemberRepository;
 import com.maruhxn.todomon.core.domain.member.domain.Member;
 import com.maruhxn.todomon.core.global.auth.application.JwtProvider;
 import com.maruhxn.todomon.core.global.auth.application.JwtService;
+import com.maruhxn.todomon.core.global.auth.dto.MemberDTO;
 import com.maruhxn.todomon.core.global.auth.dto.TokenDto;
 import com.maruhxn.todomon.core.global.auth.model.Role;
 import com.maruhxn.todomon.core.global.auth.model.TodomonOAuth2User;
@@ -50,7 +51,7 @@ class JwtServiceTest extends IntegrationTestSupport {
     void saveRefreshToken() {
         // Given
         Member member = createMember();
-        TodomonOAuth2User todomonOAuth2User = TodomonOAuth2User.of(member);
+        TodomonOAuth2User todomonOAuth2User = TodomonOAuth2User.from(MemberDTO.from(member));
 
         TokenDto tokenDto = TokenDto.builder()
                 .accessToken("accessToken")
@@ -76,7 +77,7 @@ class JwtServiceTest extends IntegrationTestSupport {
         refreshTokenRepository.save(refreshToken);
 
         Member member = createMember();
-        TodomonOAuth2User todomonOAuth2User = TodomonOAuth2User.of(member);
+        TodomonOAuth2User todomonOAuth2User = TodomonOAuth2User.from(MemberDTO.from(member));
 
         TokenDto tokenDto = TokenDto.builder()
                 .accessToken("accessToken")
@@ -97,7 +98,7 @@ class JwtServiceTest extends IntegrationTestSupport {
         // Given
         HttpServletResponse response = new MockHttpServletResponse();
         Member member = createMember();
-        TodomonOAuth2User todomonOAuth2User = TodomonOAuth2User.of(member);
+        TodomonOAuth2User todomonOAuth2User = TodomonOAuth2User.from(MemberDTO.from(member));
 
         String rawRefreshToken = jwtProvider.generateRefreshToken(todomonOAuth2User.getEmail(), new Date());
         RefreshToken refreshToken = RefreshToken.builder()
@@ -120,7 +121,7 @@ class JwtServiceTest extends IntegrationTestSupport {
         // Given
         HttpServletResponse response = new MockHttpServletResponse();
         Member member = createMember();
-        TodomonOAuth2User todomonOAuth2User = TodomonOAuth2User.of(member);
+        TodomonOAuth2User todomonOAuth2User = TodomonOAuth2User.from(MemberDTO.from(member));
         LocalDateTime now = LocalDateTime.of(2024, 1, 18, 10, 0);
         String rawRefreshToken = jwtProvider.generateRefreshToken(
                 todomonOAuth2User.getEmail(),
@@ -146,7 +147,7 @@ class JwtServiceTest extends IntegrationTestSupport {
         // Given
         HttpServletResponse response = new MockHttpServletResponse();
         Member member = createMember();
-        TodomonOAuth2User todomonOAuth2User = TodomonOAuth2User.of(member);
+        TodomonOAuth2User todomonOAuth2User = TodomonOAuth2User.from(MemberDTO.from(member));
 
         String rawRefreshToken = jwtProvider.generateRefreshToken(todomonOAuth2User.getEmail(), new Date());
 

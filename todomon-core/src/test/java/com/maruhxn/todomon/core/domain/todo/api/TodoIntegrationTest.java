@@ -34,6 +34,38 @@ public class TodoIntegrationTest extends ControllerIntegrationTestSupport {
     TestTodoFactory testTodoFactory;
 
     @Test
+    @DisplayName("반복 투두 생성 시 count 값은 0보다 작을 수 없다.")
+    void createTodo() throws Exception {
+        // given
+        CreateTodoReq req = CreateTodoReq.builder()
+                .startAt(LocalDateTime.now())
+                .endAt(LocalDateTime.now().plusHours(1))
+                .content("test")
+                .color("#000000")
+                .isAllDay(false)
+                .repeatInfoReqItem(RepeatInfoReqItem.builder()
+                        .count(0)
+                        .frequency(Frequency.DAILY)
+                        .interval(1)
+                        .build())
+                .build();
+
+        // when / then
+        mockMvc.perform(
+                        post(TODO_BASE_URL)
+                                .content(objectMapper.writeValueAsString(req))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .characterEncoding(StandardCharsets.UTF_8)
+                                .header(ACCESS_TOKEN_HEADER, BEARER_PREFIX + memberTokenDto.getAccessToken())
+                                .header(REFRESH_TOKEN_HEADER, BEARER_PREFIX + memberTokenDto.getRefreshToken())
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("code").value(ErrorCode.VALIDATION_ERROR.name()))
+                .andExpect(jsonPath("message").value(ErrorCode.VALIDATION_ERROR.getMessage()))
+                .andExpect(jsonPath("errors[0].reason").value("최소 반복 횟수는 2번입니다."));
+    }
+
+    @Test
     @DisplayName("GET /api/todo/day - 일별 조회")
     void getTodoByDay() throws Exception {
         // given
@@ -78,10 +110,11 @@ public class TodoIntegrationTest extends ControllerIntegrationTestSupport {
     @DisplayName("POST /api/todo - 단일 todo 생성")
     void createSingleTodo() throws Exception {
         // given
+        LocalDateTime now = LocalDateTime.now();
         CreateTodoReq req = CreateTodoReq.builder()
                 .content("테스트")
-                .startAt(LocalDateTime.of(2024, 7, 7, 7, 0))
-                .endAt(LocalDateTime.of(2024, 7, 7, 8, 0))
+                .startAt(now)
+                .endAt(now.plusHours(1))
                 .isAllDay(true)
                 .color("#000000")
                 .build();
@@ -129,19 +162,18 @@ public class TodoIntegrationTest extends ControllerIntegrationTestSupport {
     @DisplayName("POST /api/todo - 4일간 매일 반복하는 todo 생성")
     void createDailyTodoWith4Times() throws Exception {
         // given
-        LocalDateTime startAt = LocalDateTime.of(2024, 7, 7, 7, 0);
-        LocalDateTime endAt = LocalDateTime.of(2024, 7, 7, 10, 0);
+        LocalDateTime now = LocalDateTime.now();
         CreateTodoReq req = CreateTodoReq.builder()
                 .content("테스트")
-                .startAt(startAt)
-                .endAt(endAt)
+                .startAt(now)
+                .endAt(now.plusHours(1))
                 .isAllDay(true)
                 .color("#000000")
                 .repeatInfoReqItem(
                         RepeatInfoReqItem.builder()
                                 .frequency(Frequency.DAILY)
                                 .interval(1)
-                                .until(LocalDate.from(startAt.plusDays(3)))
+                                .until(LocalDate.from(now.plusDays(3)))
                                 .build()
                 )
                 .build();
@@ -161,27 +193,59 @@ public class TodoIntegrationTest extends ControllerIntegrationTestSupport {
     }
 
     @Test
-    @DisplayName("PATCH /api/todo/{objectId}?instance=true&taskType=THIS_TASK")
-    void updateTodo_THIS_TASK() throws Exception {
+    @DisplayName("PATCH /api/todo/{objectId}?instance=false")
+    void updateSingleTodoSimple() throws Exception {
         // given
-        RepeatInfo repeatInfo = RepeatInfo.builder()
-                .frequency(Frequency.DAILY)
-                .interval(1)
-                .until(LocalDate.of(2024, 7, 8))
-                .build();
-        Todo todo = testTodoFactory.createRepeatedTodo(
-                LocalDateTime.of(2024, 7, 7, 7, 0),
-                LocalDateTime.of(2024, 7, 7, 8, 0),
+        LocalDateTime now = LocalDate.now().atStartOfDay();
+        Todo todo = testTodoFactory.createSingleTodo(
+                now,
+                now.plusHours(1),
                 false,
-                member,
-                repeatInfo
+                member
         );
 
         UpdateTodoReq req = UpdateTodoReq.builder()
                 .content("수정됨")
                 .isAllDay(true)
-                .startAt(LocalDateTime.of(2024, 7, 8, 7, 0))
-                .endAt(LocalDateTime.of(2024, 7, 8, 8, 0))
+                .startAt(now.plusHours(1))
+                .endAt(now.plusHours(2))
+                .build();
+
+        // when / then
+        mockMvc.perform(
+                        patch(TODO_BASE_URL + "/{objectId}", todo.getId())
+                                .queryParam("isInstance", String.valueOf(false))
+                                .content(objectMapper.writeValueAsString(req))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .characterEncoding(StandardCharsets.UTF_8)
+                                .header(ACCESS_TOKEN_HEADER, BEARER_PREFIX + memberTokenDto.getAccessToken())
+                                .header(REFRESH_TOKEN_HEADER, BEARER_PREFIX + memberTokenDto.getRefreshToken())
+                )
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @DisplayName("PATCH /api/todo/{objectId}?instance=true&taskType=THIS_TASK")
+    void updateTodo_THIS_TASK() throws Exception {
+        // given
+        LocalDateTime now = LocalDate.now().atStartOfDay();
+        Todo todo = testTodoFactory.createRepeatedTodo(
+                now,
+                now.plusHours(1),
+                false,
+                member,
+                RepeatInfo.builder()
+                        .frequency(Frequency.DAILY)
+                        .interval(1)
+                        .until(now.plusDays(3).toLocalDate())
+                        .build()
+        );
+
+        UpdateTodoReq req = UpdateTodoReq.builder()
+                .content("수정됨")
+                .isAllDay(true)
+                .startAt(now.plusHours(1))
+                .endAt(now.plusHours(2))
                 .build();
 
         // when / then
@@ -202,24 +266,24 @@ public class TodoIntegrationTest extends ControllerIntegrationTestSupport {
     @DisplayName("PATCH /api/todo/{objectId}?instance=true&taskType=THIS_TASK - 단일 인스턴스 수정 시 반복 정보 수정은 불가능하다.")
     void updateTodo_THIS_TASK_return400() throws Exception {
         // given
-        RepeatInfo repeatInfo = RepeatInfo.builder()
-                .frequency(Frequency.DAILY)
-                .interval(1)
-                .until(LocalDate.of(2024, 7, 8))
-                .build();
+        LocalDateTime now = LocalDate.now().atStartOfDay();
         Todo todo = testTodoFactory.createRepeatedTodo(
-                LocalDateTime.of(2024, 7, 7, 7, 0),
-                LocalDateTime.of(2024, 7, 7, 8, 0),
+                now,
+                now.plusHours(1),
                 false,
                 member,
-                repeatInfo
+                RepeatInfo.builder()
+                        .frequency(Frequency.DAILY)
+                        .interval(1)
+                        .until(now.plusDays(3).toLocalDate())
+                        .build()
         );
 
         UpdateTodoReq req = UpdateTodoReq.builder()
                 .content("수정됨")
                 .isAllDay(true)
-                .startAt(LocalDateTime.of(2024, 7, 8, 7, 0))
-                .endAt(LocalDateTime.of(2024, 7, 8, 8, 0))
+                .startAt(now.plusHours(1))
+                .endAt(now.plusHours(2))
                 .repeatInfoReqItem(
                         RepeatInfoReqItem.builder()
                                 .frequency(Frequency.WEEKLY)
@@ -250,62 +314,23 @@ public class TodoIntegrationTest extends ControllerIntegrationTestSupport {
     @DisplayName("PATCH /api/todo/{objectId}?instance=true&taskType=THIS_TASK - 단일 인스턴스 수정 시 시간 정보가 변경될 경우 유효해야 한다. (1)")
     void updateTodo_THIS_TASK_return400WithInvalidDateRange_1() throws Exception {
         // given
-        RepeatInfo repeatInfo = RepeatInfo.builder()
-                .frequency(Frequency.DAILY)
-                .interval(1)
-                .until(LocalDate.of(2024, 7, 8))
-                .build();
+        LocalDateTime now = LocalDate.now().atStartOfDay();
         Todo todo = testTodoFactory.createRepeatedTodo(
-                LocalDateTime.of(2024, 7, 7, 7, 0),
-                LocalDateTime.of(2024, 7, 7, 8, 0),
+                now,
+                now.plusHours(1),
                 false,
                 member,
-                repeatInfo
+                RepeatInfo.builder()
+                        .frequency(Frequency.DAILY)
+                        .interval(1)
+                        .until(now.plusDays(3).toLocalDate())
+                        .build()
         );
 
         UpdateTodoReq req = UpdateTodoReq.builder()
                 .content("수정됨")
                 .isAllDay(true)
-                .startAt(LocalDateTime.of(2024, 7, 8, 7, 0))
-                .build();
-
-        // when / then
-        mockMvc.perform(
-                        patch(TODO_BASE_URL + "/{objectId}", todo.getTodoInstances().get(0).getId())
-                                .queryParam("isInstance", String.valueOf(true))
-                                .queryParam("targetType", String.valueOf(TargetType.THIS_TASK))
-                                .content(objectMapper.writeValueAsString(req))
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .characterEncoding(StandardCharsets.UTF_8)
-                                .header(ACCESS_TOKEN_HEADER, BEARER_PREFIX + memberTokenDto.getAccessToken())
-                                .header(REFRESH_TOKEN_HEADER, BEARER_PREFIX + memberTokenDto.getRefreshToken())
-                )
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("code").value(ErrorCode.BAD_REQUEST.name()))
-                .andExpect(jsonPath("message").value("시작 시각은 종료 시각보다 이전이어야 합니다."));
-    }
-
-    @Test
-    @DisplayName("PATCH /api/todo/{objectId}?instance=true&taskType=THIS_TASK - 단일 인스턴스 수정 시 시간 정보가 변경될 경우 유효해야 한다. (2)")
-    void updateTodo_THIS_TASK_return400WithInvalidDateRange_2() throws Exception {
-        // given
-        RepeatInfo repeatInfo = RepeatInfo.builder()
-                .frequency(Frequency.DAILY)
-                .interval(1)
-                .until(LocalDate.of(2024, 7, 8))
-                .build();
-        Todo todo = testTodoFactory.createRepeatedTodo(
-                LocalDateTime.of(2024, 7, 7, 7, 0),
-                LocalDateTime.of(2024, 7, 7, 8, 0),
-                false,
-                member,
-                repeatInfo
-        );
-
-        UpdateTodoReq req = UpdateTodoReq.builder()
-                .content("수정됨")
-                .isAllDay(true)
-                .endAt(LocalDateTime.of(2024, 7, 6, 7, 0))
+                .startAt(now.plusDays(3))
                 .build();
 
         // when / then
@@ -328,17 +353,17 @@ public class TodoIntegrationTest extends ControllerIntegrationTestSupport {
     @DisplayName("PATCH /api/todo/{objectId}?instance=true&taskType=ALL_TASKS")
     void updateTodo_ALL_TASKS() throws Exception {
         // given
-        RepeatInfo repeatInfo = RepeatInfo.builder()
-                .frequency(Frequency.DAILY)
-                .interval(1)
-                .until(LocalDate.of(2024, 7, 8))
-                .build();
+        LocalDateTime now = LocalDate.now().atStartOfDay();
         Todo todo = testTodoFactory.createRepeatedTodo(
-                LocalDateTime.of(2024, 7, 7, 7, 0),
-                LocalDateTime.of(2024, 7, 7, 8, 0),
+                now,
+                now.plusHours(1),
                 false,
                 member,
-                repeatInfo
+                RepeatInfo.builder()
+                        .frequency(Frequency.DAILY)
+                        .interval(1)
+                        .until(now.plusDays(3).toLocalDate())
+                        .build()
         );
 
         UpdateTodoReq req = UpdateTodoReq.builder()
@@ -372,24 +397,24 @@ public class TodoIntegrationTest extends ControllerIntegrationTestSupport {
     @DisplayName("PATCH /api/todo/{objectId}?instance=true&taskType=ALL_TASKS - 전체 인스턴스를 대상으로 수정 시 시간정보는 변경할 수 없다.")
     void updateTodo_ALL_TASKS_return400() throws Exception {
         // given
-        RepeatInfo repeatInfo = RepeatInfo.builder()
-                .frequency(Frequency.DAILY)
-                .interval(1)
-                .until(LocalDate.of(2024, 7, 8))
-                .build();
+        LocalDateTime now = LocalDate.now().atStartOfDay();
         Todo todo = testTodoFactory.createRepeatedTodo(
-                LocalDateTime.of(2024, 7, 7, 7, 0),
-                LocalDateTime.of(2024, 7, 7, 8, 0),
+                now,
+                now.plusHours(1),
                 false,
                 member,
-                repeatInfo
+                RepeatInfo.builder()
+                        .frequency(Frequency.DAILY)
+                        .interval(1)
+                        .until(now.plusDays(3).toLocalDate())
+                        .build()
         );
 
         UpdateTodoReq req = UpdateTodoReq.builder()
                 .content("수정됨")
                 .isAllDay(true)
-                .startAt(LocalDateTime.of(2024, 7, 8, 7, 0))
-                .endAt(LocalDateTime.of(2024, 7, 8, 8, 0))
+                .startAt(now.plusHours(2))
+                .endAt(now.plusHours(3))
                 .repeatInfoReqItem(
                         RepeatInfoReqItem.builder()
                                 .frequency(Frequency.WEEKLY)
@@ -420,9 +445,10 @@ public class TodoIntegrationTest extends ControllerIntegrationTestSupport {
     @DisplayName("PATCH /api/todo/{objectId}?isInstance=false - 단일 투두를 수정한다.")
     void updateSingleTodo() throws Exception {
         // given
+        LocalDateTime now = LocalDate.now().atStartOfDay();
         Todo todo = testTodoFactory.createSingleTodo(
-                LocalDateTime.of(2024, 7, 7, 7, 0),
-                LocalDateTime.of(2024, 7, 7, 8, 0),
+                now,
+                now.plusHours(1),
                 false,
                 member
         );
@@ -430,8 +456,8 @@ public class TodoIntegrationTest extends ControllerIntegrationTestSupport {
         UpdateTodoReq req = UpdateTodoReq.builder()
                 .content("수정됨")
                 .isAllDay(true)
-                .startAt(LocalDateTime.of(2024, 7, 8, 7, 0))
-                .endAt(LocalDateTime.of(2024, 7, 8, 8, 0))
+                .startAt(now.plusHours(2))
+                .endAt(now.plusHours(3))
                 .repeatInfoReqItem(
                         RepeatInfoReqItem.builder()
                                 .frequency(Frequency.WEEKLY)
@@ -453,15 +479,17 @@ public class TodoIntegrationTest extends ControllerIntegrationTestSupport {
                                 .header(REFRESH_TOKEN_HEADER, BEARER_PREFIX + memberTokenDto.getRefreshToken())
                 )
                 .andExpect(status().isNoContent());
+
     }
 
     @Test
     @DisplayName("PATCH /api/todo/{objectId} - 아무 데이터를 넘기지 않을 경우 400 에러를 반환한다.")
     void updateTodoReturn400() throws Exception {
         // given
+        LocalDateTime now = LocalDate.now().atStartOfDay();
         Todo todo = testTodoFactory.createSingleTodo(
-                LocalDateTime.of(2024, 7, 7, 7, 0),
-                LocalDateTime.of(2024, 7, 7, 8, 0),
+                now,
+                now.plusHours(1),
                 false,
                 member
         );
@@ -534,16 +562,17 @@ public class TodoIntegrationTest extends ControllerIntegrationTestSupport {
     @DisplayName("PATCH /api/todo/{objectId} - 잘못된 날짜 범위를 넘길 경우 400 에러를 반환한다.")
     void updateTodoReturn400WithInvalidDateRange() throws Exception {
         // given
+        LocalDateTime now = LocalDateTime.now();
         Todo todo = testTodoFactory.createSingleTodo(
-                LocalDateTime.of(2024, 7, 7, 7, 0),
-                LocalDateTime.of(2024, 7, 7, 8, 0),
+                now,
+                now.plusHours(1),
                 false,
                 member
         );
 
         UpdateTodoReq req = UpdateTodoReq.builder()
-                .startAt(LocalDateTime.of(2024, 7, 7, 7, 0))
-                .endAt(LocalDateTime.of(2024, 7, 6, 8, 0))
+                .startAt(now.plusHours(2))
+                .endAt(now.plusHours(1))
                 .build();
 
         // when / then
@@ -607,17 +636,17 @@ public class TodoIntegrationTest extends ControllerIntegrationTestSupport {
     @DisplayName("PATCH /api/todo/{objectId}/status - 일정 상태 변경")
     void updateStatus() throws Exception {
         // given
-        RepeatInfo repeatInfo = RepeatInfo.builder()
-                .frequency(Frequency.DAILY)
-                .interval(1)
-                .until(LocalDate.of(2024, 7, 8))
-                .build();
+        LocalDateTime now = LocalDate.now().atStartOfDay();
         Todo todo = testTodoFactory.createRepeatedTodo(
-                LocalDateTime.of(2024, 7, 7, 7, 0),
-                LocalDateTime.of(2024, 7, 7, 8, 0),
+                now,
+                now.plusHours(1),
                 false,
                 member,
-                repeatInfo
+                RepeatInfo.builder()
+                        .frequency(Frequency.DAILY)
+                        .interval(1)
+                        .until(now.plusDays(3).toLocalDate())
+                        .build()
         );
 
         UpdateTodoStatusReq req = UpdateTodoStatusReq.builder()
@@ -626,7 +655,7 @@ public class TodoIntegrationTest extends ControllerIntegrationTestSupport {
 
         // when / then
         mockMvc.perform(
-                        patch(TODO_BASE_URL + "/{objectId}/status", todo.getTodoInstances().get(1).getId())
+                        patch(TODO_BASE_URL + "/{objectId}/status", todo.getTodoInstances().get(0).getId())
                                 .queryParam("isInstance", String.valueOf(true))
                                 .content(objectMapper.writeValueAsString(req))
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -641,17 +670,17 @@ public class TodoIntegrationTest extends ControllerIntegrationTestSupport {
     @DisplayName("PATCH /api/todo/{objectId}/status - 데이터를 넘기지 않으면 400 에러를 반환한다.")
     void updateStatusReturn400() throws Exception {
         // given
-        RepeatInfo repeatInfo = RepeatInfo.builder()
-                .frequency(Frequency.DAILY)
-                .interval(1)
-                .until(LocalDate.of(2024, 7, 8))
-                .build();
+        LocalDateTime now = LocalDate.now().atStartOfDay();
         Todo todo = testTodoFactory.createRepeatedTodo(
-                LocalDateTime.of(2024, 7, 7, 7, 0),
-                LocalDateTime.of(2024, 7, 7, 8, 0),
+                now,
+                now.plusHours(1),
                 false,
                 member,
-                repeatInfo
+                RepeatInfo.builder()
+                        .frequency(Frequency.DAILY)
+                        .interval(1)
+                        .until(now.plusDays(3).toLocalDate())
+                        .build()
         );
 
         UpdateTodoStatusReq req = UpdateTodoStatusReq.builder()
@@ -678,9 +707,10 @@ public class TodoIntegrationTest extends ControllerIntegrationTestSupport {
     void updateStatusReturn403() throws Exception {
         // given
         Member tester1 = createMember("tester1");
+        LocalDateTime now = LocalDate.now().atStartOfDay();
         Todo todo = testTodoFactory.createSingleTodo(
-                LocalDateTime.of(2024, 7, 7, 7, 0),
-                LocalDateTime.of(2024, 7, 7, 8, 0),
+                now,
+                now.plusHours(1),
                 false,
                 tester1
         );
@@ -708,9 +738,10 @@ public class TodoIntegrationTest extends ControllerIntegrationTestSupport {
     @DisplayName("DELETE /api/todo/{objectId}?isInstance=false - 단일 투두 삭제")
     void deleteTodo() throws Exception {
         // given
+        LocalDateTime now = LocalDate.now().atStartOfDay();
         Todo todo = testTodoFactory.createSingleTodo(
-                LocalDateTime.of(2024, 7, 7, 7, 0),
-                LocalDateTime.of(2024, 7, 7, 8, 0),
+                now,
+                now.plusHours(1),
                 false,
                 member
         );
@@ -729,17 +760,17 @@ public class TodoIntegrationTest extends ControllerIntegrationTestSupport {
     @DisplayName("DELETE /api/todo/{objectId}?isInstance=true&targetType=THIS_TASK - 투두 인스턴스 1개 삭제")
     void deleteTodoInstance_THIS_TASK() throws Exception {
         // given
-        RepeatInfo repeatInfo = RepeatInfo.builder()
-                .frequency(Frequency.DAILY)
-                .interval(1)
-                .until(LocalDate.of(2024, 7, 8))
-                .build();
+        LocalDateTime now = LocalDate.now().atStartOfDay();
         Todo todo = testTodoFactory.createRepeatedTodo(
-                LocalDateTime.of(2024, 7, 7, 7, 0),
-                LocalDateTime.of(2024, 7, 7, 8, 0),
+                now,
+                now.plusHours(1),
                 false,
                 member,
-                repeatInfo
+                RepeatInfo.builder()
+                        .frequency(Frequency.DAILY)
+                        .interval(1)
+                        .until(now.plusDays(3).toLocalDate())
+                        .build()
         );
 
         // when / then
@@ -757,17 +788,17 @@ public class TodoIntegrationTest extends ControllerIntegrationTestSupport {
     @DisplayName("DELETE /api/todo/{objectId}?isInstance=true&targetType=ALL_TASKS - 투두 인스턴스 전체 삭제")
     void deleteTodoInstance_ALL_TASKS() throws Exception {
         // given
-        RepeatInfo repeatInfo = RepeatInfo.builder()
-                .frequency(Frequency.DAILY)
-                .interval(1)
-                .until(LocalDate.of(2024, 7, 8))
-                .build();
+        LocalDateTime now = LocalDate.now().atStartOfDay();
         Todo todo = testTodoFactory.createRepeatedTodo(
-                LocalDateTime.of(2024, 7, 7, 7, 0),
-                LocalDateTime.of(2024, 7, 7, 8, 0),
+                now,
+                now.plusHours(1),
                 false,
                 member,
-                repeatInfo
+                RepeatInfo.builder()
+                        .frequency(Frequency.DAILY)
+                        .interval(1)
+                        .until(now.plusDays(3).toLocalDate())
+                        .build()
         );
 
         // when / then

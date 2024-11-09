@@ -38,7 +38,6 @@ public class TodoInstance extends BaseEntity {
     private String color;
 
     @Column(nullable = false)
-    @ColumnDefault("1")
     private boolean isAllDay = false;
 
     @Builder

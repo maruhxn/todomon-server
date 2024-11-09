@@ -9,6 +9,8 @@ import com.maruhxn.todomon.core.domain.todo.domain.RepeatInfo;
 import com.maruhxn.todomon.core.domain.todo.domain.Todo;
 import com.maruhxn.todomon.core.domain.todo.domain.TodoInstance;
 import com.maruhxn.todomon.core.domain.todo.dto.request.*;
+import com.maruhxn.todomon.core.global.auth.checker.IsMyTodoOrAdmin;
+import com.maruhxn.todomon.core.global.util.validation.IsTodayTodoOrAdmin;
 import com.maruhxn.todomon.core.global.error.ErrorCode;
 import com.maruhxn.todomon.core.global.error.exception.BadRequestException;
 import com.maruhxn.todomon.core.global.error.exception.NotFoundException;
@@ -21,6 +23,7 @@ import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static com.maruhxn.todomon.core.global.common.Constants.*;
@@ -41,10 +44,13 @@ public class TodoService {
     /**
      * Todo를 생성한다.
      *
-     * @param member
+     * @param memberId
      * @param req
      */
-    public void create(Member member, CreateTodoReq req) {
+    public void create(Long memberId, CreateTodoReq req) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_MEMBER));
+
         Todo todo = req.toEntity(member);
         RepeatInfo repeatInfo = null;
         if (req.getRepeatInfoReqItem() != null) {
@@ -66,47 +72,50 @@ public class TodoService {
     }
 
     private void createTodoInstances(Todo todo) {
+        List<TodoInstance> instances = generateInstances(todo);
+
+        if (instances.size() > 1) {
+            todo.setTodoInstances(instances);
+            todoInstanceRepository.saveAll(instances);
+            updateTodoDateRange(todo, instances);
+        }
+    }
+
+    // 공통 로직을 함수로 분리하여 코드 중복 제거
+    private void updateTodoDateRange(Todo todo, List<TodoInstance> instances) {
+        LocalDateTime repeatStartAt = instances.get(0).getStartAt();
+        LocalDateTime repeatEndAt = instances.get(instances.size() - 1).getEndAt();
+        todo.update(UpdateTodoReq.builder()
+                .startAt(repeatStartAt)
+                .endAt(repeatEndAt)
+                .build());
+    }
+
+    private List<TodoInstance> generateInstances(Todo todo) {
         RepeatInfo repeatInfo = todo.getRepeatInfo();
         LocalDateTime startAt = todo.getStartAt();
         LocalDateTime endAt = todo.getEndAt();
 
-        List<TodoInstance> instances = new ArrayList<>();
-
         switch (repeatInfo.getFrequency()) {
-            case DAILY -> instances.addAll(generateDailyInstances(todo, startAt, endAt, repeatInfo));
-            case WEEKLY -> instances.addAll(generateWeeklyInstances(todo, startAt, endAt, repeatInfo));
-            case MONTHLY -> instances.addAll(generateMonthlyInstances(todo, startAt, endAt, repeatInfo));
-        }
-
-        if (instances.size() > 1) { // 최소 반복 횟수를 넘지 못하면 인스턴스를 생성하지 않고, 단일 투두로 처리
-            todo.setTodoInstances(instances);
-            todoInstanceRepository.saveAll(instances);
-            LocalDateTime repeatStartAt = instances.get(0).getStartAt();
-            LocalDateTime repeatEndAt = instances.get(instances.size() - 1).getEndAt();
-            todo.update(UpdateTodoReq.builder()
-                    .startAt(repeatStartAt)
-                    .endAt(repeatEndAt)
-                    .build());
+            case DAILY:
+                return generateDailyInstances(todo, startAt, endAt, repeatInfo);
+            case WEEKLY:
+                return generateWeeklyInstances(todo, startAt, endAt, repeatInfo);
+            case MONTHLY:
+                return generateMonthlyInstances(todo, startAt, endAt, repeatInfo);
+            default:
+                return Collections.emptyList();
         }
     }
 
     private List<TodoInstance> generateMonthlyInstances(Todo todo, LocalDateTime startAt, LocalDateTime endAt, RepeatInfo repeatInfo) {
         List<TodoInstance> instances = new ArrayList<>();
-        Integer dayOfMonth = repeatInfo.getByMonthDay();
-        LocalDateTime currentStart = startAt;
-        LocalDateTime currentEnd = endAt;
-
-        currentStart = adjustDayOfMonth(currentStart, dayOfMonth, repeatInfo.getInterval());
-        currentEnd = adjustDayOfMonth(currentEnd, dayOfMonth, repeatInfo.getInterval());
-
-        if (startAt.isAfter(currentStart)) {
-            currentStart = currentStart.plusMonths(repeatInfo.getInterval());
-            currentEnd = currentEnd.plusMonths(repeatInfo.getInterval());
-        }
+        LocalDateTime currentStart = adjustDayOfMonth(startAt, repeatInfo.getByMonthDay(), repeatInfo.getInterval());
+        LocalDateTime currentEnd = adjustDayOfMonth(endAt, repeatInfo.getByMonthDay(), repeatInfo.getInterval());
 
         while (shouldGenerateMoreInstances(currentStart, repeatInfo, instances.size())) {
-            currentStart = adjustDayOfMonth(currentStart, dayOfMonth, repeatInfo.getInterval());
-            currentEnd = adjustDayOfMonth(currentEnd, dayOfMonth, repeatInfo.getInterval());
+            currentStart = adjustDayOfMonth(currentStart, repeatInfo.getByMonthDay(), repeatInfo.getInterval());
+            currentEnd = adjustDayOfMonth(currentEnd, repeatInfo.getByMonthDay(), repeatInfo.getInterval());
             instances.add(TodoInstance.of(todo, currentStart, currentEnd));
             currentStart = currentStart.plusMonths(repeatInfo.getInterval());
             currentEnd = currentEnd.plusMonths(repeatInfo.getInterval());
@@ -115,6 +124,7 @@ public class TodoService {
         return instances;
     }
 
+    // 불필요한 조건문 제거 및 메소드 간소화
     private LocalDateTime adjustDayOfMonth(LocalDateTime dateTime, int dayOfMonth, int interval) {
         int maxDayOfMonth = dateTime.getMonth().length(dateTime.toLocalDate().isLeapYear());
         if (dayOfMonth > maxDayOfMonth) {
@@ -123,32 +133,37 @@ public class TodoService {
         return dateTime.withDayOfMonth(dayOfMonth);
     }
 
+    // 주 반복 인스턴스 생성 로직 개선
     private List<TodoInstance> generateWeeklyInstances(Todo todo, LocalDateTime startAt, LocalDateTime endAt, RepeatInfo repeatInfo) {
         List<TodoInstance> instances = new ArrayList<>();
         LocalDateTime currentStart = startAt;
         LocalDateTime currentEnd = endAt;
-
-        // 주어진 요일 목록 파싱
-        List<DayOfWeek> byDays = Arrays.stream(repeatInfo.getByDay().split(","))
-                .map(TimeUtil::convertToDayOfWeek)
-                .toList();
+        List<DayOfWeek> byDays = convertToDayOfWeeks(repeatInfo.getByDay());
 
         while (shouldGenerateMoreInstances(currentStart, repeatInfo, instances.size())) {
-            if (byDays.contains(currentStart.getDayOfWeek())) { // 현재 날짜가 byDays에 포함되는지 확인
-                instances.add(TodoInstance.of(todo, currentStart, currentEnd)); // 포함된다면 인스턴스 생성
-            }
-            currentStart = currentStart.plusDays(1);
-            currentEnd = currentEnd.plusDays(1);
-            if (currentStart.getDayOfWeek() == DayOfWeek.MONDAY) {
-                currentStart = currentStart.plusWeeks(repeatInfo.getInterval() - 1);
-                currentEnd = currentEnd.plusDays(repeatInfo.getInterval() - 1);
+            if (byDays.contains(currentStart.getDayOfWeek())) {
+                instances.add(TodoInstance.of(todo, currentStart, currentEnd));
             }
 
+            currentStart = currentStart.plusDays(1);
+            currentEnd = currentEnd.plusDays(1);
+
+            if (currentStart.getDayOfWeek() == DayOfWeek.MONDAY) {
+                currentStart = currentStart.plusWeeks(repeatInfo.getInterval() - 1);
+                currentEnd = currentEnd.plusWeeks(repeatInfo.getInterval() - 1);
+            }
         }
 
         return instances;
     }
 
+    // 문자열을 DayOfWeek 리스트로 변환하는 로직을 분리
+    private List<DayOfWeek> convertToDayOfWeeks(String byDay) {
+        return Arrays.stream(byDay.split(",")).map(TimeUtil::convertToDayOfWeek).toList();
+    }
+
+
+    // 일 반복 인스턴스 생성 로직 개선 및 리팩터링
     private List<TodoInstance> generateDailyInstances(Todo todo, LocalDateTime startAt, LocalDateTime endAt, RepeatInfo repeatInfo) {
         List<TodoInstance> instances = new ArrayList<>();
         LocalDateTime currentStart = startAt;
@@ -164,19 +179,19 @@ public class TodoService {
     }
 
 
-    // 현재 시간이 규칙에 의해 정의된 종료 시점이나 반복 횟수 조건을 초과하지 않았는지 확인
+    // 조건문 간소화
     private boolean shouldGenerateMoreInstances(LocalDateTime currentStart, RepeatInfo repeatInfo, int size) {
-        if (repeatInfo.getUntil() != null && currentStart.isAfter(repeatInfo.getUntil().plusDays(1).atStartOfDay()))
-            return false;
-        if (repeatInfo.getCount() != null && size >= repeatInfo.getCount()) return false;
-        return true;
+        return (repeatInfo.getUntil() == null || !currentStart.toLocalDate().isAfter(repeatInfo.getUntil()))
+                && (repeatInfo.getCount() == null || size < repeatInfo.getCount());
     }
 
+    @IsTodayTodoOrAdmin
+    @IsMyTodoOrAdmin
     public void update(Long objectId, UpdateAndDeleteTodoQueryParams params, UpdateTodoReq req) {
         validateUpdateReq(req);
 
         if (params.getIsInstance()) {
-            TodoInstance todoInstance = todoInstanceRepository.findById(objectId)
+            TodoInstance todoInstance = todoInstanceRepository.findTodoInstanceWithTodo(objectId)
                     .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_TODO));
             switch (params.getTargetType()) {
                 case THIS_TASK -> {
@@ -231,8 +246,6 @@ public class TodoService {
                 createTodoInstances(findTodo);
             }
         }
-
-
     }
 
     private static void validateUpdateReq(UpdateTodoReq req) {
@@ -246,34 +259,42 @@ public class TodoService {
      * 반복 정보가 없는 단일 Todo의 경우 -> 단순 상태 업데이트 및 보상 지급
      *
      * @param objectId
-     * @param member
+     * @param memberId
      * @param isInstance
      * @param req
      */
-    public void updateStatusAndReward(Long objectId, Member member, boolean isInstance, UpdateTodoStatusReq req) {
+    @IsTodayTodoOrAdmin
+    @IsMyTodoOrAdmin
+    public void updateStatusAndReward(Long objectId, boolean isInstance, Long memberId, UpdateTodoStatusReq req) {
+        Member findMember = memberRepository.findMemberWithDiligenceUsingLock(memberId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_MEMBER));
         if (isInstance) {
-            TodoInstance todoInstance = todoInstanceRepository.findById(objectId)
+            TodoInstance todoInstance = todoInstanceRepository.findTodoInstanceWithTodo(objectId)
                     .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_TODO));
+
             if (req.getIsDone()) {
-                todoInstance.updateIsDone(true);
-                rewardForInstance(todoInstance, member);
+                if (!todoInstance.isDone()) {
+                    todoInstance.updateIsDone(true);
+                    rewardForInstance(todoInstance, findMember);
+                }
             } else {
-                withdrawRewardForInstance(todoInstance, member);
-                todoInstance.updateIsDone(false);
+                if (todoInstance.isDone()) {
+                    withdrawRewardForInstance(todoInstance, findMember);
+                    todoInstance.updateIsDone(false);
+                }
             }
         } else {
             Todo findTodo = todoRepository.findById(objectId)
                     .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_TODO));
             // 반복 정보가 없는 단일 todo의 경우 -> 단순 상태 업데이트 및 보상 지급
-            findTodo.updateIsDone(req.getIsDone());
-            if (req.getIsDone()) {
-                reward(member, 1);
-            } else {
-                withdrawReward(member, 1);
+            if (!findTodo.isDone() && req.getIsDone()) {
+                findTodo.updateIsDone(true);
+                reward(findMember, 1);
+            } else if (findTodo.isDone() && !req.getIsDone()) {
+                findTodo.updateIsDone(false);
+                withdrawReward(findMember, 1);
             }
         }
-
-        memberRepository.save(member);
     }
 
     private void withdrawRewardForInstance(TodoInstance todoInstance, Member member) {
@@ -303,7 +324,7 @@ public class TodoService {
     // 단일 일정에 대한 보상 로직
     private void reward(Member member, int leverage) {
         // 일간 달성 수 1 증가
-        member.addDailyAchievementCnt(1);
+        if (leverage == 1) member.addDailyAchievementCnt(1);
         // 유저 일관성 게이지 업데이트
         member.getDiligence().increaseGauge(GAUGE_INCREASE_RATE * leverage);
         // 보상 지급
@@ -333,7 +354,7 @@ public class TodoService {
         return notCompletedInstancesSize == 0;
     }
 
-
+    @IsMyTodoOrAdmin
     public void deleteTodo(Long objectId, UpdateAndDeleteTodoQueryParams params) {
         if (params.getIsInstance()) {
             TodoInstance todoInstance = todoInstanceRepository.findById(objectId)

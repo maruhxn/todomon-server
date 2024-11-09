@@ -172,7 +172,7 @@ class SocialRankIntegrationTest extends ControllerIntegrationTestSupport {
                     TodoAchievementHistory history = TodoAchievementHistory.builder()
                             .memberId(member.getId())
                             .date(todo.getStartAt().toLocalDate())
-                            .cnt((long) i)
+                            .cnt(1L)
                             .build();
                     todoAchievementHistoryRepository.save(history);
                 }

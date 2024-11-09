@@ -1,5 +1,6 @@
 package com.maruhxn.todomon.core.domain.member.application;
 
+import com.maruhxn.todomon.core.domain.member.dao.MemberRepository;
 import com.maruhxn.todomon.core.domain.member.dao.TitleNameRepository;
 import com.maruhxn.todomon.core.domain.member.domain.Member;
 import com.maruhxn.todomon.core.domain.member.domain.TitleName;
@@ -16,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class TitleNameService {
 
+    private final MemberRepository memberRepository;
     private final TitleNameRepository titleNameRepository;
 
     public void upsertTitleName(Member member, UpsertTitleNameRequest req) {
@@ -38,10 +40,13 @@ public class TitleNameService {
                         });
     }
 
-    public void deleteTitleName(Member member) {
-        TitleName findTitleName = titleNameRepository.findByMember_Id(member.getId())
+    public void deleteTitleName(Long memberId) {
+        Member findMember = memberRepository.findById(memberId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_MEMBER));
+        TitleName findTitleName = titleNameRepository.findByMember_Id(findMember.getId())
                 .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_TITLE_NAME));
 
+        findMember.setTitleName(null);
         titleNameRepository.delete(findTitleName);
     }
 }

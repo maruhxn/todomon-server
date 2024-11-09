@@ -2,7 +2,6 @@ package com.maruhxn.todomon.core.domain.member.application;
 
 import com.maruhxn.todomon.core.domain.auth.dao.RefreshTokenRepository;
 import com.maruhxn.todomon.core.domain.auth.domain.RefreshToken;
-import com.maruhxn.todomon.core.domain.member.application.MemberService;
 import com.maruhxn.todomon.core.domain.member.dao.MemberRepository;
 import com.maruhxn.todomon.core.domain.member.dao.TitleNameRepository;
 import com.maruhxn.todomon.core.domain.member.domain.Member;
@@ -21,6 +20,7 @@ import com.maruhxn.todomon.core.global.auth.model.Role;
 import com.maruhxn.todomon.core.global.auth.model.provider.GoogleUser;
 import com.maruhxn.todomon.core.global.auth.model.provider.OAuth2Provider;
 import com.maruhxn.todomon.core.global.error.ErrorCode;
+import com.maruhxn.todomon.core.global.error.exception.ForbiddenException;
 import com.maruhxn.todomon.core.global.error.exception.NotFoundException;
 import com.maruhxn.todomon.util.IntegrationTestSupport;
 import org.junit.jupiter.api.DisplayName;
@@ -99,7 +99,7 @@ class MemberServiceTest extends IntegrationTestSupport {
         GoogleUser googleUser = getGoogleUser("test@test.com");
 
         // when
-        Member member = memberService.createOrUpdate(googleUser);
+        Member member = memberService.getOrCreate(googleUser);
 
         // then
         Member findMember = memberRepository.findById(member.getId()).get();
@@ -113,7 +113,7 @@ class MemberServiceTest extends IntegrationTestSupport {
         GoogleUser googleUser = getGoogleUser("maruhan1016@gmail.com");
 
         // when
-        Member member = memberService.createOrUpdate(googleUser);
+        Member member = memberService.getOrCreate(googleUser);
 
         // then
         assertThat(member.getRole()).isEqualTo(Role.ROLE_ADMIN);
@@ -141,7 +141,7 @@ class MemberServiceTest extends IntegrationTestSupport {
                 .name("title")
                 .color("#000000")
                 .build();
-        titleName.setMember(tester1);
+        tester1.setTitleName(titleName);
         titleNameRepository.save(titleName);
 
         Follow following1 = Follow.builder()
@@ -211,6 +211,8 @@ class MemberServiceTest extends IntegrationTestSupport {
                 .build();
         memberRepository.save(member);
 
+        saveMemberToContext(member);
+
         UpdateMemberProfileReq req = UpdateMemberProfileReq.builder()
                 .username("update")
                 .build();
@@ -237,6 +239,7 @@ class MemberServiceTest extends IntegrationTestSupport {
                 .profileImageUrl("existing-google-user-picture-url")
                 .build();
         memberRepository.save(member);
+        saveMemberToContext(member);
 
         MockMultipartFile newProfileImage = getMockMultipartFile();
         UpdateMemberProfileReq req = UpdateMemberProfileReq.builder()
@@ -268,6 +271,7 @@ class MemberServiceTest extends IntegrationTestSupport {
                 .profileImageUrl("existing-google-user-picture-url")
                 .build();
         memberRepository.save(member);
+        saveMemberToContext(member);
 
         String rawRefreshToken = jwtProvider.generateRefreshToken(member.getEmail(), new Date());
         RefreshToken refreshToken = RefreshToken.builder()
@@ -289,9 +293,11 @@ class MemberServiceTest extends IntegrationTestSupport {
     @DisplayName("회원 탈퇴 시 존재하지 않는 회원의 아이디를 전달하면 에러를 발생한다..")
     @Test
     void membershipWithdrawalWithNonExistingMemberId() {
-        assertThatThrownBy(() -> memberService.withdraw(1L))
-                .isInstanceOf(NotFoundException.class)
-                .hasMessage(ErrorCode.NOT_FOUND_MEMBER.getMessage());
+        Member member = createMember("tester");
+        saveMemberToContext(member);
+        assertThatThrownBy(() -> memberService.withdraw(member.getId() * 100))
+                .isInstanceOf(ForbiddenException.class)
+                .hasMessage(ErrorCode.FORBIDDEN.getMessage());
     }
 
     private Member createMember(String username) {

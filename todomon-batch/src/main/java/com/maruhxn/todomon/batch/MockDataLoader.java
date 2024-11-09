@@ -17,7 +17,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
 @Slf4j
-@Component
+//@Component
 @RequiredArgsConstructor
 public class MockDataLoader {
 

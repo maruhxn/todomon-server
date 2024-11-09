@@ -1,7 +1,10 @@
 package com.maruhxn.todomon.core.domain.member.domain;
 
 import com.maruhxn.todomon.core.global.common.BaseEntity;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.OneToOne;
 import lombok.Getter;
 import org.hibernate.annotations.ColumnDefault;
 
@@ -17,8 +20,7 @@ public class Diligence extends BaseEntity {
     @ColumnDefault("1")
     private int level = 1;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id", referencedColumnName = "id")
+    @OneToOne(mappedBy = "diligence", fetch = FetchType.LAZY)
     private Member member;
 
     public void setMember(Member member) {

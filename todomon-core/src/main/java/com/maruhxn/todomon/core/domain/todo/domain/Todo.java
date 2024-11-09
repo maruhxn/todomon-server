@@ -12,6 +12,7 @@ import org.hibernate.annotations.ColumnDefault;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,7 +34,6 @@ public class Todo extends BaseEntity {
     private boolean isDone = false;
 
     @Column(nullable = false)
-    @ColumnDefault("1")
     private boolean isAllDay = false;
 
     @Column(nullable = false, length = 7, columnDefinition = "varchar(7) default '#ffffff'")
@@ -43,7 +43,8 @@ public class Todo extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     private Member writer;
 
-    @OneToOne(mappedBy = "todo", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "repeat_info_id", referencedColumnName = "id")
     private RepeatInfo repeatInfo;
 
     @OneToMany(mappedBy = "todo", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
@@ -62,7 +63,7 @@ public class Todo extends BaseEntity {
 
     public void updateToAllDay() {
         this.startAt = LocalDateTime.of(startAt.toLocalDate(), LocalDateTime.MIN.toLocalTime());
-        this.endAt = LocalDateTime.of(endAt.toLocalDate(), LocalDateTime.MAX.toLocalTime());
+        this.endAt = LocalDateTime.of(endAt.toLocalDate(), LocalDateTime.MAX.toLocalTime()).truncatedTo(ChronoUnit.MICROS);
     }
 
     /* 연관관계 메서드 */

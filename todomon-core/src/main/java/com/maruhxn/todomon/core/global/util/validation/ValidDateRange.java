@@ -14,6 +14,8 @@ import java.lang.annotation.Target;
 public @interface ValidDateRange {
     String message() default "종료 시간은 시작 시간보다 이후여야 합니다.";
 
+    String startAtIsBeforeThanTodayMessage() default "시작 시간은 과거 일자를 포함할 수 없습니다.";
+
     String startAtAfterEndAtMessage() default "시작 시각은 종료 시각보다 이전이어야 합니다.";
 
     String overOneDayMessage() default "시작 시각과 종료 시각의 간격은 하루를 넘을 수 없습니다.";

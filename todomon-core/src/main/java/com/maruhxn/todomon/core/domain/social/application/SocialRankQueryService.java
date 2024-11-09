@@ -1,11 +1,11 @@
 package com.maruhxn.todomon.core.domain.social.application;
 
-import com.maruhxn.todomon.core.domain.member.domain.Member;
 import com.maruhxn.todomon.core.domain.social.dao.SocialQueryRepository;
 import com.maruhxn.todomon.core.domain.social.dto.response.CollectedPetRankItem;
 import com.maruhxn.todomon.core.domain.social.dto.response.DiligenceRankItem;
 import com.maruhxn.todomon.core.domain.social.dto.response.TodoAchievementRankItem;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,20 +18,24 @@ public class SocialRankQueryService {
 
     private final SocialQueryRepository socialQueryRepository;
 
-    public List<DiligenceRankItem> getSocialRankingOfDiligence(Member member) {
-        return socialQueryRepository.findTop10MembersByDiligenceLevelAndGauge(member);
+    @Cacheable(value = "socialDiligenceRankCache", key = "#memberId", cacheManager = "dailyCacheManager")
+    public List<DiligenceRankItem> getSocialRankingOfDiligence(Long memberId) {
+        return socialQueryRepository.findTop10MembersByDiligenceLevelAndGauge(memberId);
     }
 
-    public List<CollectedPetRankItem> getSocialRankingOfCollection(Member member) {
-        return socialQueryRepository.findTop10MembersByCollectedPetCnt(member);
+    @Cacheable(value = "socialCollectedPetRankCache", key = "#memberId", cacheManager = "dailyCacheManager")
+    public List<CollectedPetRankItem> getSocialRankingOfCollection(Long memberId) {
+        return socialQueryRepository.findTop10MembersByCollectedPetCnt(memberId);
     }
 
-    public List<TodoAchievementRankItem> getSocialRankingOfDailyAchievement(Member member) {
-        return socialQueryRepository.findTop10MembersByYesterdayAchievement(member);
+    @Cacheable(value = "socialDailyAchievementRankCache", key = "#memberId", cacheManager = "dailyCacheManager")
+    public List<TodoAchievementRankItem> getSocialRankingOfDailyAchievement(Long memberId) {
+        return socialQueryRepository.findTop10MembersByYesterdayAchievement(memberId);
     }
 
-    public List<TodoAchievementRankItem> getSocialRankingOfWeeklyAchievement(Member member) {
-        return socialQueryRepository.findTop10MembersByWeeklyAchievement(member);
+    @Cacheable(value = "weeklyAchievementRankCache", key = "#memberId", cacheManager = "weeklyCacheManager")
+    public List<TodoAchievementRankItem> getSocialRankingOfWeeklyAchievement(Long memberId) {
+        return socialQueryRepository.findTop10MembersByWeeklyAchievement(memberId);
     }
 
 }

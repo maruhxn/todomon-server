@@ -28,7 +28,7 @@ public class SocialRankController {
     ) {
         return DataResponse.of(
                 "소셜 일간 투두 달성 랭킹 조회 성공",
-                socialRankQueryService.getSocialRankingOfDailyAchievement(todomonOAuth2User.getMember())
+                socialRankQueryService.getSocialRankingOfDailyAchievement(todomonOAuth2User.getId())
         );
     }
 
@@ -39,7 +39,7 @@ public class SocialRankController {
     ) {
         return DataResponse.of(
                 "소셜 주간 투두 달성 랭킹 조회 성공",
-                socialRankQueryService.getSocialRankingOfWeeklyAchievement(todomonOAuth2User.getMember())
+                socialRankQueryService.getSocialRankingOfWeeklyAchievement(todomonOAuth2User.getId())
         );
     }
 
@@ -50,7 +50,7 @@ public class SocialRankController {
     ) {
         return DataResponse.of(
                 "소셜 일관성 레벨 랭킹 조회 성공",
-                socialRankQueryService.getSocialRankingOfDiligence(todomonOAuth2User.getMember())
+                socialRankQueryService.getSocialRankingOfDiligence(todomonOAuth2User.getId())
         );
     }
 
@@ -61,7 +61,7 @@ public class SocialRankController {
     ) {
         return DataResponse.of(
                 "소셜 도감 랭킹 조회 성공",
-                socialRankQueryService.getSocialRankingOfCollection(todomonOAuth2User.getMember())
+                socialRankQueryService.getSocialRankingOfCollection(todomonOAuth2User.getId())
         );
     }
 }

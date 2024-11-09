@@ -28,8 +28,7 @@ public class RepeatInfo extends BaseEntity {
     private Integer byMonthDay;
     private Integer count; // 반복 일정의 총 발생 횟수 = 반복되는 이벤트가 몇 번 발생해야 하는지를 나타냄
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "topic_id", referencedColumnName = "id")
+    @OneToOne(mappedBy = "repeatInfo", fetch = FetchType.LAZY)
     private Todo todo;
 
     @Builder

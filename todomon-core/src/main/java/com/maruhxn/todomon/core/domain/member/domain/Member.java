@@ -5,7 +5,6 @@ import com.maruhxn.todomon.core.domain.pet.domain.CollectedPet;
 import com.maruhxn.todomon.core.domain.pet.domain.Pet;
 import com.maruhxn.todomon.core.domain.social.domain.Follow;
 import com.maruhxn.todomon.core.domain.social.domain.StarTransaction;
-import com.maruhxn.todomon.core.domain.todo.domain.TodoAchievementHistory;
 import com.maruhxn.todomon.core.global.auth.model.Role;
 import com.maruhxn.todomon.core.global.auth.model.provider.OAuth2Provider;
 import com.maruhxn.todomon.core.global.auth.model.provider.OAuth2ProviderUser;
@@ -62,8 +61,17 @@ public class Member extends BaseEntity {
     @ColumnDefault("0")
     private boolean isSubscribed = false;
 
-    @OneToOne(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "diligence_id", referencedColumnName = "id")
     private Diligence diligence;
+
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "title_name_id", referencedColumnName = "id")
+    private TitleName titleName;
+
+    @OneToOne(fetch = FetchType.LAZY) // cascade 설정 시 pet도 삭제되니 따로 추가하지 않음.
+    @JoinColumn(name = "represent_pet_id")
+    private Pet representPet;
 
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Pet> pets = new ArrayList<>();
@@ -87,16 +95,9 @@ public class Member extends BaseEntity {
     @OneToMany(mappedBy = "receiver", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<StarTransaction> receivedStars = new ArrayList<>();
 
-    @OneToOne(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
-    private TitleName titleName;
-
     // 유저는 여러 인벤토리 아이템을 가질 수 있음
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<InventoryItem> inventoryItems = new ArrayList<>();
-
-    @OneToOne
-    @JoinColumn(name = "represent_pet_id")
-    private Pet representPet;
 
     @Builder
     public Member(String username, String email, OAuth2Provider provider, String providerId, String profileImageUrl, Role role) {
@@ -155,7 +156,7 @@ public class Member extends BaseEntity {
 
     public void setTitleName(TitleName titleName) {
         this.titleName = titleName;
-        titleName.setMember(this);
+        if (titleName != null) titleName.setMember(this);
     }
 
     public void addPet(Pet pet) {

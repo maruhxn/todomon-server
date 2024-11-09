@@ -4,6 +4,7 @@ import com.maruhxn.todomon.core.domain.member.dao.MemberRepository;
 import com.maruhxn.todomon.core.domain.member.domain.Member;
 import com.maruhxn.todomon.core.domain.social.dao.FollowRepository;
 import com.maruhxn.todomon.core.domain.social.domain.Follow;
+import com.maruhxn.todomon.core.global.auth.checker.IsMyFollowOrAdmin;
 import com.maruhxn.todomon.core.global.error.ErrorCode;
 import com.maruhxn.todomon.core.global.error.exception.BadRequestException;
 import com.maruhxn.todomon.core.global.error.exception.NotFoundException;
@@ -24,18 +25,21 @@ public class FollowService {
     private final FollowRepository followRepository;
 
     // 팔로우 요청을 보낸다.
-    public void sendFollowRequestOrMatFollow(Member follower, Long followeeId) {
+    public void sendFollowRequestOrMatFollow(Long followerId, Long followeeId) {
         // 자기 자신은 팔로우 안됨
-        if (follower.getId() == followeeId) throw new BadRequestException(ErrorCode.BAD_REQUEST);
+        if (followerId == followeeId) throw new BadRequestException(ErrorCode.BAD_REQUEST);
 
         Member followee = memberRepository.findById(followeeId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_MEMBER, "팔로위 정보가 존재하지 않습니다."));
 
         // 이미 받은 팔로우가 있다면, 맞팔로우 로직으로 전환
         Optional<Follow> receivedFollowRequest =
-                followRepository.findByFollower_IdAndFollowee_Id(followeeId, follower.getId());
+                followRepository.findByFollower_IdAndFollowee_Id(followeeId, followerId);
 
-        if (receivedFollowRequest.isPresent()) {
+        Member follower = memberRepository.findById(followerId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_MEMBER));
+
+        if (receivedFollowRequest.isPresent()) { // 이미 받은 팔로우가 있다면 맞팔로우
             Follow receivedFollow = receivedFollowRequest.get();
             if (receivedFollow.getStatus().equals(PENDING)) {
                 receivedFollow.updateStatus(ACCEPTED);
@@ -46,12 +50,7 @@ public class FollowService {
                     .build();
             matFollow.updateStatus(ACCEPTED);
             followRepository.save(matFollow);
-        } else {
-            followRepository.findByFollower_IdAndFollowee_Id(follower.getId(), followeeId)
-                    .ifPresent(f -> {
-                        throw new BadRequestException(ErrorCode.BAD_REQUEST, "이미 팔로우 요청을 보냈습니다.");
-                    });
-
+        } else { // 받은 팔로우가 없다면 팔로우 요청 보내기
             Follow follow = Follow.builder()
                     .follower(follower)
                     .followee(followee)
@@ -62,6 +61,7 @@ public class FollowService {
     }
 
     // 팔로우 요청에 대해 응답한다.
+    @IsMyFollowOrAdmin
     public void respondToFollowRequest(Long followId, boolean isAccepted) {
         Follow follow = followRepository.findById(followId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_FOLLOW));

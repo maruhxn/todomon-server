@@ -13,3 +13,7 @@ dependencies {
     // Spring Batch Experimental
     implementation "org.springframework.batch:spring-batch-experimental:0.3.0"
 }
+
+bootJar {
+    archiveFileName = 'todomon-batch.jar'
+}

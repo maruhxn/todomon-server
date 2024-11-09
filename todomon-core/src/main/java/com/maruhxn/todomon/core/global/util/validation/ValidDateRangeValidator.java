@@ -6,14 +6,17 @@ import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
 import java.time.Duration;
+import java.time.LocalDate;
 
 public class ValidDateRangeValidator implements ConstraintValidator<ValidDateRange, DateRangeDto> {
 
+    private String startAtIsBeforeThanTodayMessage;
     private String startAtAfterEndAtMessage;
     private String overOneDayMessage;
 
     @Override
     public void initialize(ValidDateRange constraintAnnotation) {
+        this.startAtIsBeforeThanTodayMessage = constraintAnnotation.startAtIsBeforeThanTodayMessage();
         this.startAtAfterEndAtMessage = constraintAnnotation.startAtAfterEndAtMessage();
         this.overOneDayMessage = constraintAnnotation.overOneDayMessage();
     }
@@ -23,6 +26,16 @@ public class ValidDateRangeValidator implements ConstraintValidator<ValidDateRan
         if (dto.getStartAt() == null || dto.getEndAt() == null) {
             return true; // 다른 검증기에 의해 처리됨
         }
+
+        boolean startAtIsBeforeThanToday = dto.getStartAt().toLocalDate().isBefore(LocalDate.now());
+        if (startAtIsBeforeThanToday) {
+            context.disableDefaultConstraintViolation();
+            context.buildConstraintViolationWithTemplate(startAtIsBeforeThanTodayMessage)
+                    .addPropertyNode("startAt")
+                    .addConstraintViolation();
+            return false;
+        }
+
         boolean startAtIsAfterThanEndAt = dto.getStartAt().isAfter(dto.getEndAt());
         if (startAtIsAfterThanEndAt) {
             context.disableDefaultConstraintViolation();

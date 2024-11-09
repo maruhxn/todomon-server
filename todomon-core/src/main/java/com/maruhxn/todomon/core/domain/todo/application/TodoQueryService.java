@@ -1,6 +1,5 @@
 package com.maruhxn.todomon.core.domain.todo.application;
 
-import com.maruhxn.todomon.core.domain.member.domain.Member;
 import com.maruhxn.todomon.core.domain.todo.dao.TodoInstanceRepository;
 import com.maruhxn.todomon.core.domain.todo.dao.TodoRepository;
 import com.maruhxn.todomon.core.domain.todo.dto.response.TodoItem;
@@ -23,42 +22,42 @@ public class TodoQueryService {
     private final TodoRepository todoRepository;
     private final TodoInstanceRepository todoInstanceRepository;
 
-    public List<TodoItem> getTodosByDay(LocalDate date, Member member) {
+    public List<TodoItem> getTodosByDay(LocalDate date, Long memberId) {
         LocalDateTime startAt = date.atStartOfDay();
-        LocalDateTime endAt = LocalDateTime.of(date, LocalTime.of(23, 59, 59, 999999999));
+        LocalDateTime endAt = LocalDateTime.of(date, LocalTime.of(23, 59, 59, 999999));
 
-        return getTodoItems(member, startAt, endAt);
+        return getTodoItems(memberId, startAt, endAt);
     }
 
-    public List<TodoItem> getTodosByWeek(LocalDate startOfWeek, Member member) {
+    public List<TodoItem> getTodosByWeek(LocalDate startOfWeek, Long memberId) {
         LocalDateTime startAt = startOfWeek.atStartOfDay();
         LocalDateTime endAt = LocalDateTime.of(
                 startOfWeek.plusDays(6),
-                LocalTime.of(23, 59, 59, 999999999)
+                LocalTime.of(23, 59, 59, 999999)
         );
 
-        return getTodoItems(member, startAt, endAt);
+        return getTodoItems(memberId, startAt, endAt);
     }
 
-    public List<TodoItem> getTodosByMonth(YearMonth yearMonth, Member member) {
+    public List<TodoItem> getTodosByMonth(YearMonth yearMonth, Long memberId) {
         LocalDateTime startAt = yearMonth.atDay(1).atStartOfDay();
         LocalDateTime endAt = LocalDateTime.of(
                 yearMonth.atEndOfMonth(),
-                LocalTime.of(23, 59, 59, 999999999)
+                LocalTime.of(23, 59, 59, 999999)
         );
 
-        return getTodoItems(member, startAt, endAt);
+        return getTodoItems(memberId, startAt, endAt);
     }
 
 
-    private List<TodoItem> getTodoItems(Member member, LocalDateTime startAt, LocalDateTime endAt) {
+    private List<TodoItem> getTodoItems(Long memberId, LocalDateTime startAt, LocalDateTime endAt) {
         return Stream.concat(
                 todoRepository
-                        .findSingleTodosByWriterIdAndDate(member.getId(), startAt, endAt)
+                        .findSingleTodosByWriterIdAndDate(memberId, startAt, endAt)
                         .stream()
                         .map(TodoItem::from),
                 todoInstanceRepository
-                        .findAllByWriterIdAndDate(member.getId(), startAt, endAt)
+                        .findAllByWriterIdAndDate(memberId, startAt, endAt)
                         .stream()
                         .map(TodoItem::from)
         ).toList();

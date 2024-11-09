@@ -31,9 +31,9 @@ public class FollowQueryService {
     private final FollowQueryRepository followQueryRepository;
 
     // 팔로우 요청들을 조회한다.
-    public PageItem<FollowRequestItem> getPendingFollowRequests(Member member, PagingCond pagingCond) {
+    public PageItem<FollowRequestItem> getPendingFollowRequests(Long memberId, PagingCond pagingCond) {
         PageRequest pageRequest = PageRequest.of(pagingCond.getPageNumber(), 10);
-        Page<FollowRequestItem> results = followQueryRepository.findPendingFollowRequestsWithPaging(member.getId(), pageRequest);
+        Page<FollowRequestItem> results = followQueryRepository.findPendingFollowRequestsWithPaging(memberId, pageRequest);
         return PageItem.from(results);
     }
 
