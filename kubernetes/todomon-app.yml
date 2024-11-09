@@ -1,0 +1,44 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: todomon-app-service
+spec:
+  selector:
+    app: todomon
+    tier: backend
+  type: LoadBalancer
+  ports:
+    - protocol: TCP
+      name: tomcat
+      port: 8080
+      targetPort: 8080
+    - protocol: TCP
+      name: metric
+      port: 9290
+      targetPort: 9290
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: todomon-app-deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: todomon
+  template:
+    metadata:
+      labels:
+        app: todomon
+        tier: backend
+    spec:
+      containers:
+        - name: todomon-app
+          image: maruhan/todomon-app:latest
+          imagePullPolicy: Always
+#          livenessProbe:
+#            httpGet:
+#              path: /
+#              port: 8080
+#            periodSeconds: 30
+#            initialDelaySeconds: 10

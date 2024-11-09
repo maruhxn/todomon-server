@@ -1,0 +1,52 @@
+# Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus-service
+spec:
+  selector:
+    app: prometheus
+    tier: monitor
+  ports:
+    - protocol: TCP
+      port: 9090
+      nodePort: 31909
+  type: NodePort
+---
+# Deployment.yml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prometheus
+      tier: monitor
+  template:
+    metadata:
+      labels:
+        app: prometheus
+        tier: monitor
+    spec:
+      containers:
+        - name: prometheus
+          image: prom/prometheus:latest
+          args:
+            - "--config.file=/etc/prometheus/prometheus.yml"
+            - "--storage.tsdb.path=/prometheus/"
+          ports:
+            - containerPort: 9090
+          volumeMounts:
+            - mountPath: /etc/prometheus
+              name: prometheus-config
+            - name: prometheus-storage
+              mountPath: /prometheus/
+
+      volumes:
+        - name: prometheus-config
+          configMap:
+            name: prometheus-config
+        - name: prometheus-storage
+          emptyDir: { }

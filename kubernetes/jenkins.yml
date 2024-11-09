@@ -1,0 +1,67 @@
+# jenkins-pv.yaml
+# Jenkins Persistent Volume and Persistent Volume Claim
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: jenkins-pv
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: /data/jenkins # 로컬 환경에서는 호스트 경로 지정이 필요합니다. 클라우드에서는 NFS나 클라우드 스토리지를 사용할 수 있습니다.
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: jenkins-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+---
+# Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: jenkins-service
+spec:
+  type: LoadBalancer # 외부 접근을 위해 LoadBalancer 또는 NodePort 사용
+  ports:
+    - port: 8080
+      targetPort: 8080
+  selector:
+    app: jenkins
+---
+# Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jenkins
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jenkins
+  template:
+    metadata:
+      labels:
+        app: jenkins
+    spec:
+      containers:
+        - name: jenkins
+          image: jenkins/jenkins:latest
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - name: jenkins-storage
+              mountPath: /var/jenkins_home
+      volumes:
+        - name: jenkins-storage
+          persistentVolumeClaim:
+            claimName: jenkins-pvc

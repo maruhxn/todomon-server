@@ -1,0 +1,69 @@
+# PVC
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-pvc
+spec:
+  #  volumeName: mysql-pv # 동적 프로비저닝을 사용할 것이므로 볼륨명 지정 필요 X
+  accessModes:
+    - ReadWriteOnce
+  volumeMode: Filesystem
+  storageClassName: standard
+  resources:
+    requests:
+      storage: 5Gi # 저장 용량
+---
+# Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-service
+spec:
+  selector:
+    app: mysql
+    tier: db
+  type: NodePort
+  ports:
+    - protocol: TCP
+      port: 3306
+      nodePort: 31000
+---
+# Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql-deployment
+spec:
+  replicas: 1 # MySQL은 상태가 중요한 애플리케이션이므로 보통 1개로 설정
+  selector:
+    matchLabels:
+      app: mysql
+      tier: db
+  template:
+    metadata:
+      labels:
+        app: mysql
+        tier: db
+    spec:
+      containers:
+        - name: mysql
+          image: mysql:8.0
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              value: "1234"
+            - name: MYSQL_DATABASE
+              value: "todomon"
+            - name: TZ
+              value: "Asia/Seoul"
+          args:
+            - --character-set-server=utf8mb4
+            - --collation-server=utf8mb4_unicode_ci
+          ports:
+            - containerPort: 3306
+          volumeMounts:
+            - mountPath: /var/lib/mysql
+              name: mysql-volume
+      volumes:
+        - name: mysql-volume
+          persistentVolumeClaim:
+            claimName: mysql-pvc
