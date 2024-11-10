@@ -1,0 +1,58 @@
+# PVC
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: redis-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  volumeMode: Filesystem
+  storageClassName: standard
+  resources:
+    requests:
+      storage: 1Gi # 저장 용량
+---
+# Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-service
+spec:
+  selector:
+    app: redis
+    tier: db
+  type: NodePort
+  ports:
+    - protocol: TCP
+      port: 6379
+      nodePort: 31001
+---
+# Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+      tier: db
+  template:
+    metadata:
+      labels:
+        app: redis
+        tier: db
+    spec:
+      containers:
+        - name: redis
+          image: redis:7.4
+          ports:
+            - containerPort: 6379
+          volumeMounts:
+            - mountPath: /data
+              name: redis-volume
+      volumes:
+        - name: redis-volume
+          persistentVolumeClaim:
+            claimName: redis-pvc
