@@ -1,13 +1,41 @@
-# jenkins-pv.yaml
-# Jenkins Persistent Volume and Persistent Volume Claim
-
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: jenkins
+  namespace: default
+---
+# jenkins-clusterrole.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: jenkins-cluster-role
+rules:
+  - apiGroups: [ "" ]
+    resources: [ "*" ]
+    verbs: [ "*" ]
+---
+# jenkins-clusterrolebinding.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: jenkins-clusterrolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: jenkins-cluster-role
+subjects:
+  - kind: ServiceAccount
+    name: jenkins
+    namespace: default
+---
+# PV
 apiVersion: v1
 kind: PersistentVolume
 metadata:
   name: jenkins-pv
 spec:
   capacity:
-    storage: 5Gi
+    storage: 10Gi
   accessModes:
     - ReadWriteOnce
   hostPath:
@@ -17,13 +45,13 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: jenkins-pvc
+  name: jenkins-pvc2
 spec:
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 5Gi
+      storage: 10Gi
 ---
 # Service
 apiVersion: v1
@@ -53,15 +81,32 @@ spec:
       labels:
         app: jenkins
     spec:
+      serviceAccountName: jenkins
       containers:
         - name: jenkins
           image: jenkins/jenkins:latest
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              memory: "2Gi"
+              cpu: "1"
+            limits:
+              memory: "4Gi"
+              cpu: "2"
+          securityContext:
+            runAsUser: 0
           ports:
             - containerPort: 8080
           volumeMounts:
             - name: jenkins-storage
               mountPath: /var/jenkins_home
+            - name: docker-sock
+              mountPath: /var/run/docker.sock
       volumes:
         - name: jenkins-storage
           persistentVolumeClaim:
-            claimName: jenkins-pvc
+            claimName: jenkins-pvc2
+        - name: docker-sock
+          hostPath:
+            path: /var/run/docker.sock
+            type: Socket
