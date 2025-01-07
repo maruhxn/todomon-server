@@ -1,12 +1,11 @@
 package com.maruhxn.todomon.core.global.auth.application;
 
+import com.maruhxn.todomon.core.global.auth.dto.MemberDTO;
 import com.maruhxn.todomon.core.global.auth.dto.TokenDto;
 import com.maruhxn.todomon.core.global.auth.model.TodomonOAuth2User;
-import com.maruhxn.todomon.core.global.error.ErrorCode;
-import com.maruhxn.todomon.core.global.error.exception.UnauthorizedException;
-import io.jsonwebtoken.*;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtParser;
+import io.jsonwebtoken.Jwts;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
@@ -18,11 +17,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Date;
 
-import static com.maruhxn.todomon.core.global.common.Constants.ACCESS_TOKEN_HEADER;
-import static com.maruhxn.todomon.core.global.common.Constants.REFRESH_TOKEN_HEADER;
-
 @Component
 public class JwtProvider {
+
+    public static final String BEARER_PREFIX = "Bearer ";
 
     @Value("${jwt.access-token.expiration}")
     private Long accessTokenExpiration;
@@ -32,7 +30,6 @@ public class JwtProvider {
 
     private SecretKey secretKey;
     private JwtParser jwtParser;
-    public static final String BEARER_PREFIX = "Bearer ";
 
     public JwtProvider(@Value("${jwt.secret-key}") String secretKey) {
         this.secretKey = new SecretKeySpec(secretKey.getBytes(StandardCharsets.UTF_8), Jwts.SIG.HS256.key().build().getAlgorithm());
@@ -42,13 +39,12 @@ public class JwtProvider {
     }
 
     public TokenDto createJwt(TodomonOAuth2User todomonOAuth2User) {
-
         String email = todomonOAuth2User.getEmail();
-
         String accessToken = generateAccessToken(todomonOAuth2User, new Date());
         String refreshToken = generateRefreshToken(email, new Date());
 
         return TokenDto.builder()
+                .email(email)
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
                 .build();
@@ -61,6 +57,7 @@ public class JwtProvider {
         String provider = todomonOAuth2User.getProvider();
         ArrayList<? extends GrantedAuthority> authorities =
                 (ArrayList<? extends GrantedAuthority>) todomonOAuth2User.getAuthorities();
+
         return Jwts.builder()
                 .subject(email)
                 .claim("id", id)
@@ -80,22 +77,6 @@ public class JwtProvider {
                 .expiration(new Date(now.getTime() + refreshTokenExpiration))
                 .signWith(secretKey)
                 .compact();
-    }
-
-    public void setHeader(HttpServletResponse response, TokenDto tokenDto) {
-        response.addHeader(ACCESS_TOKEN_HEADER, BEARER_PREFIX + tokenDto.getAccessToken());
-        response.addHeader(REFRESH_TOKEN_HEADER, BEARER_PREFIX + tokenDto.getRefreshToken());
-    }
-
-    /**
-     * 요청의 인증 헤더에 접근하여 accessToken을 추출
-     *
-     * @param request
-     * @return 추출된 token
-     */
-    public String resolveAccessToken(HttpServletRequest request) {
-        String bearerToken = request.getHeader(ACCESS_TOKEN_HEADER);
-        return getTokenFromBearer(bearerToken);
     }
 
     /**
@@ -143,24 +124,19 @@ public class JwtProvider {
         return getPayload(token).get("role", String.class);
     }
 
-    /**
-     * token을 전달받아 해당 토큰이 유효한지 검증
-     *
-     * @param token
-     */
-    public void validate(String token) {
-        try {
-            getPayload(token)
-                    .getExpiration()
-                    .after(new Date());
-        } catch (SecurityException e) {
-            throw new UnauthorizedException(ErrorCode.INVALID_TOKEN, "검증 정보가 올바르지 않습니다.");
-        } catch (MalformedJwtException e) {
-            throw new UnauthorizedException(ErrorCode.INVALID_TOKEN, "유효하지 않은 토큰입니다.");
-        } catch (ExpiredJwtException e) {
-            throw new UnauthorizedException(ErrorCode.INVALID_TOKEN, "기한이 만료된 토큰입니다.");
-        } catch (UnsupportedJwtException e) {
-            throw new UnauthorizedException(ErrorCode.INVALID_TOKEN, "지원되지 않는 토큰입니다.");
-        }
+    public MemberDTO extractMemberDTOFromAccessToken(String accessToken) {
+        Long id = this.getId(accessToken);
+        String username = this.getUsername(accessToken);
+        String email = this.getEmail(accessToken);
+        String role = this.getRole(accessToken);
+        String provider = this.getProvider(accessToken);
+
+        return MemberDTO.builder()
+                .id(id)
+                .username(username)
+                .email(email)
+                .role(role)
+                .provider(provider)
+                .build();
     }
 }
