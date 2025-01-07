@@ -15,7 +15,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.ColumnDefault;
-import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -107,6 +106,19 @@ public class Member extends BaseEntity {
         this.providerId = providerId;
         this.profileImageUrl = profileImageUrl;
         this.role = role;
+
+        initDiligence();
+    }
+
+    public static Member of(OAuth2ProviderUser oAuth2ProviderUser, Role role) {
+        return Member.builder()
+                .username(oAuth2ProviderUser.getUsername())
+                .email(oAuth2ProviderUser.getEmail())
+                .provider(OAuth2Provider.valueOf(oAuth2ProviderUser.getProvider().toUpperCase()))
+                .providerId(oAuth2ProviderUser.getProviderId())
+                .profileImageUrl(oAuth2ProviderUser.getProfileImageUrl())
+                .role(role)
+                .build();
     }
 
     public void updateIsSubscribed(boolean isSubscribed) {
@@ -182,14 +194,12 @@ public class Member extends BaseEntity {
         this.dailyAchievementCnt = 0L;
     }
 
-    public void updateProfile(String username, String newProfileImageUrl) {
-        if (StringUtils.hasText(username)) {
-            this.username = username;
-        }
+    public void updateUsername(String username) {
+        this.username = username;
+    }
 
-        if (StringUtils.hasText(newProfileImageUrl)) {
-            this.profileImageUrl = newProfileImageUrl;
-        }
+    public void updateProfileImageUrl(String newProfileImageUrl) {
+        this.profileImageUrl = newProfileImageUrl;
     }
 
     public Optional<Pet> getRepresentPet() {

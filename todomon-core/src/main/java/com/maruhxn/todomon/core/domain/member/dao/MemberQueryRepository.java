@@ -1,7 +1,7 @@
 package com.maruhxn.todomon.core.domain.member.dao;
 
-import com.maruhxn.todomon.core.domain.member.dto.response.ProfileDto;
-import com.maruhxn.todomon.core.domain.member.dto.response.SearchDto;
+import com.maruhxn.todomon.core.domain.member.dto.response.MemberSearchRes;
+import com.maruhxn.todomon.core.domain.member.dto.response.ProfileRes;
 import com.maruhxn.todomon.core.domain.pet.domain.QPet;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Projections;
@@ -25,10 +25,10 @@ public class MemberQueryRepository {
 
     private final JPAQueryFactory query;
 
-    public List<SearchDto> findMemberByKey(String key) {
+    public List<MemberSearchRes> findMemberByNameKey(String key) {
         return query
                 .select(
-                        Projections.fields(SearchDto.class,
+                        Projections.fields(MemberSearchRes.class,
                                 member.id.as("memberId"),
                                 member.username
                         )
@@ -39,12 +39,12 @@ public class MemberQueryRepository {
                 .fetch();
     }
 
-    public Optional<ProfileDto> getMemberProfileById(Long loginMemberId, Long memberId) {
+    public Optional<ProfileRes> getMemberProfileById(Long loginMemberId, Long memberId) {
         QPet representPet = new QPet("representPet");
 
-        ProfileDto profileDto = query
+        ProfileRes profileRes = query
                 .select(
-                        Projections.fields(ProfileDto.class,
+                        Projections.fields(ProfileRes.class,
                                 member.id,
                                 member.username,
                                 member.email,
@@ -52,12 +52,12 @@ public class MemberQueryRepository {
                                 member.isSubscribed,
                                 diligence.level,
                                 diligence.gauge,
-                                Projections.fields(ProfileDto.TitleNameItem.class,
+                                Projections.fields(ProfileRes.TitleNameItem.class,
                                         titleName.id,
                                         titleName.name,
                                         titleName.color
                                 ).as("title"),
-                                Projections.fields(ProfileDto.RepresentPetItem.class,
+                                Projections.fields(ProfileRes.RepresentPetItem.class,
                                         representPet.id,
                                         representPet.name,
                                         representPet.rarity,
@@ -65,7 +65,7 @@ public class MemberQueryRepository {
                                         representPet.color,
                                         representPet.level
                                 ).as("representPetItem"),
-                                Projections.fields(ProfileDto.FollowInfoItem.class,
+                                Projections.fields(ProfileRes.FollowInfoItem.class,
                                         ExpressionUtils.as(
                                                 JPAExpressions.select(follow.countDistinct())
                                                         .from(follow)
@@ -128,15 +128,11 @@ public class MemberQueryRepository {
                 .where(member.id.eq(memberId))
                 .fetchOne();
 
-        if (profileDto != null) {
-            profileDto.setTitleNameItemToNullIfIsEmpty();
-            profileDto.setRepresentPetItemToNullIfIsEmpty();
+        if (profileRes != null) {
+            profileRes.setTitleNameItemToNullIfIsEmpty();
+            profileRes.setRepresentPetItemToNullIfIsEmpty();
         }
 
-//        if (loginMemberId.equals(memberId)) {
-//            profileDto.setIsFollowingToNull();
-//        }
-
-        return Optional.ofNullable(profileDto);
+        return Optional.ofNullable(profileRes);
     }
 }

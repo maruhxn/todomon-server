@@ -7,7 +7,7 @@ import com.maruhxn.todomon.core.domain.member.dao.TitleNameRepository;
 import com.maruhxn.todomon.core.domain.member.domain.Member;
 import com.maruhxn.todomon.core.domain.member.domain.TitleName;
 import com.maruhxn.todomon.core.domain.member.dto.request.UpdateMemberProfileReq;
-import com.maruhxn.todomon.core.domain.member.dto.response.ProfileDto;
+import com.maruhxn.todomon.core.domain.member.dto.response.ProfileRes;
 import com.maruhxn.todomon.core.domain.pet.dao.PetRepository;
 import com.maruhxn.todomon.core.domain.pet.domain.Pet;
 import com.maruhxn.todomon.core.domain.pet.domain.PetType;
@@ -168,7 +168,7 @@ class MemberServiceTest extends IntegrationTestSupport {
         followRepository.saveAll(List.of(followed1, followed2, following1, following2));
 
         // when
-        ProfileDto profile = memberService.getProfile(tester2.getId(), tester1.getId());
+        ProfileRes profile = memberService.getProfile(tester2.getId(), tester1.getId());
 
         // then
         assertThat(profile)

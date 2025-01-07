@@ -6,13 +6,13 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-public class SearchDto {
+public class MemberSearchRes {
 
     private Long memberId;
     private String username;
 
     @Builder
-    public SearchDto(Long memberId, String username) {
+    public MemberSearchRes(Long memberId, String username) {
         this.memberId = memberId;
         this.username = username;
     }

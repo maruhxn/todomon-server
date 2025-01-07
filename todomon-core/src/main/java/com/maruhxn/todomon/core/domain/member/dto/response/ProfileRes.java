@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-public class ProfileDto {
+public class ProfileRes {
 
     private Long id;
     private String username;
@@ -23,7 +23,7 @@ public class ProfileDto {
     private FollowInfoItem followInfo;
 
     @Builder
-    public ProfileDto(Long id, String username, String email, String profileImageUrl, boolean isSubscribed, int level, double gauge, TitleNameItem title, RepresentPetItem representPetItem, FollowInfoItem followInfo) {
+    public ProfileRes(Long id, String username, String email, String profileImageUrl, boolean isSubscribed, int level, double gauge, TitleNameItem title, RepresentPetItem representPetItem, FollowInfoItem followInfo) {
         this.id = id;
         this.username = username;
         this.email = email;
