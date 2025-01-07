@@ -107,7 +107,7 @@ public class Member extends BaseEntity {
         this.profileImageUrl = profileImageUrl;
         this.role = role;
 
-        initDiligence();
+        this.initDiligence();
     }
 
     public static Member of(OAuth2ProviderUser oAuth2ProviderUser, Role role) {

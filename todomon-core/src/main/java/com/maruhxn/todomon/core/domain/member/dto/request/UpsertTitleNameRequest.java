@@ -2,6 +2,7 @@ package com.maruhxn.todomon.core.domain.member.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.maruhxn.todomon.core.domain.item.dto.request.ItemEffectRequest;
+import com.maruhxn.todomon.core.domain.member.domain.TitleName;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AccessLevel;
@@ -25,5 +26,12 @@ public class UpsertTitleNameRequest implements ItemEffectRequest {
     public UpsertTitleNameRequest(String name, String color) {
         this.name = name;
         this.color = color;
+    }
+
+    public TitleName toEntity() {
+        return TitleName.builder()
+                .name(this.getName())
+                .color(this.getColor())
+                .build();
     }
 }
