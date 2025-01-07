@@ -1,6 +1,7 @@
 package com.maruhxn.todomon.core.domain.member.application;
 
 import com.maruhxn.todomon.core.domain.auth.dao.RefreshTokenRepository;
+import com.maruhxn.todomon.core.domain.auth.dto.UserInfoDto;
 import com.maruhxn.todomon.core.domain.member.dao.MemberQueryRepository;
 import com.maruhxn.todomon.core.domain.member.dao.MemberRepository;
 import com.maruhxn.todomon.core.domain.member.domain.Member;
@@ -31,6 +32,13 @@ public class MemberService {
     private final RefreshTokenRepository refreshTokenRepository;
 
     private final FileService fileService;
+
+    @Transactional(readOnly = true)
+    public UserInfoDto getMemberInfo(Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_MEMBER));
+        return UserInfoDto.from(member);
+    }
 
     @Transactional(readOnly = true)
     public Member findMemberByEmail(String email) {
