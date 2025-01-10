@@ -11,7 +11,7 @@ import com.maruhxn.todomon.core.domain.member.domain.Member;
 import com.maruhxn.todomon.core.domain.member.dto.request.UpsertTitleNameRequest;
 import com.maruhxn.todomon.core.domain.pet.dao.PetRepository;
 import com.maruhxn.todomon.core.domain.pet.domain.Pet;
-import com.maruhxn.todomon.core.domain.pet.dto.request.ChangePetNameRequest;
+import com.maruhxn.todomon.core.domain.pet.dto.request.ChangePetNameReq;
 import com.maruhxn.todomon.core.domain.purchase.dao.OrderRepository;
 import com.maruhxn.todomon.core.domain.purchase.domain.Order;
 import com.maruhxn.todomon.core.global.auth.model.Role;
@@ -349,7 +349,7 @@ class ItemServiceTest extends IntegrationTestSupport {
         member.addPet(pet);
         petRepository.save(pet);
 
-        ChangePetNameRequest req = ChangePetNameRequest.builder()
+        ChangePetNameReq req = ChangePetNameReq.builder()
                 .petId(pet.getId())
                 .name("TEST")
                 .color("#000000")

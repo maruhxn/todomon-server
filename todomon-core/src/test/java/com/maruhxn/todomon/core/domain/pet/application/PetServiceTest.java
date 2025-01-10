@@ -157,7 +157,7 @@ class PetServiceTest extends IntegrationTestSupport {
                 .petType(PetType.getRandomPetType())
                 .rarity(Rarity.COMMON)
                 .build();
-        pet.increaseGauge(99.0);
+        pet.increaseGaugeAndGetEvolutionGap(99.0);
         member.addPet(pet);
         member.addFood(10);
         saveMemberToContext(member);
@@ -183,10 +183,10 @@ class PetServiceTest extends IntegrationTestSupport {
                 .build();
         String prevAppearance = pet.getAppearance();
         for (int i = 0; i < 28; i++) {
-            pet.levelUp();
+            pet.increaseGaugeAndGetEvolutionGap(100.0);
         }
 
-        pet.increaseGauge(80.0);
+        pet.increaseGaugeAndGetEvolutionGap(80.0);
         member.addPet(pet);
         member.addFood(10);
         saveMemberToContext(member);

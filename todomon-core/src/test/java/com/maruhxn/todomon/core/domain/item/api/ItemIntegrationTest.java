@@ -10,7 +10,7 @@ import com.maruhxn.todomon.core.domain.member.dao.MemberRepository;
 import com.maruhxn.todomon.core.domain.member.dto.request.UpsertTitleNameRequest;
 import com.maruhxn.todomon.core.domain.pet.dao.PetRepository;
 import com.maruhxn.todomon.core.domain.pet.domain.Pet;
-import com.maruhxn.todomon.core.domain.pet.dto.request.ChangePetNameRequest;
+import com.maruhxn.todomon.core.domain.pet.dto.request.ChangePetNameReq;
 import com.maruhxn.todomon.core.domain.purchase.dao.OrderRepository;
 import com.maruhxn.todomon.core.global.error.ErrorCode;
 import com.maruhxn.todomon.util.ControllerIntegrationTestSupport;
@@ -73,7 +73,7 @@ class ItemIntegrationTest extends ControllerIntegrationTestSupport {
         member.addPet(pet);
         petRepository.save(pet);
 
-        ChangePetNameRequest req = ChangePetNameRequest.builder()
+        ChangePetNameReq req = ChangePetNameReq.builder()
                 .petId(pet.getId())
                 .name("TEST")
                 .color("#000000")
@@ -117,7 +117,7 @@ class ItemIntegrationTest extends ControllerIntegrationTestSupport {
         member.addPet(pet);
         petRepository.save(pet);
 
-        ChangePetNameRequest req = ChangePetNameRequest.builder()
+        ChangePetNameReq req = ChangePetNameReq.builder()
                 .petId(pet.getId())
                 .name("TEST")
                 .color("#000000")

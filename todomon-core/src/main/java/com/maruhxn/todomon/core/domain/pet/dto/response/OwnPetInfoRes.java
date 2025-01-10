@@ -13,20 +13,20 @@ import java.util.List;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class PetInfoDto {
+public class OwnPetInfoRes {
     private Long representPetId;
     private int petHouseSize;
     private List<MyPetItem> myPets;
 
     @Builder
-    public PetInfoDto(Long representPetId, int petHouseSize, List<MyPetItem> myPets) {
+    public OwnPetInfoRes(Long representPetId, int petHouseSize, List<MyPetItem> myPets) {
         this.representPetId = representPetId;
         this.petHouseSize = petHouseSize;
         this.myPets = myPets;
     }
 
-    public static PetInfoDto of(Member member, List<Pet> pets) {
-        return PetInfoDto.builder()
+    public static OwnPetInfoRes of(Member member, List<Pet> pets) {
+        return OwnPetInfoRes.builder()
                 .representPetId(member.getRepresentPet().map(Pet::getId).orElse(null))
                 .petHouseSize(member.getPetHouseSize())
                 .myPets(pets.stream().map(MyPetItem::from).toList())

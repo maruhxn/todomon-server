@@ -1,9 +1,7 @@
 package com.maruhxn.todomon.core.domain.pet.domain;
 
 import com.maruhxn.todomon.core.domain.member.domain.Member;
-import com.maruhxn.todomon.core.domain.pet.dto.request.ChangePetNameRequest;
 import com.maruhxn.todomon.core.global.common.BaseEntity;
-import io.jsonwebtoken.lang.Strings;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -58,30 +56,41 @@ public class Pet extends BaseEntity {
                 .build();
     }
 
-    public void changeName(ChangePetNameRequest req) {
-        this.name = req.getName();
-        if (Strings.hasText(req.getColor())) this.color = req.getColor();
+    public void changeName(String name) {
+        this.name = name;
     }
 
-    public void levelUp() {
-        this.level++;
-        if (level % 30 == 0 && evolutionCnt < petType.getEvolutionaryCnt()) {
-            evolution();
+    public void updateColor(String color) {
+        this.color = color;
+    }
+
+    public int increaseGaugeAndGetEvolutionGap(double gauge) {
+        this.gauge += gauge;
+
+        int evolutionGap = 0;
+        while (this.gauge >= 100) { // 게이지가 100 이상이 될 경우, 레벨이 증가한다.
+            this.level++;
+            this.gauge -= 100;
+
+            if (this.isSatisfyEvolutionCond()) {
+                this.evolution();
+                ++evolutionGap;
+            }
         }
+
+        return evolutionGap;
+    }
+
+    private boolean isSatisfyEvolutionCond() {
+        return level % 30 == 0 && evolutionCnt < petType.getEvolutionaryCnt();
     }
 
     private void evolution() {
-        this.name = !this.name.equals(petType.getEvolutionStage(this.evolutionCnt).getName()) ? this.name : petType.getEvolutionStage(this.evolutionCnt + 1).getName();
+        this.name = !this.name.equals(petType.getEvolutionStage(this.evolutionCnt).getName()) ?
+                this.name :
+                petType.getEvolutionStage(this.evolutionCnt + 1).getName();
         this.evolutionCnt++;
         this.appearance = petType.getEvolutionStage(this.evolutionCnt).getForm();
-    }
-
-    public void increaseGauge(double gauge) {
-        this.gauge += gauge;
-        while (this.gauge >= 100) { // 게이지가 100 이상이 될 경우, 레벨이 증가한다.
-            levelUp();
-            this.gauge -= 100;
-        }
     }
 
     public void setOwner(Member member) {

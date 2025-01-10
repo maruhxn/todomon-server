@@ -217,4 +217,8 @@ public class Member extends BaseEntity {
     public void subtractStarPoint(Long totalPrice) {
         this.starPoint -= totalPrice;
     }
+
+    public boolean isInvalidFoodCnt(Long foodCnt) {
+        return foodCnt > this.foodCnt;
+    }
 }

@@ -19,7 +19,6 @@ public class PetController {
 
     @GetMapping
     public DataResponse<List<PetDexItem>> getAllPetTypes() {
-        List<PetDexItem> allPetTypes = petQueryService.findAllPetTypes();
-        return DataResponse.of("모든 종류 펫 조회 성공", allPetTypes);
+        return DataResponse.of("모든 종류 펫 조회 성공", petQueryService.findAllPetTypes());
     }
 }

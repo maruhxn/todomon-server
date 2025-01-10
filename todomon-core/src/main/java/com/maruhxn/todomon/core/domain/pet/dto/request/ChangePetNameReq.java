@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @JsonTypeName("changePetName")
-public class ChangePetNameRequest implements ItemEffectRequest {
+public class ChangePetNameReq implements ItemEffectRequest {
 
     @NotNull(message = "펫 아이디는 비어있을 수 없습니다.")
     private Long petId;
@@ -23,7 +23,7 @@ public class ChangePetNameRequest implements ItemEffectRequest {
     private String color;
 
     @Builder
-    public ChangePetNameRequest(Long petId, String name, String color) {
+    public ChangePetNameReq(Long petId, String name, String color) {
         this.petId = petId;
         this.name = name;
         this.color = color;

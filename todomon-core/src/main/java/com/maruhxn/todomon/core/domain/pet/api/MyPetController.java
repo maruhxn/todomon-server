@@ -8,7 +8,6 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,6 +21,7 @@ public class MyPetController {
     private final RepresentPetService representPetService;
 
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     public BaseResponse createPet(
             @AuthenticationPrincipal TodomonOAuth2User todomonOAuth2User
     ) {
