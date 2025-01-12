@@ -1,10 +1,10 @@
 package com.maruhxn.todomon.core.domain.item.api;
 
-import com.maruhxn.todomon.core.domain.item.dto.request.ItemEffectRequest;
-import com.maruhxn.todomon.core.domain.item.dto.response.InventoryItemDto;
 import com.maruhxn.todomon.core.domain.item.application.ItemService;
 import com.maruhxn.todomon.core.domain.item.dto.request.CreateItemRequest;
+import com.maruhxn.todomon.core.domain.item.dto.request.ItemEffectRequest;
 import com.maruhxn.todomon.core.domain.item.dto.request.UpdateItemRequest;
+import com.maruhxn.todomon.core.domain.item.dto.response.InventoryItemDto;
 import com.maruhxn.todomon.core.domain.item.dto.response.ItemDto;
 import com.maruhxn.todomon.core.global.auth.model.TodomonOAuth2User;
 import com.maruhxn.todomon.core.global.common.dto.response.BaseResponse;
@@ -34,22 +34,19 @@ public class ItemController {
 
     @GetMapping
     public DataResponse<List<ItemDto>> getAllItems() {
-        List<ItemDto> items = itemService.getAllItems();
-        return DataResponse.of("아이템 전체 조회 성공", items);
+        return DataResponse.of("아이템 전체 조회 성공", itemService.getAllItems());
     }
 
     @GetMapping("/inventory")
     public DataResponse<List<InventoryItemDto>> getInventoryItems(
             @AuthenticationPrincipal TodomonOAuth2User todomonOAuth2User
     ) {
-        List<InventoryItemDto> items = itemService.getInventoryItems(todomonOAuth2User.getId());
-        return DataResponse.of("인벤토리 조회 성공", items);
+        return DataResponse.of("인벤토리 조회 성공", itemService.getInventoryItems(todomonOAuth2User.getId()));
     }
 
     @GetMapping("/{itemId}")
     public DataResponse<ItemDto> getItem(@PathVariable Long itemId) {
-        ItemDto item = itemService.getItemDto(itemId);
-        return DataResponse.of("아이템 조회 성공", item);
+        return DataResponse.of("아이템 조회 성공", itemService.getItemDto(itemId));
     }
 
     @PatchMapping("/{itemId}")

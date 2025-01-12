@@ -1,14 +1,14 @@
-package com.maruhxn.todomon.core.domain.purchase.application;
+package com.maruhxn.todomon.core.domain.purchase.application.strategy;
 
 import com.maruhxn.todomon.core.domain.item.domain.Item;
 import com.maruhxn.todomon.core.domain.item.domain.MoneyType;
 import com.maruhxn.todomon.core.domain.member.domain.Member;
+import com.maruhxn.todomon.core.domain.purchase.dao.PaymentRepository;
 import com.maruhxn.todomon.core.domain.purchase.domain.Order;
 import com.maruhxn.todomon.core.domain.purchase.domain.PaymentStatus;
 import com.maruhxn.todomon.core.domain.purchase.domain.TodomonPayment;
-import com.maruhxn.todomon.core.domain.purchase.dto.request.PaymentRequest;
-import com.maruhxn.todomon.core.domain.purchase.dto.request.PreparePaymentRequest;
-import com.maruhxn.todomon.core.domain.purchase.dao.PaymentRepository;
+import com.maruhxn.todomon.core.domain.purchase.dto.request.PaymentReq;
+import com.maruhxn.todomon.core.domain.purchase.dto.request.PreparePaymentReq;
 import com.maruhxn.todomon.core.global.error.ErrorCode;
 import com.maruhxn.todomon.core.global.error.exception.BadRequestException;
 import com.maruhxn.todomon.core.global.error.exception.InternalServerException;
@@ -33,7 +33,7 @@ public class RealMoneyPurchaseStrategy implements PurchaseStrategy {
     private final PaymentRepository paymentRepository;
 
     @Override
-    public void preValidate(Member member, Item item, PreparePaymentRequest req) throws Exception {
+    public void preValidate(Member member, Item item, PreparePaymentReq req) throws Exception {
         if (isNotRealMoneyItem(item)) throw new BadRequestException(ErrorCode.BAD_REQUEST);
         PrepareData prepareData = new PrepareData(req.getMerchant_uid(), req.getAmount());
         IamportResponse<Prepare> response = iamportClient.postPrepare(prepareData);
@@ -45,7 +45,7 @@ public class RealMoneyPurchaseStrategy implements PurchaseStrategy {
     }
 
     @Override
-    public void postValidate(Member member, Order order, PaymentRequest req) throws Exception {
+    public void postValidate(Member member, Order order, PaymentReq req) throws Exception {
         if (req.getImp_uid() == null)
             throw new BadRequestException(ErrorCode.BAD_REQUEST, "포트원 결제 아이디 값은 비어있을 수 없습니다.");
         if (isNotRealMoneyItem(order.getItem())) throw new BadRequestException(ErrorCode.BAD_REQUEST);
@@ -53,17 +53,12 @@ public class RealMoneyPurchaseStrategy implements PurchaseStrategy {
         IamportResponse<Payment> response = iamportClient.paymentByImpUid(req.getImp_uid());
         Payment payment = response.getResponse();
 
-        TodomonPayment todomonPayment = TodomonPayment.builder()
-                .member(member)
-                .impUid(req.getImp_uid())
-                .order(order)
-                .build();
+        TodomonPayment todomonPayment = TodomonPayment.of(member, order, req.getImp_uid());
 
         if (!Objects.equals(payment.getAmount(), new BigDecimal(order.getTotalPrice()))) {
             todomonPayment.updateStatus(PaymentStatus.FAILED);
             throw new BadRequestException(ErrorCode.INVALID_PAYMENT_AMOUNT_ERROR);
         }
-
 
         // 결제 정보 저장
         paymentRepository.save(todomonPayment);

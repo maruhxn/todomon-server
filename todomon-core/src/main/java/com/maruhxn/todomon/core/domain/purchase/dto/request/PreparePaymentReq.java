@@ -11,7 +11,7 @@ import java.math.BigDecimal;
 
 @Getter
 @NoArgsConstructor
-public class PreparePaymentRequest {
+public class PreparePaymentReq {
 
     @NotEmpty(message = "주문 번호는 비어있을 수 없습니다.")
     private String merchant_uid; // 주문번호
@@ -28,7 +28,7 @@ public class PreparePaymentRequest {
     private BigDecimal amount;
 
     @Builder
-    public PreparePaymentRequest(String merchant_uid, BigDecimal amount, Long quantity, Long itemId) {
+    public PreparePaymentReq(String merchant_uid, BigDecimal amount, Long quantity, Long itemId) {
         this.merchant_uid = merchant_uid;
         this.amount = amount;
         this.quantity = quantity;

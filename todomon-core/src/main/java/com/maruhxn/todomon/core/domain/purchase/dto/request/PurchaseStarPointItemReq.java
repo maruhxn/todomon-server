@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-public class PurchaseStarPointItemRequest {
+public class PurchaseStarPointItemReq {
 
     @NotEmpty(message = "주문 번호는 비어있을 수 없습니다.")
     private String merchant_uid;
@@ -29,19 +29,19 @@ public class PurchaseStarPointItemRequest {
     private Long amount;
 
     @Builder
-    public PurchaseStarPointItemRequest(String merchant_uid, Long itemId, Long quantity, Long amount) {
+    public PurchaseStarPointItemReq(String merchant_uid, Long itemId, Long quantity, Long amount) {
         this.merchant_uid = merchant_uid;
         this.itemId = itemId;
         this.quantity = quantity;
         this.amount = amount;
     }
 
-    public static StarPointPaymentHistory toEntity(Member member, PurchaseStarPointItemRequest request) {
+    public StarPointPaymentHistory toEntity(Member member) {
         return StarPointPaymentHistory.builder()
-                .merchantUid(request.getMerchant_uid())
-                .itemId(request.getItemId())
-                .quantity(request.getQuantity())
-                .amount(request.getAmount())
+                .merchantUid(this.getMerchant_uid())
+                .itemId(this.getItemId())
+                .quantity(this.getQuantity())
+                .amount(this.getAmount())
                 .member(member)
                 .build();
     }

@@ -28,23 +28,19 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ItemService {
 
-
     private final ItemRepository itemRepository;
     private final MemberRepository memberRepository;
     private final ApplicationContext applicationContext;
     private final InventoryItemRepository inventoryItemRepository;
-    private final InventoryItemService inventoryItemService;
-
 
     public void createItem(CreateItemRequest req) {
-        Item item = CreateItemRequest.toEntity(req);
-        itemRepository.save(item);
+        itemRepository.save(CreateItemRequest.toEntity(req));
     }
 
     @Transactional(readOnly = true)
     public List<ItemDto> getAllItems() {
-        List<Item> items = itemRepository.findAll();
-        return items.stream().map(ItemDto::from).toList();
+        return itemRepository.findAll().stream()
+                .map(ItemDto::from).toList();
     }
 
     @Transactional(readOnly = true)
@@ -55,9 +51,16 @@ public class ItemService {
         return ItemDto.from(findItem);
     }
 
+    @Transactional(readOnly = true)
     public Item getItem(Long itemId) {
         return itemRepository.findById(itemId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_ITEM));
+    }
+
+    @Transactional(readOnly = true)
+    public List<InventoryItemDto> getInventoryItems(Long memberId) {
+        return inventoryItemRepository.findAllByMember_Id(memberId).stream()
+                .map(InventoryItemDto::from).toList();
     }
 
     public void updateItem(Long itemId, UpdateItemRequest req) {
@@ -74,10 +77,43 @@ public class ItemService {
         itemRepository.delete(findItem);
     }
 
+    public void useInventoryItem(Long memberId, String itemName, ItemEffectRequest req) {
+        Member findMember = memberRepository.findById(memberId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_MEMBER));
+
+        InventoryItem findInventoryItem = inventoryItemRepository.findByMember_IdAndItem_Name(memberId, itemName)
+                .orElseThrow(() -> new ForbiddenException(ErrorCode.FORBIDDEN, itemName + "이(가) 없습니다."));
+
+        Item targetItem = findInventoryItem.getItem();
+
+        if (this.isPremiumAndMemberSubscription(targetItem, findMember)) {
+            throw new ForbiddenException(ErrorCode.NOT_SUBSCRIPTION);
+        }
+
+        this.applyItemEffect(findMember, targetItem, req);
+
+        this.consumeItem(findInventoryItem);
+    }
+
+    private boolean isPremiumAndMemberSubscription(Item item, Member findMember) {
+        return item.getIsPremium() && !findMember.isSubscribed();
+    }
+
+    private void applyItemEffect(Member member, Item item, ItemEffectRequest request) {
+        String effectName = item.getEffectName();
+        ItemEffect itemEffect = (ItemEffect) applicationContext.getBean(effectName);
+        itemEffect.applyEffect(member, request);
+    }
+
+    private void consumeItem(InventoryItem inventoryItem) {
+        if (inventoryItem.getQuantity() <= 1) inventoryItemRepository.delete(inventoryItem);
+        else inventoryItem.decreaseQuantity();
+    }
+
     public void postPurchase(Member member, Order order) {
         Item purchasedItem = order.getItem();
 
-        if (purchasedItem.getIsPremium() && !member.isSubscribed()) {
+        if (this.isPremiumAndMemberSubscription(purchasedItem, member)) {
             throw new ForbiddenException(ErrorCode.NOT_SUBSCRIPTION);
         }
 
@@ -100,35 +136,9 @@ public class ItemService {
             case IMMEDIATE_EFFECT -> {
                 // 즉시 효과 적용
                 for (int i = 0; i < order.getQuantity(); i++) {
-                    applyItemEffect(member, purchasedItem, null);
+                    this.applyItemEffect(member, purchasedItem, null);
                 }
             }
         }
-    }
-
-    private void applyItemEffect(Member member, Item item, ItemEffectRequest request) {
-        String effectName = item.getEffectName();
-        ItemEffect itemEffect = (ItemEffect) applicationContext.getBean(effectName);
-        itemEffect.applyEffect(member, request);
-    }
-
-    public void useInventoryItem(Long memberId, String itemName, ItemEffectRequest req) {
-        Member findMember = memberRepository.findById(memberId)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_MEMBER));
-
-        InventoryItem findInventoryItem = inventoryItemService.getInventoryItem(memberId, itemName);
-
-        if (findInventoryItem.getItem().getIsPremium() && !findMember.isSubscribed()) {
-            throw new ForbiddenException(ErrorCode.NOT_SUBSCRIPTION);
-        }
-
-        applyItemEffect(findMember, findInventoryItem.getItem(), req);
-
-        inventoryItemService.consumeItem(findInventoryItem);
-    }
-
-    public List<InventoryItemDto> getInventoryItems(Long memberId) {
-        List<InventoryItem> items = inventoryItemRepository.findAllByMember_Id(memberId);
-        return items.stream().map(InventoryItemDto::from).toList();
     }
 }

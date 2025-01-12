@@ -50,7 +50,19 @@ public class Order extends BaseEntity {
         this.item = item;
     }
 
+    public static Order of(Item item, Member member, Long quantity, String merchantUid) {
+        return Order.builder()
+                .item(item)
+                .member(member)
+                .totalPrice(item.getPrice() * quantity)
+                .quantity(quantity)
+                .merchantUid(merchantUid)
+                .moneyType(item.getMoneyType())
+                .build();
+    }
+
     public void updateStatus(OrderStatus orderStatus) {
         this.orderStatus = orderStatus;
     }
+
 }
