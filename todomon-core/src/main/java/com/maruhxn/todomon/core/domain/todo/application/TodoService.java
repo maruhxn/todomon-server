@@ -68,68 +68,27 @@ public class TodoService {
         validateUpdateReq(req);
 
         if (params.getIsInstance()) {
-            TodoInstance todoInstance = todoInstanceRepository.findTodoInstanceWithTodo(objectId)
-                    .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_TODO));
-            switch (params.getTargetType()) {
-                case THIS_TASK -> {
-                    // 반복 정보 수정은 ALL_TASKS 타입만 가능
-                    if (req.getRepeatInfoReqItem() != null) {
-                        throw new BadRequestException(ErrorCode.BAD_REQUEST, "전체 인스턴스에 대해서만 반복 정보 수정이 가능합니다.");
-                    }
-
-                    if (req.getEndAt() == null && todoInstance.getEndAt().isBefore(req.getStartAt())
-                            || req.getStartAt() == null && todoInstance.getStartAt().isAfter(req.getEndAt())
-                    ) {
-                        throw new BadRequestException(ErrorCode.BAD_REQUEST, "시작 시각은 종료 시각보다 이전이어야 합니다.");
-                    }
-
-                    todoInstance.update(req);
-                }
-                case ALL_TASKS -> {
-                    // 시간 정보 수정은 THIS_TASK 타입만 가능
-                    if (req.getStartAt() != null || req.getEndAt() != null) {
-                        throw new BadRequestException(ErrorCode.BAD_REQUEST, "시간 정보 수정은 단일 인스턴스에 대해서만 수정 가능합니다.");
-                    }
-
-                    Todo todo = todoInstance.getTodo();
-                    todo.update(req); // todo 먼저 업데이트
-                    todoInstance.update(req);
-
-                    if (req.getRepeatInfoReqItem() != null) {
-                        RepeatInfo oldRepeatInfo = todo.getRepeatInfo();
-                        if (oldRepeatInfo != null) {
-                            todo.setRepeatInfo(null);
-                            todo.setTodoInstances(null);
-                            repeatInfoService.deleteRepeatInfo(oldRepeatInfo);
-                            todoInstanceRepository.deleteAllByTodo_Id(todo.getId());
-                        }
-                        todo.updateEndAtTemporally();
-                        RepeatInfo repeatInfo = repeatInfoService.createRepeatInfo(req.getRepeatInfoReqItem());
-                        todo.setRepeatInfo(repeatInfo);
-                        todoInstanceService.generateAndSaveInstances(todo);
-                    } else {
-                        List<TodoInstance> todoInstances = todoInstanceRepository.findAllByTodo_Id(todoInstance.getTodo().getId());
-                        todoInstances.forEach(instance -> instance.update(req));
-                    }
-                }
-            }
+            todoInstanceService.updateTodoInstance(objectId, params, req);
         } else {
-            Todo findTodo = todoRepository.findById(objectId)
-                    .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_TODO));
-
-            findTodo.update(req);
-
-            if (req.getRepeatInfoReqItem() != null) {
-                RepeatInfo repeatInfo = repeatInfoService.createRepeatInfo(req.getRepeatInfoReqItem());
-                findTodo.setRepeatInfo(repeatInfo);
-                todoInstanceService.generateAndSaveInstances(findTodo);
-            }
+            this.updateTodo(objectId, req);
         }
     }
 
     private static void validateUpdateReq(UpdateTodoReq req) {
         if (req.getContent() == null && req.getIsAllDay() == null && req.getRepeatInfoReqItem() == null) {
             throw new BadRequestException(ErrorCode.VALIDATION_ERROR, "수정할 데이터를 넘겨주세요");
+        }
+    }
+
+    private void updateTodo(Long objectId, UpdateTodoReq req) {
+        Todo findTodo = todoRepository.findById(objectId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_TODO));
+
+        findTodo.update(req);
+
+        if (req.getRepeatInfoReqItem() != null) {
+            repeatInfoService.updateRepeatInfo(req, findTodo);
+            todoInstanceService.generateAndSaveInstances(findTodo);
         }
     }
 
