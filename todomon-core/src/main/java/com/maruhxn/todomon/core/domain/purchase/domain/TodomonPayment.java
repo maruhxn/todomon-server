@@ -31,11 +31,19 @@ public class TodomonPayment extends BaseEntity {
     private Long amount;
 
     @Builder
-    public TodomonPayment(Member member, Order order, String impUid, Long amount) {
+    protected TodomonPayment(Member member, Order order, String impUid, Long amount) {
         this.member = member;
         this.order = order;
         this.impUid = impUid;
         this.amount = amount;
+    }
+
+    public static TodomonPayment of(Member member, Order order, String impUid) {
+        return TodomonPayment.builder()
+                .member(member)
+                .order(order)
+                .impUid(impUid)
+                .build();
     }
 
     public void updateStatus(PaymentStatus status) {
