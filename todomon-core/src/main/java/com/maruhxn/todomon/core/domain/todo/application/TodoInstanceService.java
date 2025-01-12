@@ -1,5 +1,6 @@
 package com.maruhxn.todomon.core.domain.todo.application;
 
+import com.maruhxn.todomon.core.domain.member.domain.Member;
 import com.maruhxn.todomon.core.domain.todo.application.strategy.RepeatInfoStrategy;
 import com.maruhxn.todomon.core.domain.todo.dao.TodoInstanceRepository;
 import com.maruhxn.todomon.core.domain.todo.domain.RepeatInfo;
@@ -7,6 +8,7 @@ import com.maruhxn.todomon.core.domain.todo.domain.Todo;
 import com.maruhxn.todomon.core.domain.todo.domain.TodoInstance;
 import com.maruhxn.todomon.core.domain.todo.dto.request.UpdateAndDeleteTodoQueryParams;
 import com.maruhxn.todomon.core.domain.todo.dto.request.UpdateTodoReq;
+import com.maruhxn.todomon.core.domain.todo.dto.request.UpdateTodoStatusReq;
 import com.maruhxn.todomon.core.global.error.ErrorCode;
 import com.maruhxn.todomon.core.global.error.exception.BadRequestException;
 import com.maruhxn.todomon.core.global.error.exception.NotFoundException;
@@ -23,6 +25,7 @@ public class TodoInstanceService {
     private final TodoInstanceRepository todoInstanceRepository;
     private final RepeatInfoService repeatInfoService;
     private final RepeatInfoStrategyFactory strategyFactory;
+    private final RewardService rewardService;
 
     public void generateAndSaveInstances(Todo todo) {
         RepeatInfo repeatInfo = todo.getRepeatInfo();
@@ -105,4 +108,41 @@ public class TodoInstanceService {
                 .forEach(instance -> instance.update(req));
     }
 
+    public void doUpdateProcessForTodoInstance(Long objectId, UpdateTodoStatusReq req, Member findMember) {
+        TodoInstance todoInstance = todoInstanceRepository.findTodoInstanceWithTodo(objectId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_TODO));
+
+        if (req.getIsDone()) {
+            if (!todoInstance.isDone()) {
+                todoInstance.updateIsDone(true);
+                rewardService.rewardForInstance(todoInstance, findMember);
+            }
+        } else {
+            if (todoInstance.isDone()) {
+                rewardService.withdrawRewardForInstance(todoInstance, findMember);
+                todoInstance.updateIsDone(false);
+            }
+        }
+    }
+
+    public Todo deleteTodoInstancesAndReturnParent(Long objectId, UpdateAndDeleteTodoQueryParams params) {
+        TodoInstance todoInstance = todoInstanceRepository.findById(objectId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_TODO));
+
+        Todo todo = todoInstance.getTodo();
+        List<TodoInstance> todoInstances = todo.getTodoInstances();
+
+        switch (params.getTargetType()) {
+            case THIS_TASK -> {
+                todoInstanceRepository.delete(todoInstance);
+                todoInstances.remove(todoInstance);
+            }
+            case ALL_TASKS -> {
+                todoInstanceRepository.deleteAllByTodo_Id(todo.getId());
+                todoInstances.clear();
+            }
+        }
+
+        return todo;
+    }
 }

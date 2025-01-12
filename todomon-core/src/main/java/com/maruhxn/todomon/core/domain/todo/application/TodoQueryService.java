@@ -26,7 +26,7 @@ public class TodoQueryService {
         LocalDateTime startAt = date.atStartOfDay();
         LocalDateTime endAt = LocalDateTime.of(date, LocalTime.of(23, 59, 59, 999999));
 
-        return getTodoItems(memberId, startAt, endAt);
+        return this.getTodoItems(memberId, startAt, endAt);
     }
 
     public List<TodoItem> getTodosByWeek(LocalDate startOfWeek, Long memberId) {
@@ -36,7 +36,7 @@ public class TodoQueryService {
                 LocalTime.of(23, 59, 59, 999999)
         );
 
-        return getTodoItems(memberId, startAt, endAt);
+        return this.getTodoItems(memberId, startAt, endAt);
     }
 
     public List<TodoItem> getTodosByMonth(YearMonth yearMonth, Long memberId) {
@@ -46,7 +46,7 @@ public class TodoQueryService {
                 LocalTime.of(23, 59, 59, 999999)
         );
 
-        return getTodoItems(memberId, startAt, endAt);
+        return this.getTodoItems(memberId, startAt, endAt);
     }
 
 
