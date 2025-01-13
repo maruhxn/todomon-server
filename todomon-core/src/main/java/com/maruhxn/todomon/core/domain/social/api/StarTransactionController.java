@@ -27,8 +27,10 @@ public class StarTransactionController {
             @AuthenticationPrincipal TodomonOAuth2User todomonOAuth2User,
             @ModelAttribute @Valid PagingCond pagingCond
     ) {
-        PageItem<ReceivedStarItem> receivedStarItems = starTransactionService.getReceivedStars(todomonOAuth2User.getId(), pagingCond);
-        return DataResponse.of("수신된 별 조회 성공", receivedStarItems);
+        return DataResponse.of(
+                "수신된 별 조회 성공",
+                starTransactionService.getReceivedStars(todomonOAuth2User.getId(), pagingCond)
+        );
     }
 
     // 내가 팔로우하고 있는 사람에게 별을 보낼 수 있다.
@@ -39,7 +41,7 @@ public class StarTransactionController {
             @PathVariable("receiverId") Long receiverId
     ) {
         starTransactionService.sendStar(todomonOAuth2User.getId(), receiverId, LocalDateTime.now());
-        return new BaseResponse("별 보내기 성공 - " + receiverId);
+        return new BaseResponse("별 보내기 성공 - 수신자 아이디: " + receiverId);
     }
 
     @PatchMapping("/receive/{transactionId}")

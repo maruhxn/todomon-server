@@ -1,7 +1,6 @@
 package com.maruhxn.todomon.core.domain.social.application;
 
 import com.maruhxn.todomon.core.domain.member.dao.MemberRepository;
-import com.maruhxn.todomon.core.domain.member.domain.Member;
 import com.maruhxn.todomon.core.domain.social.dao.FollowQueryRepository;
 import com.maruhxn.todomon.core.domain.social.dao.FollowRepository;
 import com.maruhxn.todomon.core.domain.social.domain.Follow;
@@ -19,41 +18,40 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import static com.maruhxn.todomon.core.domain.social.domain.FollowRequestStatus.ACCEPTED;
-
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class FollowQueryService {
-
+    private static final int PAGE_SIZE = 10;
     private final MemberRepository memberRepository;
     private final FollowRepository followRepository;
     private final FollowQueryRepository followQueryRepository;
 
     // 팔로우 요청들을 조회한다.
     public PageItem<FollowRequestItem> getPendingFollowRequests(Long memberId, PagingCond pagingCond) {
-        PageRequest pageRequest = PageRequest.of(pagingCond.getPageNumber(), 10);
-        Page<FollowRequestItem> results = followQueryRepository.findPendingFollowRequestsWithPaging(memberId, pageRequest);
-        return PageItem.from(results);
+        PageRequest pageRequest = PageRequest.of(pagingCond.getPageNumber(), PAGE_SIZE);
+        return PageItem.from(followQueryRepository.findPendingFollowRequestsWithPaging(memberId, pageRequest));
     }
 
-    public PageItem<FollowingItem> followingList(Long memberId, PagingCond pagingCond) {
+    private void checkExistingMember(Long memberId) {
         memberRepository.findById(memberId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_MEMBER));
-
-        PageRequest pageRequest = PageRequest.of(pagingCond.getPageNumber(), 10);
-
-        Page<FollowingItem> results = followQueryRepository.findFollowingsByMemberIdWithPaging(memberId, pageRequest);
-        return PageItem.from(results);
     }
 
-    public PageItem<? extends FollowerItem> followerList(Long loginMemberId, Long memberId, PagingCond pagingCond) {
+    public PageItem<FollowingItem> getFollowingList(Long memberId, PagingCond pagingCond) {
+        this.checkExistingMember(memberId);
+
+        PageRequest pageRequest = PageRequest.of(pagingCond.getPageNumber(), PAGE_SIZE);
+
+        return PageItem.from(followQueryRepository.findFollowingsByMemberIdWithPaging(memberId, pageRequest));
+    }
+
+    public PageItem<? extends FollowerItem> getFollowerList(Long loginMemberId, Long memberId, PagingCond pagingCond) {
         boolean isMe = loginMemberId.equals(memberId);
 
-        memberRepository.findById(memberId)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_MEMBER));
+        this.checkExistingMember(memberId);
 
-        PageRequest pageRequest = PageRequest.of(pagingCond.getPageNumber(), 10);
+        PageRequest pageRequest = PageRequest.of(pagingCond.getPageNumber(), PAGE_SIZE);
 
         Page<? extends FollowerItem> results;
 
@@ -64,33 +62,12 @@ public class FollowQueryService {
         }
 
         return PageItem.from(results);
-
     }
-
-//    /* 맞팔로우 여부 확인 */
-//    public boolean checkIsMatFollow(Long followerId, Long followeeId) {
-//        Follow follow1 = followRepository.findByFollower_IdAndFollowee_Id(followerId, followeeId)
-//                .orElse(null);
-//
-//        Follow follow2 = followRepository.findByFollower_IdAndFollowee_Id(followeeId, followerId)
-//                .orElse(null);
-//
-//        // null 또는 ACCEPTED가 아닌 상태를 한 번에 체크
-//        if (isInvalidFollow(follow1) || isInvalidFollow(follow2)) {
-//            return false;
-//        }
-//
-//        return true;
-//    }
-
-//    private boolean isInvalidFollow(Follow follow) {
-//        return follow == null || follow.getStatus() != ACCEPTED;
-//    }
 
     public void checkIsFollow(Long follwerId, Long followeeId) {
         Follow findFollow = followRepository.findByFollower_IdAndFollowee_Id(follwerId, followeeId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_FOLLOW));
 
-        if (findFollow.getStatus() != ACCEPTED) throw new ForbiddenException(ErrorCode.NOT_ACCEPTED_FOLLOW);
+        if (!findFollow.isAccepted()) throw new ForbiddenException(ErrorCode.NOT_ACCEPTED_FOLLOW);
     }
 }

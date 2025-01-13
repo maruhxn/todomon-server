@@ -56,7 +56,7 @@ class StarTransactionIntegrationTest extends ControllerIntegrationTestSupport {
                 )
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("code").value("OK"))
-                .andExpect(jsonPath("message").value("별 보내기 성공 - " + tester1.getId()));
+                .andExpect(jsonPath("message").value("별 보내기 성공 - 수신자 아이디: " + tester1.getId()));
     }
 
     @Test

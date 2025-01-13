@@ -28,8 +28,10 @@ public class FollowController {
             @AuthenticationPrincipal TodomonOAuth2User todomonOAuth2User,
             @ModelAttribute @Valid PagingCond pagingCond
     ) {
-        PageItem<FollowRequestItem> results = followQueryService.getPendingFollowRequests(todomonOAuth2User.getId(), pagingCond);
-        return DataResponse.of("팔로우 요청 조회 성공", results);
+        return DataResponse.of(
+                "팔로우 요청 조회 성공",
+                followQueryService.getPendingFollowRequests(todomonOAuth2User.getId(), pagingCond)
+        );
     }
 
     @PostMapping("/{memberId}")
@@ -74,7 +76,10 @@ public class FollowController {
             @PathVariable("memberId") Long memberId,
             @ModelAttribute @Valid PagingCond pagingCond
     ) {
-        return DataResponse.of("팔로워 리스트 조회 성공", followQueryService.followerList(todomonOAuth2User.getId(), memberId, pagingCond));
+        return DataResponse.of(
+                "팔로워 리스트 조회 성공",
+                followQueryService.getFollowerList(todomonOAuth2User.getId(), memberId, pagingCond)
+        );
     }
 
     @GetMapping("/{memberId}/followings")
@@ -82,6 +87,9 @@ public class FollowController {
             @PathVariable("memberId") Long memberId,
             @ModelAttribute @Valid PagingCond pagingCond
     ) {
-        return DataResponse.of("팔로잉 리스트 조회 성공", followQueryService.followingList(memberId, pagingCond));
+        return DataResponse.of(
+                "팔로잉 리스트 조회 성공",
+                followQueryService.getFollowingList(memberId, pagingCond)
+        );
     }
 }

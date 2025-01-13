@@ -36,4 +36,8 @@ public class StarTransaction extends BaseEntity {
     public void updateStatus(StarTransactionStatus status) {
         this.status = status;
     }
+
+    public boolean isReceived() {
+        return this.status.equals(StarTransactionStatus.RECEIVED);
+    }
 }

@@ -12,9 +12,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
-
-import static com.maruhxn.todomon.core.domain.social.domain.FollowRequestStatus.*;
+import static com.maruhxn.todomon.core.domain.social.domain.FollowRequestStatus.ACCEPTED;
+import static com.maruhxn.todomon.core.domain.social.domain.FollowRequestStatus.REJECTED;
 
 @Service
 @Transactional
@@ -24,40 +23,34 @@ public class FollowService {
     private final MemberRepository memberRepository;
     private final FollowRepository followRepository;
 
-    // 팔로우 요청을 보낸다.
     public void sendFollowRequestOrMatFollow(Long followerId, Long followeeId) {
         // 자기 자신은 팔로우 안됨
-        if (followerId == followeeId) throw new BadRequestException(ErrorCode.BAD_REQUEST);
+        if (followerId.equals(followeeId))
+            throw new BadRequestException(ErrorCode.FOLLOW_ONESELF);
 
         Member followee = memberRepository.findById(followeeId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_MEMBER, "팔로위 정보가 존재하지 않습니다."));
 
-        // 이미 받은 팔로우가 있다면, 맞팔로우 로직으로 전환
-        Optional<Follow> receivedFollowRequest =
-                followRepository.findByFollower_IdAndFollowee_Id(followeeId, followerId);
-
         Member follower = memberRepository.findById(followerId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_MEMBER));
 
-        if (receivedFollowRequest.isPresent()) { // 이미 받은 팔로우가 있다면 맞팔로우
-            Follow receivedFollow = receivedFollowRequest.get();
-            if (receivedFollow.getStatus().equals(PENDING)) {
-                receivedFollow.updateStatus(ACCEPTED);
-            }
-            Follow matFollow = Follow.builder()
-                    .follower(follower)
-                    .followee(followee)
-                    .build();
-            matFollow.updateStatus(ACCEPTED);
-            followRepository.save(matFollow);
-        } else { // 받은 팔로우가 없다면 팔로우 요청 보내기
-            Follow follow = Follow.builder()
-                    .follower(follower)
-                    .followee(followee)
-                    .build();
+        followRepository.findByFollower_IdAndFollowee_Id(followeeId, followerId)
+                .ifPresentOrElse(
+                        receivedFollow -> this.matFollow(receivedFollow, follower, followee), // 이미 받은 팔로우가 있다면 맞팔로우
+                        () -> this.sendFollowRequest(follower, followee)  // 받은 팔로우가 없다면 팔로우 요청 보내기
+                );
+    }
 
-            followRepository.save(follow);
-        }
+    private void sendFollowRequest(Member follower, Member followee) {
+        followRepository.save(Follow.of(follower, followee));
+    }
+
+    private void matFollow(Follow receivedFollow, Member follower, Member followee) {
+        if (receivedFollow.isPending()) receivedFollow.updateStatus(ACCEPTED);
+
+        Follow matFollow = Follow.of(follower, followee);
+        matFollow.updateStatus(ACCEPTED);
+        followRepository.save(matFollow);
     }
 
     // 팔로우 요청에 대해 응답한다.
@@ -67,52 +60,29 @@ public class FollowService {
                 .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_FOLLOW));
 
         follow.updateStatus(isAccepted ? ACCEPTED : REJECTED);
-        followRepository.save(follow);
     }
 
     // 팔로우를 취소한다.
     public void unfollow(Long memberId, Long followeeId) {
+        this.findAndDeleteFollow(memberId, followeeId);
+    }
+
+    // 나를 팔로우하고 있는 팔로워를 삭제한다.
+    public void removeFollower(Long memberId, Long followerId) {
+        this.findAndDeleteFollow(followerId, memberId);
+    }
+
+    // unfollow와 removeFollower는 대상만 반대고 로직은 동일함.
+    private void findAndDeleteFollow(Long memberId, Long followeeId) {
         if (memberId.equals(followeeId))
-            throw new BadRequestException(ErrorCode.BAD_REQUEST, "자기 자신에 대한 요청은 할 수 없습니다.");
+            throw new BadRequestException(ErrorCode.FOLLOW_ONESELF);
 
         memberRepository.findById(followeeId)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_MEMBER, "팔로우 대상 정보가 존재하지 않습니다."));
+                .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_MEMBER, "대상 정보가 존재하지 않습니다."));
 
         Follow findFollow = followRepository.findByFollower_IdAndFollowee_Id(memberId, followeeId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_FOLLOW));
 
         followRepository.delete(findFollow);
     }
-
-    // 나를 팔로우하고 있는 팔로워를 삭제한다.
-    public void removeFollower(Long memberId, Long followerId) {
-        if (memberId.equals(followerId))
-            throw new BadRequestException(ErrorCode.BAD_REQUEST, "자기 자신에 대한 요청은 할 수 없습니다.");
-
-        memberRepository.findById(followerId)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_MEMBER, "팔로워 정보가 존재하지 않습니다."));
-
-        Follow findFollow = followRepository.findByFollower_IdAndFollowee_Id(followerId, memberId)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_FOLLOW));
-
-        followRepository.delete(findFollow);
-    }
-
-//    public void matFollow(Member member, Long followerId) {
-//        // 팔로워가 존재하는지 확인
-//        Member follower = memberRepository.findById(followerId)
-//                .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_MEMBER, "팔로워의 정보가 존재하지 않습니다."));
-//
-//        // 팔로워가 나를 팔로우하고 있는지 확인 (Follow가 있고, ACCEPT)
-//        followQueryService.checkIsFollow(followerId, member.getId());
-//
-//        // 팔로우 요청을 보내지 않고, 바로 팔로우 엔터티 생성
-//        Follow matFollow = Follow.builder()
-//                .follower(member)
-//                .followee(follower)
-//                .build();
-//        matFollow.updateStatus(ACCEPTED);
-//
-//        followRepository.save(matFollow);
-//    }
 }
