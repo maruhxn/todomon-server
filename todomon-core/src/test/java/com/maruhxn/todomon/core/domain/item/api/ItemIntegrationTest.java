@@ -19,7 +19,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 
-import static com.maruhxn.todomon.core.global.auth.application.JwtProvider.BEARER_PREFIX;
+import static com.maruhxn.todomon.core.global.auth.implement.JwtProvider.BEARER_PREFIX;
 import static com.maruhxn.todomon.core.global.common.Constants.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;

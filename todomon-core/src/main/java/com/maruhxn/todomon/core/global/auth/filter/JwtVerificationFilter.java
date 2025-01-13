@@ -15,6 +15,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
+import static com.maruhxn.todomon.core.global.common.Constants.ACCESS_TOKEN_HEADER;
+
 @Component
 @RequiredArgsConstructor
 public class JwtVerificationFilter extends OncePerRequestFilter {
@@ -23,7 +25,8 @@ public class JwtVerificationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        String accessToken = jwtService.resolveAccessToken(request);
+        String bearerToken = request.getHeader(ACCESS_TOKEN_HEADER);
+        String accessToken = jwtService.getTokenFromBearer(bearerToken);
 
         if (!StringUtils.hasText(accessToken)) {
             filterChain.doFilter(request, response);

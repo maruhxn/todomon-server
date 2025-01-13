@@ -7,7 +7,6 @@ import com.maruhxn.todomon.core.domain.social.domain.Follow;
 import com.maruhxn.todomon.core.domain.social.domain.StarTransaction;
 import com.maruhxn.todomon.core.global.auth.model.Role;
 import com.maruhxn.todomon.core.global.auth.model.provider.OAuth2Provider;
-import com.maruhxn.todomon.core.global.auth.model.provider.OAuth2ProviderUser;
 import com.maruhxn.todomon.core.global.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -110,24 +109,8 @@ public class Member extends BaseEntity {
         this.initDiligence();
     }
 
-    public static Member of(OAuth2ProviderUser oAuth2ProviderUser, Role role) {
-        return Member.builder()
-                .username(oAuth2ProviderUser.getUsername())
-                .email(oAuth2ProviderUser.getEmail())
-                .provider(OAuth2Provider.valueOf(oAuth2ProviderUser.getProvider().toUpperCase()))
-                .providerId(oAuth2ProviderUser.getProviderId())
-                .profileImageUrl(oAuth2ProviderUser.getProfileImageUrl())
-                .role(role)
-                .build();
-    }
-
     public void updateIsSubscribed(boolean isSubscribed) {
         this.isSubscribed = isSubscribed;
-    }
-
-    public void updateByOAuth2Info(OAuth2ProviderUser oAuth2ProviderUser) {
-        this.username = oAuth2ProviderUser.getUsername();
-        this.profileImageUrl = oAuth2ProviderUser.getProfileImageUrl();
     }
 
     public void initDiligence() {

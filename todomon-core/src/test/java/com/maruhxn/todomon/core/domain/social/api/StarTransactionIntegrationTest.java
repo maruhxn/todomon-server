@@ -17,7 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 
-import static com.maruhxn.todomon.core.global.auth.application.JwtProvider.BEARER_PREFIX;
+import static com.maruhxn.todomon.core.global.auth.implement.JwtProvider.BEARER_PREFIX;
 import static com.maruhxn.todomon.core.global.common.Constants.ACCESS_TOKEN_HEADER;
 import static com.maruhxn.todomon.core.global.common.Constants.REFRESH_TOKEN_HEADER;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;

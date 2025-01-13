@@ -6,6 +6,7 @@ import com.maruhxn.todomon.core.domain.member.dao.MemberRepository;
 import com.maruhxn.todomon.core.domain.member.domain.Member;
 import com.maruhxn.todomon.core.global.auth.dto.MemberDTO;
 import com.maruhxn.todomon.core.global.auth.dto.TokenDto;
+import com.maruhxn.todomon.core.global.auth.implement.JwtProvider;
 import com.maruhxn.todomon.core.global.auth.model.Role;
 import com.maruhxn.todomon.core.global.auth.model.TodomonOAuth2User;
 import com.maruhxn.todomon.core.global.auth.model.provider.OAuth2Provider;

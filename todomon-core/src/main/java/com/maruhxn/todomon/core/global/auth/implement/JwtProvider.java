@@ -1,4 +1,4 @@
-package com.maruhxn.todomon.core.global.auth.application;
+package com.maruhxn.todomon.core.global.auth.implement;
 
 import com.maruhxn.todomon.core.global.auth.dto.MemberDTO;
 import com.maruhxn.todomon.core.global.auth.dto.TokenDto;
@@ -77,19 +77,6 @@ public class JwtProvider {
                 .expiration(new Date(now.getTime() + refreshTokenExpiration))
                 .signWith(secretKey)
                 .compact();
-    }
-
-    /**
-     * Bearer Prefix를 포함한 값을 전달받으면 토큰만을 추출하여 반환
-     *
-     * @param bearerToken
-     * @return Token (String)
-     */
-    public String getTokenFromBearer(String bearerToken) {
-        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith(BEARER_PREFIX)) {
-            return bearerToken.split(" ")[1];
-        }
-        return null;
     }
 
     /**
