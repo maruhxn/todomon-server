@@ -2,6 +2,7 @@ package com.maruhxn.todomon.core.domain.purchase.application;
 
 import com.maruhxn.todomon.core.domain.item.application.ItemService;
 import com.maruhxn.todomon.core.domain.item.domain.Item;
+import com.maruhxn.todomon.core.domain.item.implement.ItemReader;
 import com.maruhxn.todomon.core.domain.member.dao.MemberRepository;
 import com.maruhxn.todomon.core.domain.member.domain.Member;
 import com.maruhxn.todomon.core.domain.purchase.application.strategy.PurchaseStrategy;
@@ -33,6 +34,7 @@ public class PurchaseService {
     private final OrderRepository orderRepository;
     private final StarPointPaymentHistoryRepository starPointPaymentHistoryRepository;
     private final ItemService itemService;
+    private final ItemReader itemReader;
 
     private final PurchaseStrategyFactory purchaseStrategyFactory;
 
@@ -40,7 +42,7 @@ public class PurchaseService {
         Member findMember = memberRepository.findById(memberId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_MEMBER));
 
-        Item findItem = itemService.getItem(req.getItemId());
+        Item findItem = itemReader.findItemById(req.getItemId());
 
         if (findItem.getIsPremium() && !findMember.isSubscribed()) {
             throw new ForbiddenException(ErrorCode.NOT_SUBSCRIPTION);
