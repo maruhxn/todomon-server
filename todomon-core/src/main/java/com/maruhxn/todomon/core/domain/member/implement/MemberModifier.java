@@ -1,6 +1,5 @@
 package com.maruhxn.todomon.core.domain.member.implement;
 
-import com.maruhxn.todomon.core.domain.member.dao.MemberRepository;
 import com.maruhxn.todomon.core.domain.member.domain.Member;
 import com.maruhxn.todomon.core.domain.member.dto.request.UpdateMemberProfileReq;
 import com.maruhxn.todomon.core.infra.file.FileService;
@@ -13,7 +12,6 @@ import org.springframework.web.multipart.MultipartFile;
 @RequiredArgsConstructor
 public class MemberModifier {
 
-    private final MemberRepository memberRepository;
     private final FileService fileService;
 
     public void modify(Member member, UpdateMemberProfileReq req) {

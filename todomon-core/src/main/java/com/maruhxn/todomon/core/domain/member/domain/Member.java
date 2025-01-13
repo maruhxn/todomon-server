@@ -8,6 +8,8 @@ import com.maruhxn.todomon.core.domain.social.domain.StarTransaction;
 import com.maruhxn.todomon.core.global.auth.model.Role;
 import com.maruhxn.todomon.core.global.auth.model.provider.OAuth2Provider;
 import com.maruhxn.todomon.core.global.common.BaseEntity;
+import com.maruhxn.todomon.core.global.error.ErrorCode;
+import com.maruhxn.todomon.core.global.error.exception.BadRequestException;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -201,7 +203,14 @@ public class Member extends BaseEntity {
         this.starPoint -= totalPrice;
     }
 
-    public boolean isInvalidFoodCnt(Long foodCnt) {
-        return foodCnt > this.foodCnt;
+    public void validatePetHouseSpace() {
+        if (this.getPetHouseSize() <= this.getPets().size()) {
+            throw new BadRequestException(ErrorCode.NO_SPACE_PET_HOUSE);
+        }
+    }
+
+    public void validateFoodCnt(Long foodCnt) {
+        if (this.foodCnt < foodCnt)
+            throw new BadRequestException(ErrorCode.OVER_FOOD_CNT);
     }
 }

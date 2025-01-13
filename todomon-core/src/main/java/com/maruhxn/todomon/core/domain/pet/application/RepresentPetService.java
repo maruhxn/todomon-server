@@ -1,12 +1,10 @@
 package com.maruhxn.todomon.core.domain.pet.application;
 
-import com.maruhxn.todomon.core.domain.member.dao.MemberRepository;
 import com.maruhxn.todomon.core.domain.member.domain.Member;
-import com.maruhxn.todomon.core.domain.pet.dao.PetRepository;
+import com.maruhxn.todomon.core.domain.member.implement.MemberReader;
 import com.maruhxn.todomon.core.domain.pet.domain.Pet;
+import com.maruhxn.todomon.core.domain.pet.implement.PetReader;
 import com.maruhxn.todomon.core.global.auth.checker.IsMyPetOrAdmin;
-import com.maruhxn.todomon.core.global.error.ErrorCode;
-import com.maruhxn.todomon.core.global.error.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,21 +14,19 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class RepresentPetService {
 
-    private final MemberRepository memberRepository;
-    private final PetRepository petRepository;
+    private final MemberReader memberReader;
+    private final PetReader petReader;
 
     @IsMyPetOrAdmin
     public void setRepresentPet(Long memberId, Long petId) {
-        Member findMember = memberRepository.findById(memberId)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_MEMBER));
+        Member member = memberReader.findById(memberId);
 
         if (petId == null) {
-            findMember.setRepresentPet(null);
-        } else {
-            Pet pet = petRepository.findById(petId)
-                    .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_PET));
-
-            findMember.setRepresentPet(pet);
+            member.setRepresentPet(null);
+            return;
         }
+
+        Pet pet = petReader.findById(petId);
+        member.setRepresentPet(pet);
     }
 }

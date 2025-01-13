@@ -28,7 +28,7 @@ public class MyPetOrAdminAspect extends AuthAspect {
     public void checkIsMyPetOrAdmin(ProceedingJoinPoint joinPoint, Long memberId, Long petId) throws Throwable {
         TodomonOAuth2User todomonOAuth2User = getPrincipal();
 
-        if (memberId == null | petId == null) return;
+        if (memberId == null || petId == null) return;
 
         Pet findPet = petRepository.findOneByIdWithMember(petId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_PET));

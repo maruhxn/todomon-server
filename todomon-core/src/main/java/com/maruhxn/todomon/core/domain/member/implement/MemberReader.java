@@ -43,4 +43,13 @@ public class MemberReader {
                 .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_MEMBER));
     }
 
+    public Member findMemberWithPetsById(Long id) {
+        return memberRepository.findMemberWithPets(id)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_MEMBER));
+    }
+
+    public Member findMemberWithRepresentPet(Long id) {
+        return memberRepository.findMemberWithRepresentPet(id)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_MEMBER));
+    }
 }
