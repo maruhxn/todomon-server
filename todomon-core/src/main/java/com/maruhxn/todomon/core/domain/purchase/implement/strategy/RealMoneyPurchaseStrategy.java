@@ -1,8 +1,5 @@
-package com.maruhxn.todomon.core.domain.purchase.application.strategy;
+package com.maruhxn.todomon.core.domain.purchase.implement.strategy;
 
-import com.maruhxn.todomon.core.domain.item.domain.Item;
-import com.maruhxn.todomon.core.domain.item.domain.MoneyType;
-import com.maruhxn.todomon.core.domain.member.domain.Member;
 import com.maruhxn.todomon.core.domain.purchase.dao.PaymentRepository;
 import com.maruhxn.todomon.core.domain.purchase.domain.Order;
 import com.maruhxn.todomon.core.domain.purchase.domain.PaymentStatus;
@@ -33,8 +30,7 @@ public class RealMoneyPurchaseStrategy implements PurchaseStrategy {
     private final PaymentRepository paymentRepository;
 
     @Override
-    public void preValidate(Member member, Item item, PreparePaymentReq req) throws Exception {
-        if (isNotRealMoneyItem(item)) throw new BadRequestException(ErrorCode.BAD_REQUEST);
+    public void preValidate(Order order, PreparePaymentReq req) throws Exception {
         PrepareData prepareData = new PrepareData(req.getMerchant_uid(), req.getAmount());
         IamportResponse<Prepare> response = iamportClient.postPrepare(prepareData);
 
@@ -45,42 +41,26 @@ public class RealMoneyPurchaseStrategy implements PurchaseStrategy {
     }
 
     @Override
-    public void postValidate(Member member, Order order, PaymentReq req) throws Exception {
+    public void postValidate(Order order, PaymentReq req) throws Exception {
         if (req.getImp_uid() == null)
             throw new BadRequestException(ErrorCode.BAD_REQUEST, "포트원 결제 아이디 값은 비어있을 수 없습니다.");
-        if (isNotRealMoneyItem(order.getItem())) throw new BadRequestException(ErrorCode.BAD_REQUEST);
 
-        IamportResponse<Payment> response = iamportClient.paymentByImpUid(req.getImp_uid());
-        Payment payment = response.getResponse();
-
-        TodomonPayment todomonPayment = TodomonPayment.of(member, order, req.getImp_uid());
-
-        if (!Objects.equals(payment.getAmount(), new BigDecimal(order.getTotalPrice()))) {
+        Payment paymentResponse = iamportClient.paymentByImpUid(req.getImp_uid()).getResponse();
+        TodomonPayment todomonPayment = TodomonPayment.of(order, req.getImp_uid());
+        if (!Objects.equals(paymentResponse.getAmount(), new BigDecimal(order.getTotalPrice()))) {
             todomonPayment.updateStatus(PaymentStatus.FAILED);
             throw new BadRequestException(ErrorCode.INVALID_PAYMENT_AMOUNT_ERROR);
         }
-
-        // 결제 정보 저장
         paymentRepository.save(todomonPayment);
     }
 
     @Override
-    public void refund(Member member, Order order) throws Exception {
-        if (isNotRealMoneyItem(order.getItem())) throw new BadRequestException(ErrorCode.BAD_REQUEST);
-
-        TodomonPayment todomonPayment = paymentRepository.findByMember_IdAndOrder_Id(member.getId(), order.getId())
+    public void refund(Order order) throws Exception {
+        TodomonPayment todomonPayment = paymentRepository.findByMember_IdAndOrder_Id(order.getMember().getId(), order.getId())
                 .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_PAYMENT));
-
         IamportResponse<Payment> response = iamportClient.paymentByImpUid(todomonPayment.getImpUid());
-
         CancelData cancelData = new CancelData(response.getResponse().getImpUid(), true);
-
         iamportClient.cancelPaymentByImpUid(cancelData);
-
         todomonPayment.updateStatus(PaymentStatus.REFUNDED);
-    }
-
-    private static boolean isNotRealMoneyItem(Item item) {
-        return !item.getMoneyType().equals(MoneyType.REAL_MONEY);
     }
 }

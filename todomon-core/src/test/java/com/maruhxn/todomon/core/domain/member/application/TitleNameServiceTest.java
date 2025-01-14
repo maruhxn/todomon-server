@@ -4,7 +4,7 @@ import com.maruhxn.todomon.core.domain.member.dao.MemberRepository;
 import com.maruhxn.todomon.core.domain.member.dao.TitleNameRepository;
 import com.maruhxn.todomon.core.domain.member.domain.Member;
 import com.maruhxn.todomon.core.domain.member.domain.TitleName;
-import com.maruhxn.todomon.core.domain.member.dto.request.UpsertTitleNameRequest;
+import com.maruhxn.todomon.core.domain.member.dto.request.UpsertTitleNameReq;
 import com.maruhxn.todomon.core.global.auth.model.Role;
 import com.maruhxn.todomon.core.global.auth.model.provider.OAuth2Provider;
 import com.maruhxn.todomon.util.IntegrationTestSupport;
@@ -31,7 +31,7 @@ class TitleNameServiceTest extends IntegrationTestSupport {
     void createTitleName() {
         // given
         Member member = createMember("tester");
-        UpsertTitleNameRequest req = UpsertTitleNameRequest.builder()
+        UpsertTitleNameReq req = UpsertTitleNameReq.builder()
                 .name("name")
                 .color("#000000")
                 .build();
@@ -60,7 +60,7 @@ class TitleNameServiceTest extends IntegrationTestSupport {
         member.setTitleName(titleName);
         titleNameRepository.save(titleName);
 
-        UpsertTitleNameRequest req = UpsertTitleNameRequest.builder()
+        UpsertTitleNameReq req = UpsertTitleNameReq.builder()
                 .name("name!")
                 .color("#FFFFFF")
                 .build();

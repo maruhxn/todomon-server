@@ -2,7 +2,7 @@ package com.maruhxn.todomon.core.domain.item.api;
 
 import com.maruhxn.todomon.core.domain.item.application.ItemService;
 import com.maruhxn.todomon.core.domain.item.dto.request.CreateItemRequest;
-import com.maruhxn.todomon.core.domain.item.dto.request.ItemEffectRequest;
+import com.maruhxn.todomon.core.domain.item.dto.request.ItemEffectReq;
 import com.maruhxn.todomon.core.domain.item.dto.request.UpdateItemRequest;
 import com.maruhxn.todomon.core.domain.item.dto.response.InventoryItemDto;
 import com.maruhxn.todomon.core.domain.item.dto.response.ItemDto;
@@ -69,7 +69,7 @@ public class ItemController {
     public void useInventoryItem(
             @AuthenticationPrincipal TodomonOAuth2User todomonOAuth2User,
             @RequestParam String itemName,
-            @RequestBody ItemEffectRequest req) {
+            @RequestBody ItemEffectReq req) {
         itemService.useInventoryItem(todomonOAuth2User.getId(), itemName, req);
     }
 }

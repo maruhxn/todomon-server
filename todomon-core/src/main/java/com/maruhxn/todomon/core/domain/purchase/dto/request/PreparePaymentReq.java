@@ -1,5 +1,8 @@
 package com.maruhxn.todomon.core.domain.purchase.dto.request;
 
+import com.maruhxn.todomon.core.domain.item.domain.Item;
+import com.maruhxn.todomon.core.domain.member.domain.Member;
+import com.maruhxn.todomon.core.domain.purchase.domain.Order;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -33,5 +36,16 @@ public class PreparePaymentReq {
         this.amount = amount;
         this.quantity = quantity;
         this.itemId = itemId;
+    }
+
+    public Order toOrder(Item item, Member member) {
+        return Order.builder()
+                .item(item)
+                .member(member)
+                .totalPrice(item.getPrice() * this.quantity)
+                .quantity(this.quantity)
+                .merchantUid(this.merchant_uid)
+                .moneyType(item.getMoneyType())
+                .build();
     }
 }

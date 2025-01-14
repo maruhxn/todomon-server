@@ -1,7 +1,7 @@
 package com.maruhxn.todomon.core.domain.member.application;
 
 import com.maruhxn.todomon.core.domain.member.domain.Member;
-import com.maruhxn.todomon.core.domain.member.dto.request.UpsertTitleNameRequest;
+import com.maruhxn.todomon.core.domain.member.dto.request.UpsertTitleNameReq;
 import com.maruhxn.todomon.core.domain.member.implement.MemberReader;
 import com.maruhxn.todomon.core.domain.member.implement.TitleNameCreator;
 import com.maruhxn.todomon.core.domain.member.implement.TitleNameReader;
@@ -20,7 +20,7 @@ public class TitleNameService {
     private final TitleNameReader titleNameReader;
     private final TitleNameRemover titleNameRemover;
 
-    public void upsertTitleName(Member member, UpsertTitleNameRequest req) {
+    public void upsertTitleName(Member member, UpsertTitleNameReq req) {
         titleNameReader.findByMember_Id(member.getId())
                 .ifPresentOrElse(
                         tn -> tn.update(req.getName(), req.getColor()),

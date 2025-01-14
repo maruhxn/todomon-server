@@ -1,8 +1,7 @@
 package com.maruhxn.todomon.core.domain.purchase.application;
 
-import com.maruhxn.todomon.core.domain.purchase.dao.OrderRepository;
-import com.maruhxn.todomon.core.domain.purchase.domain.Order;
 import com.maruhxn.todomon.core.domain.purchase.dto.response.OrderItem;
+import com.maruhxn.todomon.core.domain.purchase.implement.OrderReader;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,11 +12,11 @@ import java.util.List;
 @RequiredArgsConstructor
 public class OrderService {
 
-    private final OrderRepository orderRepository;
+    private final OrderReader orderReader;
 
     @Transactional(readOnly = true)
     public List<OrderItem> getMyOrders(Long memberId) {
-        List<Order> orders = orderRepository.findAllByMember_IdOrderByUpdatedAtDesc(memberId);
-        return orders.stream().map(OrderItem::from).toList();
+        return orderReader.findAllByMemberId(memberId)
+                .stream().map(OrderItem::from).toList();
     }
 }

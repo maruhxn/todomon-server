@@ -1,6 +1,6 @@
 package com.maruhxn.todomon.core.domain.item.domain.item_effect;
 
-import com.maruhxn.todomon.core.domain.item.dto.request.ItemEffectRequest;
+import com.maruhxn.todomon.core.domain.item.dto.request.ItemEffectReq;
 import com.maruhxn.todomon.core.domain.member.domain.Member;
 import com.maruhxn.todomon.core.global.error.ErrorCode;
 import com.maruhxn.todomon.core.global.error.exception.BadRequestException;
@@ -11,7 +11,7 @@ import static com.maruhxn.todomon.core.global.common.Constants.MAX_PET_HOUSE_SIZ
 @Service("petHouseExpansionEffect")
 public class PetHouseExpansionEffect implements ItemEffect {
     @Override
-    public void applyEffect(Member member, ItemEffectRequest itemEffectRequest) {
+    public void applyEffect(Member member, ItemEffectReq itemEffectReq) {
         if (isOverMaxSize(member)) {
             throw new BadRequestException(
                     ErrorCode.BAD_REQUEST,

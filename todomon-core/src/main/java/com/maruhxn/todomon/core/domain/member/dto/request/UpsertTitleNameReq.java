@@ -1,7 +1,7 @@
 package com.maruhxn.todomon.core.domain.member.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.maruhxn.todomon.core.domain.item.dto.request.ItemEffectRequest;
+import com.maruhxn.todomon.core.domain.item.dto.request.ItemEffectReq;
 import com.maruhxn.todomon.core.domain.member.domain.TitleName;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @JsonTypeName("upsertTitleName")
-public class UpsertTitleNameRequest implements ItemEffectRequest {
+public class UpsertTitleNameReq implements ItemEffectReq {
 
     @NotNull(message = "칭호 이름은 비어있을 수 없습니다.")
     @Size(min = 2, max = 5, message = "칭호명은 2 ~ 5 글자입니다.")
@@ -23,7 +23,7 @@ public class UpsertTitleNameRequest implements ItemEffectRequest {
     private String color;
 
     @Builder
-    public UpsertTitleNameRequest(String name, String color) {
+    public UpsertTitleNameReq(String name, String color) {
         this.name = name;
         this.color = color;
     }

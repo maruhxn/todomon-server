@@ -26,7 +26,7 @@ public class PurchaseController {
             @AuthenticationPrincipal TodomonOAuth2User todomonOAuth2User,
             @RequestBody @Valid PurchaseStarPointItemReq req
     ) {
-        purchaseService.requestToPurchaseStarpointItem(todomonOAuth2User.getId(), req);
+        purchaseService.requestToPurchaseStarPointItem(todomonOAuth2User.getId(), req);
         return new BaseResponse("⭐️ 아이템 결제 요청 성공");
     }
 

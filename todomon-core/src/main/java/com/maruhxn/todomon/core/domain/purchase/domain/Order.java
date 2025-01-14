@@ -4,11 +4,16 @@ import com.maruhxn.todomon.core.domain.item.domain.Item;
 import com.maruhxn.todomon.core.domain.item.domain.MoneyType;
 import com.maruhxn.todomon.core.domain.member.domain.Member;
 import com.maruhxn.todomon.core.global.common.BaseEntity;
+import com.maruhxn.todomon.core.global.error.ErrorCode;
+import com.maruhxn.todomon.core.global.error.exception.BadRequestException;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.math.BigDecimal;
+import java.util.Objects;
 
 @Entity
 @Getter
@@ -50,19 +55,13 @@ public class Order extends BaseEntity {
         this.item = item;
     }
 
-    public static Order of(Item item, Member member, Long quantity, String merchantUid) {
-        return Order.builder()
-                .item(item)
-                .member(member)
-                .totalPrice(item.getPrice() * quantity)
-                .quantity(quantity)
-                .merchantUid(merchantUid)
-                .moneyType(item.getMoneyType())
-                .build();
-    }
-
     public void updateStatus(OrderStatus orderStatus) {
         this.orderStatus = orderStatus;
     }
 
+    public void validatePaymentAmount(BigDecimal amount) {
+        if (!Objects.equals(amount, new BigDecimal(this.getTotalPrice()))) {
+            throw new BadRequestException(ErrorCode.INVALID_PAYMENT_AMOUNT_ERROR);
+        }
+    }
 }

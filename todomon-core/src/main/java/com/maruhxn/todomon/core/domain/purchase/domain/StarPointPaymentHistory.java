@@ -30,7 +30,7 @@ public class StarPointPaymentHistory extends BaseEntity {
     private Long amount;
 
     @Enumerated(EnumType.STRING)
-    private PaymentStatus status = PaymentStatus.OK;
+    private PaymentStatus status = PaymentStatus.NOT_PAID;
 
     @Builder
     public StarPointPaymentHistory(Member member, String merchantUid, Long itemId, Long quantity, Long amount, PaymentStatus status) {
