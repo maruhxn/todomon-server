@@ -29,6 +29,11 @@ public class MemberReader {
                 .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_MEMBER));
     }
 
+    public Member findById(Long id, String errMessage) {
+        return memberRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_MEMBER, errMessage));
+    }
+
     public Optional<Member> findOptionalByEmail(String email) {
         return memberRepository.findByEmail(email);
     }

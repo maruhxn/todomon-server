@@ -1,9 +1,9 @@
 package com.maruhxn.todomon.core.domain.social.application;
 
-import com.maruhxn.todomon.core.domain.social.dao.OverallRankQueryRepository;
 import com.maruhxn.todomon.core.domain.social.dto.response.CollectedPetRankItem;
 import com.maruhxn.todomon.core.domain.social.dto.response.DiligenceRankItem;
 import com.maruhxn.todomon.core.domain.social.dto.response.TodoAchievementRankItem;
+import com.maruhxn.todomon.core.domain.social.implement.OverallRankReader;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -16,25 +16,25 @@ import java.util.List;
 @RequiredArgsConstructor
 public class OverallRankQueryService {
 
-    private final OverallRankQueryRepository overallRankQueryRepository;
+    private final OverallRankReader overallRankReader;
 
     @Cacheable(value = "overallDiligenceRankCache", key = "'overall'", cacheManager = "dailyCacheManager")
     public List<DiligenceRankItem> getTop10MembersByDiligenceLevelAndGauge() {
-        return overallRankQueryRepository.findTop10MembersByDiligenceLevelAndGauge();
+        return overallRankReader.findTop10MembersByDiligenceLevelAndGauge();
     }
 
     @Cacheable(value = "overallCollectedPetRankCache", key = "'overall'", cacheManager = "dailyCacheManager")
     public List<CollectedPetRankItem> getTop10MembersByCollectedPetCnt() {
-        return overallRankQueryRepository.findTop10MembersByCollectedPetCnt();
+        return overallRankReader.findTop10MembersByCollectedPetCnt();
     }
 
     @Cacheable(value = "overallDailyAchievementRankCache", key = "'overall'", cacheManager = "dailyCacheManager")
     public List<TodoAchievementRankItem> getRankingOfDailyAchievement() {
-        return overallRankQueryRepository.findTop10MembersByYesterdayAchievement();
+        return overallRankReader.findTop10MembersByYesterdayAchievement();
     }
 
     @Cacheable(value = "overallWeeklyAchievementRankCache", key = "'overall'", cacheManager = "weeklyCacheManager")
     public List<TodoAchievementRankItem> getRankingOfWeeklyAchievement() {
-        return overallRankQueryRepository.findTop10MembersByWeeklyAchievement();
+        return overallRankReader.findTop10MembersByWeeklyAchievement();
     }
 }

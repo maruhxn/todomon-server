@@ -40,7 +40,7 @@ public class FollowController {
             @AuthenticationPrincipal TodomonOAuth2User todomonOAuth2User,
             @PathVariable("memberId") Long memberId
     ) {
-        followService.sendFollowRequestOrMatFollow(todomonOAuth2User.getId(), memberId);
+        followService.sendFollowRequest(todomonOAuth2User.getId(), memberId);
     }
 
     @PatchMapping("/requests/{followId}/respond")
