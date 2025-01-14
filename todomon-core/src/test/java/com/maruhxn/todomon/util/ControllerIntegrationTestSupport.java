@@ -7,9 +7,9 @@ import com.maruhxn.todomon.core.domain.member.dao.MemberRepository;
 import com.maruhxn.todomon.core.domain.member.dao.TitleNameRepository;
 import com.maruhxn.todomon.core.domain.member.domain.Member;
 import com.maruhxn.todomon.core.domain.member.domain.TitleName;
-import com.maruhxn.todomon.core.global.auth.application.JwtProvider;
 import com.maruhxn.todomon.core.global.auth.dto.MemberDTO;
 import com.maruhxn.todomon.core.global.auth.dto.TokenDto;
+import com.maruhxn.todomon.core.global.auth.implement.JwtProvider;
 import com.maruhxn.todomon.core.global.auth.model.Role;
 import com.maruhxn.todomon.core.global.auth.model.TodomonOAuth2User;
 import com.maruhxn.todomon.core.global.auth.model.provider.OAuth2Provider;
@@ -66,7 +66,7 @@ public abstract class ControllerIntegrationTestSupport extends RedisTestContaine
     protected TokenDto memberTokenDto;
 
     @BeforeEach
-    void setUp(
+    public void setUp(
             final WebApplicationContext context
     ) {
         this.mockMvc = MockMvcBuilders.webAppContextSetup(context)
@@ -101,8 +101,8 @@ public abstract class ControllerIntegrationTestSupport extends RedisTestContaine
     }
 
     @AfterEach
-    void cleanUp() {
-        redisTemplate.delete(redisTemplate.keys("*"));
+    public void tearDown() {
+        redisTemplate.getConnectionFactory().getConnection().serverCommands().flushDb();
     }
 
     private TokenDto getTokenDto(Member member) {

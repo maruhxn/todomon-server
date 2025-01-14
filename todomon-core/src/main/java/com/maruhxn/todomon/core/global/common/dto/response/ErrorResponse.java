@@ -39,6 +39,8 @@ public class ErrorResponse extends BaseResponse {
     }
 
     public static ErrorResponse validationError(BindingResult bindingResult) {
+        if (bindingResult.hasGlobalErrors())
+            return new ErrorResponse(ErrorCode.VALIDATION_ERROR, bindingResult.getGlobalError().getDefaultMessage());
         return new ErrorResponse(ErrorCode.VALIDATION_ERROR, FieldError.from(bindingResult));
     }
 

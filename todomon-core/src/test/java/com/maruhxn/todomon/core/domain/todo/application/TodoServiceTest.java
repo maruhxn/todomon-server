@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import static com.maruhxn.todomon.core.global.common.Constants.*;
@@ -326,7 +327,7 @@ class TodoServiceTest extends IntegrationTestSupport {
         // then
         assertThat(todo)
                 .extracting("content", "isAllDay", "startAt", "endAt")
-                .containsExactly("수정됨", true, updatedStartAt.toLocalDate().atStartOfDay(), LocalDateTime.of(updatedStartAt.toLocalDate().plusDays(1), LocalDateTime.MAX.toLocalTime()));
+                .containsExactly("수정됨", true, updatedStartAt.toLocalDate().atStartOfDay(), LocalDateTime.of(updatedStartAt.toLocalDate().plusDays(1), LocalDateTime.MAX.toLocalTime()).truncatedTo(ChronoUnit.MICROS));
         assertThat(todoInstanceRepository.findAll()).hasSize(2);
     }
 
@@ -462,8 +463,8 @@ class TodoServiceTest extends IntegrationTestSupport {
                 .hasSize(2)
                 .extracting("content", "startAt", "endAt")
                 .containsExactly(
-                        tuple("수정됨", now.toLocalDate().atStartOfDay(), LocalDateTime.of(now.toLocalDate(), LocalDateTime.MAX.toLocalTime())),
-                        tuple("수정됨", now.toLocalDate().plusDays(1).atStartOfDay(), LocalDateTime.of(now.toLocalDate().plusDays(1), LocalDateTime.MAX.toLocalTime()))
+                        tuple("수정됨", now.toLocalDate().atStartOfDay(), LocalDateTime.of(now.toLocalDate(), LocalDateTime.MAX.toLocalTime()).truncatedTo(ChronoUnit.MICROS)),
+                        tuple("수정됨", now.toLocalDate().plusDays(1).atStartOfDay(), LocalDateTime.of(now.toLocalDate().plusDays(1), LocalDateTime.MAX.toLocalTime()).truncatedTo(ChronoUnit.MICROS))
                 );
     }
 

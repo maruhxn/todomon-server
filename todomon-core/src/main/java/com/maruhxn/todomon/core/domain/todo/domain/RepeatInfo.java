@@ -41,10 +41,6 @@ public class RepeatInfo extends BaseEntity {
         this.count = count;
     }
 
-    public void subtractCount() {
-        this.count -= 1;
-    }
-
     /* 연관관계 메서드 */
     public void setTodo(Todo todo) {
         this.todo = todo;

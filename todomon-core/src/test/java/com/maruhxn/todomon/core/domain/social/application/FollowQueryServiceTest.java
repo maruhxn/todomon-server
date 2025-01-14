@@ -45,14 +45,14 @@ class FollowQueryServiceTest extends IntegrationTestSupport {
 
     @Test
     @DisplayName("유저의 팔로잉 리스트를 조회한다")
-    void followingList() {
+    void getFollowingList() {
         // given
         Member targetMember = createMember("member");
         List<Follow> acceptedFollows = createAcceptedFollowsByCnt(targetMember, 30);
         PagingCond pagingCond = new PagingCond(1);
 
         // when
-        PageItem<FollowingItem> followingList = followQueryService.followingList(targetMember.getId(), pagingCond);
+        PageItem<FollowingItem> followingList = followQueryService.getFollowingList(targetMember.getId(), pagingCond);
         // then
         assertThat(followingList)
                 .satisfies(page -> {
@@ -106,7 +106,7 @@ class FollowQueryServiceTest extends IntegrationTestSupport {
 
         PagingCond pagingCond = new PagingCond(1);
         // when
-        PageItem<? extends FollowerItem> myFollowreList = followQueryService.followerList(targetMember.getId(), targetMember.getId(), pagingCond);
+        PageItem<? extends FollowerItem> myFollowreList = followQueryService.getFollowerList(targetMember.getId(), targetMember.getId(), pagingCond);
 
         // then
         assertThat(myFollowreList)
@@ -139,7 +139,7 @@ class FollowQueryServiceTest extends IntegrationTestSupport {
 
     @Test
     @DisplayName("자신이 아닌 다른 유저의 팔로워 리스트를 조회한다")
-    void followerList() {
+    void getFollowerList() {
         // given
         Member targetMember = createMember("member");
         List<Follow> pendingFollowRequests = createPendingFollowRequestsByCnt(targetMember, 30);
@@ -162,7 +162,7 @@ class FollowQueryServiceTest extends IntegrationTestSupport {
 
         PagingCond pagingCond = new PagingCond(1);
         // when
-        PageItem<? extends FollowerItem> myFollowreList = followQueryService.followerList(targetMember.getId() + 1, targetMember.getId(), pagingCond);
+        PageItem<? extends FollowerItem> myFollowreList = followQueryService.getFollowerList(targetMember.getId() + 1, targetMember.getId(), pagingCond);
 
         // then
         assertThat(myFollowreList)

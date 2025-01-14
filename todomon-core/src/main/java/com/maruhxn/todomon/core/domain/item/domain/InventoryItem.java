@@ -52,7 +52,7 @@ public class InventoryItem extends BaseEntity {
         this.quantity = quantity;
     }
 
-    public void consume() {
+    public void decreaseQuantity() {
         this.quantity -= 1;
     }
 }

@@ -27,7 +27,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.List;
 
-import static com.maruhxn.todomon.core.global.auth.application.JwtProvider.BEARER_PREFIX;
+import static com.maruhxn.todomon.core.global.auth.implement.JwtProvider.BEARER_PREFIX;
 import static com.maruhxn.todomon.core.global.common.Constants.ACCESS_TOKEN_HEADER;
 import static com.maruhxn.todomon.core.global.common.Constants.REFRESH_TOKEN_HEADER;
 import static org.mockito.ArgumentMatchers.any;
@@ -208,6 +208,7 @@ class MemberIntegrationTest extends ControllerIntegrationTestSupport {
         // when / then
         mockMvc.perform(
                         multipart(HttpMethod.PATCH, MEMBER_BASE_URL + "/{memberId}", tester1.getId())
+                                .part(new MockPart("username", "update!".getBytes()))
                                 .contentType(MediaType.MULTIPART_FORM_DATA)
                                 .header(ACCESS_TOKEN_HEADER, BEARER_PREFIX + memberTokenDto.getAccessToken())
                                 .header(REFRESH_TOKEN_HEADER, BEARER_PREFIX + memberTokenDto.getRefreshToken())

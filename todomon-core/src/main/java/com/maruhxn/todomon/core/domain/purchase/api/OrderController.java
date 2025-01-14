@@ -24,7 +24,6 @@ public class OrderController {
     public DataResponse<List<OrderItem>> getMyOrders(
             @AuthenticationPrincipal TodomonOAuth2User todomonOAuth2User
     ) {
-        List<OrderItem> orderList = orderService.getMyOrders(todomonOAuth2User.getId());
-        return DataResponse.of("주문 내역 조회 성공", orderList);
+        return DataResponse.of("주문 내역 조회 성공", orderService.getMyOrders(todomonOAuth2User.getId()));
     }
 }

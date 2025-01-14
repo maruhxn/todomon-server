@@ -31,7 +31,22 @@ public class Follow extends BaseEntity {
         this.followee = followee;
     }
 
+    public static Follow of(Member follower, Member followee) {
+        return Follow.builder()
+                .follower(follower)
+                .followee(followee)
+                .build();
+    }
+
     public void updateStatus(FollowRequestStatus status) {
         this.status = status;
+    }
+
+    public boolean isPending() {
+        return this.status.equals(FollowRequestStatus.PENDING);
+    }
+
+    public boolean isAccepted() {
+        return this.status.equals(FollowRequestStatus.ACCEPTED);
     }
 }

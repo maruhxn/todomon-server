@@ -1,6 +1,5 @@
 package com.maruhxn.todomon.core.global.auth.filter;
 
-import com.maruhxn.todomon.core.global.auth.application.JwtProvider;
 import com.maruhxn.todomon.core.global.auth.application.JwtService;
 import com.maruhxn.todomon.core.global.auth.model.TodomonOAuth2User;
 import jakarta.servlet.FilterChain;
@@ -16,22 +15,25 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
+import static com.maruhxn.todomon.core.global.common.Constants.ACCESS_TOKEN_HEADER;
+
 @Component
 @RequiredArgsConstructor
 public class JwtVerificationFilter extends OncePerRequestFilter {
 
-    private final JwtProvider jwtProvider;
     private final JwtService jwtService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        String accessToken = jwtProvider.resolveAccessToken(request);
+        String bearerToken = request.getHeader(ACCESS_TOKEN_HEADER);
+        String accessToken = jwtService.getTokenFromBearer(bearerToken);
+
         if (!StringUtils.hasText(accessToken)) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        jwtProvider.validate(accessToken);
+        jwtService.validate(accessToken);
         setAuthenticationToContext(accessToken);
         filterChain.doFilter(request, response);
     }

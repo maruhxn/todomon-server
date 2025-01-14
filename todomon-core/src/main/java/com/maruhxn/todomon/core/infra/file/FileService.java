@@ -8,4 +8,5 @@ public interface FileService {
 
     String storeOneFile(MultipartFile file);
 
+    void deleteProfileImage(String profileImageUrl);
 }

@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/todo")
@@ -42,40 +43,37 @@ public class TodoController {
     @GetMapping("/day")
     public DataResponse<List<TodoItem>> getTodoByDay(
             @AuthenticationPrincipal TodomonOAuth2User todomonOAuth2User,
-            @RequestParam(required = false, name = "date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date
+            @RequestParam(required = false, name = "date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Optional<LocalDate> date
     ) {
-        List<TodoItem> todos = todoQueryService.getTodosByDay(
-                date == null
-                        ? LocalDate.now()
-                        : date, todomonOAuth2User.getId()
+        return DataResponse.of(
+                "일별 조회 성공",
+                todoQueryService.getTodosByDay(date.orElseGet(LocalDate::now), todomonOAuth2User.getId())
         );
-        return DataResponse.of("일별 조회 성공", todos);
     }
 
     @GetMapping("/week")
     public DataResponse<List<TodoItem>> getTodoByWeek(
             @AuthenticationPrincipal TodomonOAuth2User todomonOAuth2User,
-            @RequestParam(required = false, name = "startOfWeek") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startOfWeek
+            @RequestParam(required = false, name = "startOfWeek") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Optional<LocalDate> startOfWeek
     ) {
-        List<TodoItem> todos = todoQueryService.getTodosByWeek(
-                startOfWeek == null
-                        ? LocalDate.now()
-                        : startOfWeek, todomonOAuth2User.getId()
+        return DataResponse.of(
+                "주별 조회 성공",
+                todoQueryService.getTodosByWeek(startOfWeek.orElseGet(LocalDate::now), todomonOAuth2User.getId())
         );
-        return DataResponse.of("주별 조회 성공", todos);
     }
 
     @GetMapping("/month")
     public DataResponse<List<TodoItem>> getTodoByMonth(
             @AuthenticationPrincipal TodomonOAuth2User todomonOAuth2User,
-            @RequestParam(required = false, name = "yearMonth") @DateTimeFormat(pattern = "yyyy-MM") String yearMonth
+            @RequestParam(required = false, name = "yearMonth") @DateTimeFormat(pattern = "yyyy-MM") Optional<String> yearMonth
     ) {
-        List<TodoItem> todos = todoQueryService.getTodosByMonth(
-                yearMonth == null
-                        ? YearMonth.now()
-                        : YearMonth.parse(yearMonth), todomonOAuth2User.getId()
+        return DataResponse.of(
+                "월별 조회 성공",
+                todoQueryService.getTodosByMonth(
+                        yearMonth.map(YearMonth::parse).orElseGet(YearMonth::now),
+                        todomonOAuth2User.getId()
+                )
         );
-        return DataResponse.of("월별 조회 성공", todos);
     }
 
     /**
@@ -85,7 +83,6 @@ public class TodoController {
      */
     @PatchMapping("/{objectId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-//    @PreAuthorize("@authChecker.isMyTodoOrAdmin(#objectId, #params.isInstance)")
     public void updateTodo(
             @PathVariable Long objectId,
             @ModelAttribute @Valid UpdateAndDeleteTodoQueryParams params,
@@ -102,7 +99,6 @@ public class TodoController {
      */
     @PatchMapping("/{objectId}/status")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-//    @PreAuthorize("@authChecker.isMyTodoOrAdmin(#objectId, #isInstance)")
     public void updateTodoStatus(
             @PathVariable Long objectId,
             @AuthenticationPrincipal TodomonOAuth2User todomonOAuth2User,
@@ -114,7 +110,6 @@ public class TodoController {
 
     @DeleteMapping("/{objectId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-//    @PreAuthorize("@authChecker.isMyTodoOrAdmin(#objectId, #params.isInstance)")
     public void deleteTodo(
             @PathVariable Long objectId,
             @Valid UpdateAndDeleteTodoQueryParams params

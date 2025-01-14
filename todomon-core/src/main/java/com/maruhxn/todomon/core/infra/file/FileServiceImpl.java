@@ -59,6 +59,12 @@ public class FileServiceImpl implements FileService {
         return storeFileName;
     }
 
+    @Override
+    public void deleteProfileImage(String profileImageUrl) {
+        if (profileImageUrl.startsWith("http") || profileImageUrl.startsWith("https")) return;
+        this.deleteFile(profileImageUrl);
+    }
+
     /**
      * 이미지 리사이징 + MultipartFile -> File로 만드는 메서드
      *

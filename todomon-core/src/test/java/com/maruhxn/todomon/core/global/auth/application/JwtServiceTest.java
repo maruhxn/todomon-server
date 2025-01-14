@@ -4,10 +4,9 @@ import com.maruhxn.todomon.core.domain.auth.dao.RefreshTokenRepository;
 import com.maruhxn.todomon.core.domain.auth.domain.RefreshToken;
 import com.maruhxn.todomon.core.domain.member.dao.MemberRepository;
 import com.maruhxn.todomon.core.domain.member.domain.Member;
-import com.maruhxn.todomon.core.global.auth.application.JwtProvider;
-import com.maruhxn.todomon.core.global.auth.application.JwtService;
 import com.maruhxn.todomon.core.global.auth.dto.MemberDTO;
 import com.maruhxn.todomon.core.global.auth.dto.TokenDto;
+import com.maruhxn.todomon.core.global.auth.implement.JwtProvider;
 import com.maruhxn.todomon.core.global.auth.model.Role;
 import com.maruhxn.todomon.core.global.auth.model.TodomonOAuth2User;
 import com.maruhxn.todomon.core.global.auth.model.provider.OAuth2Provider;
@@ -48,21 +47,16 @@ class JwtServiceTest extends IntegrationTestSupport {
 
     @DisplayName("유저 이메일을 바탕으로 조회한 refresh token이 없다면 새롭게 저장한다.")
     @Test
-    void saveRefreshToken() {
+    void upsertRefreshToken() {
         // Given
         Member member = createMember();
         TodomonOAuth2User todomonOAuth2User = TodomonOAuth2User.from(MemberDTO.from(member));
 
-        TokenDto tokenDto = TokenDto.builder()
-                .accessToken("accessToken")
-                .refreshToken("refreshToken")
-                .build();
-
         // When
-        jwtService.saveRefreshToken(todomonOAuth2User, tokenDto);
+        jwtService.doTokenGenerationProcess(new MockHttpServletResponse(), todomonOAuth2User);
 
         // Then
-        Optional<RefreshToken> optionalRefreshToken = refreshTokenRepository.findByEmail(todomonOAuth2User.getEmail());
+        Optional<RefreshToken> optionalRefreshToken = refreshTokenRepository.findByEmail(member.getEmail());
         assertThat(optionalRefreshToken.isPresent()).isTrue();
     }
 
@@ -79,16 +73,11 @@ class JwtServiceTest extends IntegrationTestSupport {
         Member member = createMember();
         TodomonOAuth2User todomonOAuth2User = TodomonOAuth2User.from(MemberDTO.from(member));
 
-        TokenDto tokenDto = TokenDto.builder()
-                .accessToken("accessToken")
-                .refreshToken("newRefreshToken")
-                .build();
-
         // When
-        jwtService.saveRefreshToken(todomonOAuth2User, tokenDto);
+        TokenDto tokenDto = jwtService.doTokenGenerationProcess(new MockHttpServletResponse(), todomonOAuth2User);
 
         // Then
-        RefreshToken findRefreshToken = refreshTokenRepository.findByEmail(todomonOAuth2User.getEmail()).get();
+        RefreshToken findRefreshToken = refreshTokenRepository.findByEmail(member.getEmail()).get();
         assertThat(findRefreshToken.getPayload()).isEqualTo(tokenDto.getRefreshToken());
     }
 
@@ -109,7 +98,7 @@ class JwtServiceTest extends IntegrationTestSupport {
 
         String bearerRefreshToken = JwtProvider.BEARER_PREFIX + rawRefreshToken;
         // When
-        TokenDto tokenDto = jwtService.refresh(bearerRefreshToken, response);
+        TokenDto tokenDto = jwtService.tokenRefresh(bearerRefreshToken, response);
         // Then
         assertThat(response.getHeader(ACCESS_TOKEN_HEADER)).isEqualTo(JwtProvider.BEARER_PREFIX + tokenDto.getAccessToken());
         assertThat(response.getHeader(REFRESH_TOKEN_HEADER)).isEqualTo(JwtProvider.BEARER_PREFIX + tokenDto.getRefreshToken());
@@ -136,7 +125,7 @@ class JwtServiceTest extends IntegrationTestSupport {
 
         String bearerRefreshToken = JwtProvider.BEARER_PREFIX + rawRefreshToken;
         // When / Then
-        assertThatThrownBy(() -> jwtService.refresh(bearerRefreshToken, response))
+        assertThatThrownBy(() -> jwtService.tokenRefresh(bearerRefreshToken, response))
                 .isInstanceOf(UnauthorizedException.class)
                 .hasMessage("기한이 만료된 토큰입니다.");
     }
@@ -153,7 +142,7 @@ class JwtServiceTest extends IntegrationTestSupport {
 
         String bearerRefreshToken = JwtProvider.BEARER_PREFIX + rawRefreshToken;
         // When / Then
-        assertThatThrownBy(() -> jwtService.refresh(bearerRefreshToken, response))
+        assertThatThrownBy(() -> jwtService.tokenRefresh(bearerRefreshToken, response))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage(ErrorCode.NOT_FOUND_REFRESH_TOKEN.getMessage());
     }
@@ -175,7 +164,7 @@ class JwtServiceTest extends IntegrationTestSupport {
 
         String bearerRefreshToken = JwtProvider.BEARER_PREFIX + rawRefreshToken;
         // When / Then
-        assertThatThrownBy(() -> jwtService.refresh(bearerRefreshToken, response))
+        assertThatThrownBy(() -> jwtService.tokenRefresh(bearerRefreshToken, response))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage(ErrorCode.NOT_FOUND_MEMBER.getMessage());
     }

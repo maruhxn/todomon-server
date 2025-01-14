@@ -19,7 +19,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-import static com.maruhxn.todomon.core.global.auth.application.JwtProvider.BEARER_PREFIX;
+import static com.maruhxn.todomon.core.global.auth.implement.JwtProvider.BEARER_PREFIX;
 import static com.maruhxn.todomon.core.global.common.Constants.ACCESS_TOKEN_HEADER;
 import static com.maruhxn.todomon.core.global.common.Constants.REFRESH_TOKEN_HEADER;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -509,7 +509,7 @@ public class TodoIntegrationTest extends ControllerIntegrationTestSupport {
                 )
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("code").value(ErrorCode.VALIDATION_ERROR.name()))
-                .andExpect(jsonPath("message").value("수정할 데이터를 넘겨주세요"));
+                .andExpect(jsonPath("message").value("1개 이상의 데이터를 전달해야 합니다."));
     }
 
     @Test

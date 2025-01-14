@@ -1,13 +1,11 @@
 package com.maruhxn.todomon.core.domain.member.application;
 
-import com.maruhxn.todomon.core.domain.member.dao.MemberRepository;
-import com.maruhxn.todomon.core.domain.member.dao.TitleNameRepository;
 import com.maruhxn.todomon.core.domain.member.domain.Member;
 import com.maruhxn.todomon.core.domain.member.domain.TitleName;
-import com.maruhxn.todomon.core.domain.member.dto.request.UpsertTitleNameRequest;
-import com.maruhxn.todomon.core.global.error.ErrorCode;
-import com.maruhxn.todomon.core.global.error.exception.BadRequestException;
-import com.maruhxn.todomon.core.global.error.exception.NotFoundException;
+import com.maruhxn.todomon.core.domain.member.dto.request.UpsertTitleNameReq;
+import com.maruhxn.todomon.core.domain.member.implement.MemberReader;
+import com.maruhxn.todomon.core.domain.member.implement.TitleNameReader;
+import com.maruhxn.todomon.core.domain.member.implement.TitleNameWriter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,36 +15,22 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class TitleNameService {
 
-    private final MemberRepository memberRepository;
-    private final TitleNameRepository titleNameRepository;
+    private final MemberReader memberReader;
+    private final TitleNameReader titleNameReader;
+    private final TitleNameWriter titleNameWriter;
 
-    public void upsertTitleName(Member member, UpsertTitleNameRequest req) {
-        titleNameRepository.findByMember_Id(member.getId())
+    public void upsertTitleName(Member member, UpsertTitleNameReq req) {
+        titleNameReader.findByMember_Id(member.getId())
                 .ifPresentOrElse(
-                        tn -> {
-                            if (req.getName() == null && req.getColor() == null)
-                                throw new BadRequestException(ErrorCode.VALIDATION_ERROR, "수정할 내용을 입력해주세요.");
-                            tn.update(req.getName(), req.getColor());
-                        },
-                        () -> {
-                            TitleName titleName = TitleName.builder()
-                                    .name(req.getName())
-                                    .color(req.getColor())
-                                    .member(member)
-                                    .build();
-                            member.setTitleName(titleName);
-
-                            titleNameRepository.save(titleName);
-                        });
+                        tn -> tn.update(req.getName(), req.getColor()),
+                        () -> titleNameWriter.create(member, req)
+                );
     }
 
     public void deleteTitleName(Long memberId) {
-        Member findMember = memberRepository.findById(memberId)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_MEMBER));
-        TitleName findTitleName = titleNameRepository.findByMember_Id(findMember.getId())
-                .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_TITLE_NAME));
-
-        findMember.setTitleName(null);
-        titleNameRepository.delete(findTitleName);
+        Member member = memberReader.findById(memberId);
+        TitleName titleName = titleNameReader.findByMemberId(member.getId());
+        member.setTitleName(null);
+        titleNameWriter.delete(titleName);
     }
 }

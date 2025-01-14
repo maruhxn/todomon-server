@@ -7,15 +7,15 @@ import com.maruhxn.todomon.core.domain.social.domain.Follow;
 import com.maruhxn.todomon.core.domain.social.domain.StarTransaction;
 import com.maruhxn.todomon.core.global.auth.model.Role;
 import com.maruhxn.todomon.core.global.auth.model.provider.OAuth2Provider;
-import com.maruhxn.todomon.core.global.auth.model.provider.OAuth2ProviderUser;
 import com.maruhxn.todomon.core.global.common.BaseEntity;
+import com.maruhxn.todomon.core.global.error.ErrorCode;
+import com.maruhxn.todomon.core.global.error.exception.BadRequestException;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.ColumnDefault;
-import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -107,15 +107,12 @@ public class Member extends BaseEntity {
         this.providerId = providerId;
         this.profileImageUrl = profileImageUrl;
         this.role = role;
+
+        this.initDiligence();
     }
 
     public void updateIsSubscribed(boolean isSubscribed) {
         this.isSubscribed = isSubscribed;
-    }
-
-    public void updateByOAuth2Info(OAuth2ProviderUser oAuth2ProviderUser) {
-        this.username = oAuth2ProviderUser.getUsername();
-        this.profileImageUrl = oAuth2ProviderUser.getProfileImageUrl();
     }
 
     public void initDiligence() {
@@ -144,7 +141,7 @@ public class Member extends BaseEntity {
         this.foodCnt -= foodCnt;
     }
 
-    public void addStar(Long starCnt) {
+    public void addStar(int starCnt) {
         this.starPoint += starCnt;
     }
 
@@ -182,14 +179,12 @@ public class Member extends BaseEntity {
         this.dailyAchievementCnt = 0L;
     }
 
-    public void updateProfile(String username, String newProfileImageUrl) {
-        if (StringUtils.hasText(username)) {
-            this.username = username;
-        }
+    public void updateUsername(String username) {
+        this.username = username;
+    }
 
-        if (StringUtils.hasText(newProfileImageUrl)) {
-            this.profileImageUrl = newProfileImageUrl;
-        }
+    public void updateProfileImageUrl(String newProfileImageUrl) {
+        this.profileImageUrl = newProfileImageUrl;
     }
 
     public Optional<Pet> getRepresentPet() {
@@ -206,5 +201,16 @@ public class Member extends BaseEntity {
 
     public void subtractStarPoint(Long totalPrice) {
         this.starPoint -= totalPrice;
+    }
+
+    public void validatePetHouseSpace() {
+        if (this.getPetHouseSize() <= this.getPets().size()) {
+            throw new BadRequestException(ErrorCode.NO_SPACE_PET_HOUSE);
+        }
+    }
+
+    public void validateFoodCnt(Long foodCnt) {
+        if (this.foodCnt < foodCnt)
+            throw new BadRequestException(ErrorCode.OVER_FOOD_CNT);
     }
 }

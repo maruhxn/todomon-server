@@ -1,8 +1,8 @@
 package com.maruhxn.todomon.core.domain.pet.api;
 
 import com.maruhxn.todomon.core.domain.pet.application.PetQueryService;
+import com.maruhxn.todomon.core.domain.pet.dto.response.OwnPetInfoRes;
 import com.maruhxn.todomon.core.domain.pet.dto.response.PetDexItem;
-import com.maruhxn.todomon.core.domain.pet.dto.response.PetInfoDto;
 import com.maruhxn.todomon.core.global.common.dto.response.DataResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,19 +21,17 @@ public class MemberPetController {
     private final PetQueryService petQueryService;
 
     @GetMapping
-    public DataResponse<PetInfoDto> getPetInfo(
+    public DataResponse<OwnPetInfoRes> getOwnPetInfo(
             @PathVariable Long memberId
     ) {
-        PetInfoDto petInfoDto = petQueryService.findAllOwnPets(memberId);
-        return DataResponse.of("소유 펫 정보 조회 성공", petInfoDto);
+        return DataResponse.of("소유 펫 정보 조회 성공", petQueryService.findAllOwnPets(memberId));
     }
 
     @GetMapping("/collections")
     public DataResponse<List<PetDexItem>> getPetCollections(
             @PathVariable Long memberId
     ) {
-        List<PetDexItem> collections = petQueryService.findAllOwnCollectedPets(memberId);
-        return DataResponse.of("펫 획득 목록 조회 성공", collections);
+        return DataResponse.of("펫 획득 목록 조회 성공", petQueryService.findAllOwnCollectedPets(memberId));
     }
 
 }

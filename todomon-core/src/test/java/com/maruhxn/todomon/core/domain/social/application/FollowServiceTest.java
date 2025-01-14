@@ -2,7 +2,6 @@ package com.maruhxn.todomon.core.domain.social.application;
 
 import com.maruhxn.todomon.core.domain.member.dao.MemberRepository;
 import com.maruhxn.todomon.core.domain.member.domain.Member;
-import com.maruhxn.todomon.core.domain.social.application.FollowService;
 import com.maruhxn.todomon.core.domain.social.dao.FollowRepository;
 import com.maruhxn.todomon.core.domain.social.domain.Follow;
 import com.maruhxn.todomon.core.global.auth.model.Role;
@@ -35,7 +34,7 @@ class FollowServiceTest extends IntegrationTestSupport {
         Member tester2 = createMember("tester2");
 
         // when
-        followService.sendFollowRequestOrMatFollow(tester1.getId(), tester2.getId());
+        followService.sendFollowRequest(tester1.getId(), tester2.getId());
 
         // then
         assertThat(followRepository.findAll())

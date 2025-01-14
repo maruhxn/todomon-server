@@ -1,5 +1,6 @@
 package com.maruhxn.todomon.core.domain.todo.dto.request;
 
+import com.maruhxn.todomon.core.global.util.validation.AtLeastOneFieldNotNull;
 import com.maruhxn.todomon.core.global.util.validation.ValidDateRange;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Size;
@@ -13,6 +14,7 @@ import java.time.LocalDateTime;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @ValidDateRange
+@AtLeastOneFieldNotNull
 public class UpdateTodoReq implements DateRangeDto {
 
     @Size(max = 50, message = "내용은 최대 50글자입니다.")

@@ -25,17 +25,25 @@ public class TodomonPayment extends BaseEntity {
     @Column(nullable = false, unique = true)
     private String impUid; // 포트원 결제 id
 
+    private Long amount;
+
     @Enumerated(EnumType.STRING)
     private PaymentStatus status = PaymentStatus.OK;
 
-    private Long amount;
-
     @Builder
-    public TodomonPayment(Member member, Order order, String impUid, Long amount) {
+    protected TodomonPayment(Member member, Order order, String impUid, Long amount) {
         this.member = member;
         this.order = order;
         this.impUid = impUid;
         this.amount = amount;
+    }
+
+    public static TodomonPayment of(Order order, String impUid) {
+        return TodomonPayment.builder()
+                .member(order.getMember())
+                .order(order)
+                .impUid(impUid)
+                .build();
     }
 
     public void updateStatus(PaymentStatus status) {

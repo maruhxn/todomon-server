@@ -2,7 +2,6 @@ package com.maruhxn.todomon.core.domain.pet.application;
 
 import com.maruhxn.todomon.core.domain.member.dao.MemberRepository;
 import com.maruhxn.todomon.core.domain.member.domain.Member;
-import com.maruhxn.todomon.core.domain.pet.application.RepresentPetService;
 import com.maruhxn.todomon.core.domain.pet.dao.PetRepository;
 import com.maruhxn.todomon.core.domain.pet.domain.Pet;
 import com.maruhxn.todomon.core.domain.pet.domain.PetType;

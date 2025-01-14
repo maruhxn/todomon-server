@@ -1,7 +1,5 @@
 package com.maruhxn.todomon.core.global.auth.handler;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.maruhxn.todomon.core.global.auth.application.JwtProvider;
 import com.maruhxn.todomon.core.global.auth.application.JwtService;
 import com.maruhxn.todomon.core.global.auth.dto.TokenDto;
 import com.maruhxn.todomon.core.global.auth.model.TodomonOAuth2User;
@@ -27,20 +25,14 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
     private String clientUrl;
 
     @Autowired
-    private JwtProvider jwtProvider;
-    @Autowired
     private JwtService jwtService;
 
-    @Autowired
-    private ObjectMapper objectMapper;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
         TodomonOAuth2User principal = (TodomonOAuth2User) authentication.getPrincipal();
-        TokenDto tokenDto = jwtProvider.createJwt(principal);
-        String targetUri = createUri(tokenDto, principal.getId());
-        jwtService.saveRefreshToken(principal, tokenDto);
-        jwtProvider.setHeader(response, tokenDto);
+        TokenDto tokenDto = jwtService.doTokenGenerationProcess(response, principal);
+        String targetUri = this.createUri(tokenDto, principal.getId());
 //        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 //        response.setCharacterEncoding("UTF-8");
 //        DataResponse<TokenDto> dto = DataResponse.of("로그인 성공", tokenDto);

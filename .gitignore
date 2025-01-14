@@ -41,3 +41,4 @@ application*.yml
 memo/*
 /todomon-core/src/main/generated/
 /sql
+/todomon-core/src/main/java/com/maruhxn/todomon/core/MockDataLoader.java

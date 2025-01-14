@@ -5,7 +5,7 @@ import com.maruhxn.todomon.infra.mail.dto.SendNotificationBatchDTO;
 
 
 public interface MailService {
-    public static final String SUBJECT = "TODOMON";
+    String SUBJECT = "TODOMON";
 
     void sendEmail(String email, String message);
 

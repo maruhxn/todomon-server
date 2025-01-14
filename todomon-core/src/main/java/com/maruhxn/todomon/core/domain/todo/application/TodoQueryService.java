@@ -1,8 +1,8 @@
 package com.maruhxn.todomon.core.domain.todo.application;
 
-import com.maruhxn.todomon.core.domain.todo.dao.TodoInstanceRepository;
-import com.maruhxn.todomon.core.domain.todo.dao.TodoRepository;
 import com.maruhxn.todomon.core.domain.todo.dto.response.TodoItem;
+import com.maruhxn.todomon.core.domain.todo.implement.TodoInstanceReader;
+import com.maruhxn.todomon.core.domain.todo.implement.TodoReader;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,14 +19,14 @@ import java.util.stream.Stream;
 @RequiredArgsConstructor
 public class TodoQueryService {
 
-    private final TodoRepository todoRepository;
-    private final TodoInstanceRepository todoInstanceRepository;
+    private final TodoReader todoReader;
+    private final TodoInstanceReader todoInstanceReader;
 
     public List<TodoItem> getTodosByDay(LocalDate date, Long memberId) {
         LocalDateTime startAt = date.atStartOfDay();
         LocalDateTime endAt = LocalDateTime.of(date, LocalTime.of(23, 59, 59, 999999));
 
-        return getTodoItems(memberId, startAt, endAt);
+        return this.getTodoItems(memberId, startAt, endAt);
     }
 
     public List<TodoItem> getTodosByWeek(LocalDate startOfWeek, Long memberId) {
@@ -36,7 +36,7 @@ public class TodoQueryService {
                 LocalTime.of(23, 59, 59, 999999)
         );
 
-        return getTodoItems(memberId, startAt, endAt);
+        return this.getTodoItems(memberId, startAt, endAt);
     }
 
     public List<TodoItem> getTodosByMonth(YearMonth yearMonth, Long memberId) {
@@ -46,17 +46,17 @@ public class TodoQueryService {
                 LocalTime.of(23, 59, 59, 999999)
         );
 
-        return getTodoItems(memberId, startAt, endAt);
+        return this.getTodoItems(memberId, startAt, endAt);
     }
 
 
     private List<TodoItem> getTodoItems(Long memberId, LocalDateTime startAt, LocalDateTime endAt) {
         return Stream.concat(
-                todoRepository
-                        .findSingleTodosByWriterIdAndDate(memberId, startAt, endAt)
+                todoReader
+                        .findAllByWriterIdAndDate(memberId, startAt, endAt)
                         .stream()
                         .map(TodoItem::from),
-                todoInstanceRepository
+                todoInstanceReader
                         .findAllByWriterIdAndDate(memberId, startAt, endAt)
                         .stream()
                         .map(TodoItem::from)

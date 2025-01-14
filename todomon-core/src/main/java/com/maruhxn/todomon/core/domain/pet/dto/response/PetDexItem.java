@@ -1,6 +1,7 @@
 package com.maruhxn.todomon.core.domain.pet.dto.response;
 
 import com.maruhxn.todomon.core.domain.pet.domain.CollectedPet;
+import com.maruhxn.todomon.core.domain.pet.domain.PetType;
 import com.maruhxn.todomon.core.domain.pet.domain.Rarity;
 import lombok.*;
 
@@ -27,6 +28,14 @@ public class PetDexItem {
                 .name(collectedPet.getName())
                 .appearance(collectedPet.getAppearance())
                 .rarity(collectedPet.getRarity())
+                .build();
+    }
+
+    public static PetDexItem of(PetType.EvolutionStage stage, Rarity rarity) {
+        return PetDexItem.builder()
+                .name(stage.getName())
+                .appearance(stage.getForm())
+                .rarity(rarity)
                 .build();
     }
 }

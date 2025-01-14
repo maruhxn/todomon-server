@@ -21,6 +21,7 @@ public enum ErrorCode {
     NOT_ENOUGH_STAR_POINT("⭐️이 부족합니다."),
     INVALID_PAYMENT_AMOUNT_ERROR("거래 금액이 일치하지 않습니다."),
     CANCEL_PAYMENT_ERROR("결제 취소 중 에러"),
+    FOLLOW_ONESELF("자기 자신에 대한 요청은 할 수 없습니다."),
 
     /* UNAUTHORIZED 401 */
     UNAUTHORIZED("로그인이 필요한 서비스입니다."),
