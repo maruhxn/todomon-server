@@ -1,4 +1,4 @@
-package com.maruhxn.todomon.core.domain.todo.application;
+package com.maruhxn.todomon.core.domain.todo.implement;
 
 import com.maruhxn.todomon.core.domain.todo.dao.RepeatInfoRepository;
 import com.maruhxn.todomon.core.domain.todo.domain.RepeatInfo;
@@ -6,11 +6,11 @@ import com.maruhxn.todomon.core.domain.todo.domain.Todo;
 import com.maruhxn.todomon.core.domain.todo.dto.request.RepeatInfoReqItem;
 import com.maruhxn.todomon.core.domain.todo.dto.request.UpdateTodoReq;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
-@Service
+@Component
 @RequiredArgsConstructor
-public class RepeatInfoService {
+public class RepeatInfoWriter {
 
     private final RepeatInfoRepository repeatInfoRepository;
 
@@ -25,6 +25,12 @@ public class RepeatInfoService {
         findTodo.setRepeatInfo(repeatInfo);
     }
 
+
+    private void deleteRepeatInfo(RepeatInfo repeatInfo) {
+        repeatInfoRepository.delete(repeatInfo);
+    }
+
+
     public void removeOldRepeatInfo(Todo todo) {
         RepeatInfo oldRepeatInfo = todo.getRepeatInfo();
 
@@ -33,10 +39,6 @@ public class RepeatInfoService {
             todo.setTodoInstances(null);
             this.deleteRepeatInfo(oldRepeatInfo);
         }
-    }
-
-    private void deleteRepeatInfo(RepeatInfo repeatInfo) {
-        repeatInfoRepository.delete(repeatInfo);
     }
 
 }

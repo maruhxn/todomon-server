@@ -57,4 +57,9 @@ public class MemberReader {
         return memberRepository.findMemberWithRepresentPet(id)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_MEMBER));
     }
+
+    public Member findMemberWithDiligenceUsingLock(Long memberId) {
+        return memberRepository.findMemberWithDiligenceUsingLock(memberId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_MEMBER));
+    }
 }

@@ -509,7 +509,7 @@ public class TodoIntegrationTest extends ControllerIntegrationTestSupport {
                 )
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("code").value(ErrorCode.VALIDATION_ERROR.name()))
-                .andExpect(jsonPath("message").value("수정할 데이터를 넘겨주세요"));
+                .andExpect(jsonPath("message").value("1개 이상의 데이터를 전달해야 합니다."));
     }
 
     @Test

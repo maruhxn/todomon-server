@@ -1,4 +1,4 @@
-package com.maruhxn.todomon.core.domain.todo.application.strategy;
+package com.maruhxn.todomon.core.domain.todo.implement.strategy;
 
 import com.maruhxn.todomon.core.domain.todo.domain.Frequency;
 import com.maruhxn.todomon.core.domain.todo.domain.RepeatInfo;

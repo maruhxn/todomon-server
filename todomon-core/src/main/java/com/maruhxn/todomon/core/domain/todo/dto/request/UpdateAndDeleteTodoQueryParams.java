@@ -1,5 +1,6 @@
 package com.maruhxn.todomon.core.domain.todo.dto.request;
 
+import com.maruhxn.todomon.core.global.util.validation.AtLeastOneFieldNotNull;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Getter;
@@ -7,6 +8,7 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
+@AtLeastOneFieldNotNull
 public class UpdateAndDeleteTodoQueryParams {
 
     @NotNull

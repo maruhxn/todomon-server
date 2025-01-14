@@ -1,19 +1,18 @@
-package com.maruhxn.todomon.core.domain.todo.application;
+package com.maruhxn.todomon.core.domain.todo.implement;
 
 import com.maruhxn.todomon.core.domain.member.domain.Member;
 import com.maruhxn.todomon.core.domain.todo.dao.TodoInstanceRepository;
 import com.maruhxn.todomon.core.domain.todo.domain.TodoInstance;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 import static com.maruhxn.todomon.core.global.common.Constants.*;
 
-@Service
+@Component
 @RequiredArgsConstructor
-public class RewardService {
-
+public class RewardManager {
     private final TodoInstanceRepository todoInstanceRepository;
 
     // 단일 일정에 대한 보상 로직
