@@ -10,11 +10,11 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class RefreshTokenWriter {
 
-    private final RefreshTokenReader reader;
+    private final RefreshTokenReader refreshTokenReader;
     private final RefreshTokenRepository refreshTokenRepository;
 
     public void upsertRefreshToken(TokenDto tokenDto) {
-        reader.findOptionalByEmail(tokenDto.getEmail())
+        refreshTokenReader.findOptionalByEmail(tokenDto.getEmail())
                 .ifPresentOrElse(
                         // 있다면 새토큰 발급후 업데이트
                         token -> token.updatePayload(tokenDto.getRefreshToken()),
@@ -25,5 +25,9 @@ public class RefreshTokenWriter {
 
     private void create(TokenDto tokenDto) {
         refreshTokenRepository.save(new RefreshToken(tokenDto.getRefreshToken(), tokenDto.getEmail()));
+    }
+
+    public void removeAllByEmail(String email) {
+        refreshTokenRepository.deleteAllByEmail(email);
     }
 }

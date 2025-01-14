@@ -5,9 +5,8 @@ import com.maruhxn.todomon.core.domain.member.implement.MemberReader;
 import com.maruhxn.todomon.core.domain.pet.domain.Pet;
 import com.maruhxn.todomon.core.domain.pet.dto.request.ChangePetNameReq;
 import com.maruhxn.todomon.core.domain.pet.implement.PetCollectionManager;
-import com.maruhxn.todomon.core.domain.pet.implement.PetCreator;
 import com.maruhxn.todomon.core.domain.pet.implement.PetReader;
-import com.maruhxn.todomon.core.domain.pet.implement.PetRemover;
+import com.maruhxn.todomon.core.domain.pet.implement.PetWriter;
 import com.maruhxn.todomon.core.global.auth.checker.IsMyPetOrAdmin;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,15 +21,14 @@ import static com.maruhxn.todomon.core.global.common.Constants.PET_GAUGE_INCREAS
 public class PetService {
 
     private final MemberReader memberReader;
-    private final PetCreator petCreator;
     private final PetReader petReader;
-    private final PetRemover petRemover;
+    private final PetWriter petWriter;
     private final PetCollectionManager petCollectionManager;
 
     public void create(Long memberId) {
         Member member = memberReader.findMemberWithPetsById(memberId);
         member.validatePetHouseSpace();
-        Pet pet = petCreator.createRandomPet(member);
+        Pet pet = petWriter.createRandomPet(member);
         petCollectionManager.updateCollection(member, pet);
     }
 
@@ -61,7 +59,7 @@ public class PetService {
     public void deletePet(Long memberId, Long petId) {
         Pet pet = petReader.findById(petId);
         Member member = memberReader.findMemberWithRepresentPet(memberId);
-        petRemover.remove(pet);
+        petWriter.remove(pet);
         this.checkIsDeletedRepresentPet(petId, member);
     }
 

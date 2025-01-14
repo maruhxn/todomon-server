@@ -5,10 +5,8 @@ import com.maruhxn.todomon.core.domain.member.domain.Member;
 import com.maruhxn.todomon.core.domain.member.dto.request.UpdateMemberProfileReq;
 import com.maruhxn.todomon.core.domain.member.dto.response.MemberSearchRes;
 import com.maruhxn.todomon.core.domain.member.dto.response.ProfileRes;
-import com.maruhxn.todomon.core.domain.member.implement.MemberCreator;
-import com.maruhxn.todomon.core.domain.member.implement.MemberModifier;
 import com.maruhxn.todomon.core.domain.member.implement.MemberReader;
-import com.maruhxn.todomon.core.domain.member.implement.MemberRemover;
+import com.maruhxn.todomon.core.domain.member.implement.MemberWriter;
 import com.maruhxn.todomon.core.global.auth.checker.IsMeOrAdmin;
 import com.maruhxn.todomon.core.global.auth.model.provider.OAuth2ProviderUser;
 import lombok.RequiredArgsConstructor;
@@ -22,9 +20,7 @@ import java.util.List;
 public class MemberService {
 
     private final MemberReader memberReader;
-    private final MemberCreator memberCreator;
-    private final MemberModifier memberModifier;
-    private final MemberRemover memberRemover;
+    private final MemberWriter memberWriter;
 
 
     @Transactional(readOnly = true)
@@ -46,20 +42,20 @@ public class MemberService {
     public Member getOrCreate(OAuth2ProviderUser oAuth2ProviderUser) {
         String email = oAuth2ProviderUser.getEmail();
         return memberReader.findOptionalByEmail(email)
-                .orElseGet(() -> memberCreator.registerByOAuth2(oAuth2ProviderUser));
+                .orElseGet(() -> memberWriter.registerByOAuth2(oAuth2ProviderUser));
     }
 
     @Transactional
     @IsMeOrAdmin
     public void updateProfile(Long memberId, UpdateMemberProfileReq req) {
         Member member = memberReader.findById(memberId);
-        memberModifier.modify(member, req);
+        memberWriter.modify(member, req);
     }
 
     @Transactional
     @IsMeOrAdmin
     public void withdraw(Long memberId) {
         Member member = memberReader.findById(memberId);
-        memberRemover.withdraw(member);
+        memberWriter.withdraw(member);
     }
 }

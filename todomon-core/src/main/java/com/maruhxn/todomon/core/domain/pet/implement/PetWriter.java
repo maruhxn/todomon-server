@@ -8,8 +8,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class PetCreator {
-
+public class PetWriter {
     private final PetRepository petRepository;
 
     public Pet createRandomPet(Member member) {
@@ -19,5 +18,9 @@ public class PetCreator {
         petRepository.save(pet);
 
         return pet;
+    }
+
+    public void remove(Pet pet) {
+        petRepository.delete(pet);
     }
 }

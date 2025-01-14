@@ -3,9 +3,9 @@ package com.maruhxn.todomon.core.domain.social.application;
 import com.maruhxn.todomon.core.domain.member.domain.Member;
 import com.maruhxn.todomon.core.domain.member.implement.MemberReader;
 import com.maruhxn.todomon.core.domain.social.domain.Follow;
+import com.maruhxn.todomon.core.domain.social.implement.FollowManager;
 import com.maruhxn.todomon.core.domain.social.implement.FollowReader;
 import com.maruhxn.todomon.core.domain.social.implement.FollowValidator;
-import com.maruhxn.todomon.core.domain.social.implement.FollowWriter;
 import com.maruhxn.todomon.core.global.auth.checker.IsMyFollowOrAdmin;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,7 +21,7 @@ public class FollowService {
 
     private final MemberReader memberReader;
     private final FollowReader followReader;
-    private final FollowWriter followWriter;
+    private final FollowManager followManager;
     private final FollowValidator followValidator;
 
     public void sendFollowRequest(Long followerId, Long followeeId) {
@@ -33,8 +33,11 @@ public class FollowService {
 
         followReader.findOptionalByFollowerIdAndFolloweeId(followeeId, followerId)
                 .ifPresentOrElse(
-                        receivedFollow -> followWriter.matFollow(receivedFollow, loginMember, followee), // 이미 받은 팔로우가 있다면 맞팔로우
-                        () -> followWriter.sendFollowRequest(loginMember, followee)  // 받은 팔로우가 없다면 팔로우 요청 보내기
+                        receivedFollow -> {
+                            if (receivedFollow.isPending()) receivedFollow.updateStatus(ACCEPTED);
+                            followManager.matFollow(loginMember, followee);
+                        }, // 이미 받은 팔로우가 있다면 맞팔로우
+                        () -> followManager.sendFollowRequest(loginMember, followee)  // 받은 팔로우가 없다면 팔로우 요청 보내기
                 );
     }
 
@@ -50,7 +53,7 @@ public class FollowService {
         followValidator.checkIsSelfFollow(memberId, followeeId);
         memberReader.findById(followeeId, "팔로우 대상 정보가 존재하지 않습니다.");
         Follow follow = followReader.findByFollowerIdAndFolloweeId(memberId, followeeId);
-        followWriter.remove(follow);
+        followManager.remove(follow);
     }
 
     // 팔로우를 취소한다.

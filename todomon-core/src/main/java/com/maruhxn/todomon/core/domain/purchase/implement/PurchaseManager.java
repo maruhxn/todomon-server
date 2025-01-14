@@ -2,8 +2,8 @@ package com.maruhxn.todomon.core.domain.purchase.implement;
 
 import com.maruhxn.todomon.core.domain.item.domain.InventoryItem;
 import com.maruhxn.todomon.core.domain.item.domain.Item;
-import com.maruhxn.todomon.core.domain.item.implement.InventoryItemCreator;
 import com.maruhxn.todomon.core.domain.item.implement.InventoryItemReader;
+import com.maruhxn.todomon.core.domain.item.implement.InventoryItemWriter;
 import com.maruhxn.todomon.core.domain.item.implement.ItemApplier;
 import com.maruhxn.todomon.core.domain.member.domain.Member;
 import com.maruhxn.todomon.core.domain.purchase.domain.Order;
@@ -24,7 +24,7 @@ public class PurchaseManager {
 
     private final PurchaseStrategyFactory purchaseStrategyFactory;
     private final InventoryItemReader inventoryItemReader;
-    private final InventoryItemCreator inventoryItemCreator;
+    private final InventoryItemWriter inventoryItemWriter;
     private final ItemApplier itemApplier;
 
     public void preValidate(Order order, PreparePaymentReq req) {
@@ -76,7 +76,7 @@ public class PurchaseManager {
                                 // 없다면 생성
                                 InventoryItem newInventoryItem = InventoryItem.of(member, order);
                                 member.addItemToInventory(newInventoryItem);
-                                inventoryItemCreator.create(newInventoryItem);
+                                inventoryItemWriter.create(newInventoryItem);
                             }
                     );
             case IMMEDIATE_EFFECT -> {

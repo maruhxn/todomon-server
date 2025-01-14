@@ -11,7 +11,5 @@ public class ItemRemover {
 
     private final ItemRepository itemRepository;
 
-    public void remove(Item item) {
-        itemRepository.delete(item);
-    }
+
 }

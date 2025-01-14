@@ -7,7 +7,6 @@ import com.maruhxn.todomon.core.global.auth.dto.MemberDTO;
 import com.maruhxn.todomon.core.global.auth.dto.TokenDto;
 import com.maruhxn.todomon.core.global.auth.implement.JwtProvider;
 import com.maruhxn.todomon.core.global.auth.implement.RefreshTokenReader;
-import com.maruhxn.todomon.core.global.auth.implement.RefreshTokenRemover;
 import com.maruhxn.todomon.core.global.auth.implement.RefreshTokenWriter;
 import com.maruhxn.todomon.core.global.auth.model.TodomonOAuth2User;
 import com.maruhxn.todomon.core.global.error.ErrorCode;
@@ -31,7 +30,6 @@ public class JwtService {
 
     private final JwtProvider jwtProvider;
     private final MemberReader memberReader;
-    private final RefreshTokenRemover refreshTokenRemover;
     private final RefreshTokenReader refreshTokenReader;
     private final RefreshTokenWriter refreshTokenWriter;
 
@@ -42,7 +40,7 @@ public class JwtService {
     @Transactional
     public void logout(String bearerRefreshToken) {
         String email = this.extractEmailFromRefreshToken(bearerRefreshToken);
-        refreshTokenRemover.removeAllByEmail(email);
+        refreshTokenWriter.removeAllByEmail(email);
     }
 
     private String extractEmailFromRefreshToken(String bearerRefreshToken) {

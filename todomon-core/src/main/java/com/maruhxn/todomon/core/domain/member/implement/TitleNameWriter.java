@@ -9,13 +9,18 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class TitleNameCreator {
+public class TitleNameWriter {
 
     private final TitleNameRepository titleNameRepository;
+    private final TitleNameReader reader;
 
     public void create(Member member, UpsertTitleNameReq req) {
         TitleName titleName = req.toEntity();
         member.setTitleName(titleName);
         titleNameRepository.save(titleName);
+    }
+
+    public void delete(TitleName titleName) {
+        titleNameRepository.delete(titleName);
     }
 }

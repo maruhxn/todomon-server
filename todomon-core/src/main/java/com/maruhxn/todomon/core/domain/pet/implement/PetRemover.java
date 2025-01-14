@@ -11,8 +11,6 @@ public class PetRemover {
 
     private final PetRepository petRepository;
 
-    public void remove(Pet pet) {
-        petRepository.delete(pet);
-    }
+
 
 }

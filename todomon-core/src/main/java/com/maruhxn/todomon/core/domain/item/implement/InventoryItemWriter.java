@@ -7,9 +7,12 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class InventoryItemRemover {
-
+public class InventoryItemWriter {
     private final InventoryItemRepository inventoryItemRepository;
+
+    public void create(InventoryItem inventoryItem) {
+        inventoryItemRepository.save(inventoryItem);
+    }
 
     public void consume(InventoryItem inventoryItem) {
         if (inventoryItem.getQuantity() <= 1) inventoryItemRepository.delete(inventoryItem);

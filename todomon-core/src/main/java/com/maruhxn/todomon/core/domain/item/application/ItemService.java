@@ -23,17 +23,16 @@ public class ItemService {
 
     private final MemberReader memberReader;
 
-    private final InventoryItemRemover inventoryItemRemover;
+    private final InventoryItemWriter inventoryItemWriter;
     private final InventoryItemReader inventoryItemReader;
 
     private final ItemReader itemReader;
     private final ItemApplier itemApplier;
-    private final ItemRemover itemRemover;
-    private final ItemCreator itemCreator;
+    private final ItemWriter itemWriter;
 
     public void createItem(CreateItemRequest req) {
         Item item = CreateItemRequest.toEntity(req);
-        itemCreator.create(item);
+        itemWriter.create(item);
     }
 
     @Transactional(readOnly = true)
@@ -60,7 +59,7 @@ public class ItemService {
 
     public void deleteItem(Long itemId) {
         Item item = itemReader.findItemById(itemId);
-        itemRemover.remove(item);
+        itemWriter.remove(item);
     }
 
     public void useInventoryItem(Long memberId, String itemName, ItemEffectReq req) {
@@ -69,7 +68,7 @@ public class ItemService {
 
         Item targetItem = inventoryItem.getItem();
         itemApplier.apply(targetItem, member, req);
-        inventoryItemRemover.consume(inventoryItem);
+        inventoryItemWriter.consume(inventoryItem);
     }
 
 }

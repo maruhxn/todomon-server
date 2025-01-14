@@ -1,6 +1,5 @@
 package com.maruhxn.todomon.core.domain.social.implement;
 
-import com.maruhxn.todomon.core.domain.social.dao.FollowRepository;
 import com.maruhxn.todomon.core.domain.social.domain.Follow;
 import com.maruhxn.todomon.core.global.error.ErrorCode;
 import com.maruhxn.todomon.core.global.error.exception.BadRequestException;
@@ -12,7 +11,6 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class FollowValidator {
 
-    private final FollowRepository followRepository;
     private final FollowReader followReader;
 
     public void checkIsSelfFollow(Long followerId, Long followeeId) {

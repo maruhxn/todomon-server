@@ -10,7 +10,7 @@ import static com.maruhxn.todomon.core.domain.social.domain.FollowRequestStatus.
 
 @Component
 @RequiredArgsConstructor
-public class FollowWriter {
+public class FollowManager {
 
     private final FollowRepository followRepository;
 
@@ -18,9 +18,7 @@ public class FollowWriter {
         followRepository.save(Follow.of(follower, followee));
     }
 
-    public void matFollow(Follow receivedFollow, Member follower, Member followee) {
-        if (receivedFollow.isPending()) receivedFollow.updateStatus(ACCEPTED);
-
+    public void matFollow(Member follower, Member followee) {
         Follow matFollow = Follow.of(follower, followee);
         matFollow.updateStatus(ACCEPTED);
         followRepository.save(matFollow);
