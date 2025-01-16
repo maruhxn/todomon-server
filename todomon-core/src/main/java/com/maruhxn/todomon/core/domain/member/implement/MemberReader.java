@@ -38,11 +38,6 @@ public class MemberReader {
         return memberRepository.findByEmail(email);
     }
 
-    public Member findByEmail(String email) {
-        return memberRepository.findByEmail(email)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_MEMBER));
-    }
-
     public ProfileRes getProfile(Long loginMemberId, Long targetMemberId) {
         return memberQueryRepository.getMemberProfileById(loginMemberId, targetMemberId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_MEMBER));
@@ -61,5 +56,14 @@ public class MemberReader {
     public Member findMemberWithDiligenceUsingLock(Long memberId) {
         return memberRepository.findMemberWithDiligenceUsingLock(memberId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_MEMBER));
+    }
+
+    public Member findByUsername(String username) {
+        return memberRepository.findByUsername(username)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_MEMBER));
+    }
+
+    public boolean checkExistUsername(String username) {
+        return memberRepository.existsByUsername(username);
     }
 }

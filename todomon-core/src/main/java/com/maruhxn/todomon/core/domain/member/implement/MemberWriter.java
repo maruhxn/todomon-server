@@ -28,7 +28,12 @@ public class MemberWriter {
                 ? Role.ROLE_ADMIN
                 : Role.ROLE_USER;
 
+        String providerUsername = oAuth2ProviderUser.getUsername();
+        boolean isExistingUsername = memberReader.checkExistUsername(providerUsername);
         Member member = oAuth2ProviderUser.toMember(role);
+        if (isExistingUsername) {
+            member.updateUsername(oAuth2ProviderUser.getProviderId());
+        }
         memberRepository.save(member);
         return member;
     }

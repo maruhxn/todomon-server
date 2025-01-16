@@ -21,4 +21,8 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 
     @Query("SELECT m FROM Member m LEFT JOIN FETCH m.representPet WHERE m.id = :memberId")
     Optional<Member> findMemberWithRepresentPet(Long memberId);
+
+    Optional<Member> findByUsername(String username);
+
+    boolean existsByUsername(String username);
 }
