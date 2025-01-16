@@ -18,6 +18,7 @@ public class MemberWriter {
 
     private static final String ADMIN_EMAIL = "maruhan1016@gmail.com";
 
+    private final MemberReader memberReader;
     private final MemberRepository memberRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final FileService fileService;
@@ -50,6 +51,6 @@ public class MemberWriter {
     public void withdraw(Member member) {
         fileService.deleteFile(member.getProfileImageUrl());
         memberRepository.delete(member);
-        refreshTokenRepository.deleteAllByEmail(member.getEmail());
+        refreshTokenRepository.deleteAllByUsername(member.getUsername());
     }
 }

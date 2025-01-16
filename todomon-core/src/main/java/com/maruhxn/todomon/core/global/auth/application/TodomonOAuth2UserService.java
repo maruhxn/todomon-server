@@ -2,7 +2,7 @@ package com.maruhxn.todomon.core.global.auth.application;
 
 import com.maruhxn.todomon.core.domain.member.application.MemberService;
 import com.maruhxn.todomon.core.domain.member.domain.Member;
-import com.maruhxn.todomon.core.global.auth.dto.MemberDTO;
+import com.maruhxn.todomon.core.global.auth.dto.UserInfo;
 import com.maruhxn.todomon.core.global.auth.model.TodomonOAuth2User;
 import com.maruhxn.todomon.core.global.auth.model.provider.OAuth2ProviderUser;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +32,7 @@ public class TodomonOAuth2UserService implements OAuth2UserService<OAuth2UserReq
         OAuth2ProviderUser oAuth2ProviderUser = this.getOAuth2ProviderUser(clientRegistration, oAuth2User);
 
         Member member = memberService.getOrCreate(oAuth2ProviderUser);
-        MemberDTO dto = MemberDTO.from(member);
+        UserInfo dto = UserInfo.from(member);
         return TodomonOAuth2User.of(dto, oAuth2ProviderUser);
     }
 

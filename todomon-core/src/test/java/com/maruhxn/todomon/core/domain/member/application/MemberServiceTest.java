@@ -61,36 +61,6 @@ class MemberServiceTest extends IntegrationTestSupport {
     @Autowired
     JwtProvider jwtProvider;
 
-//    @Test
-//    @DisplayName("유저 정보를 찾아 반환한다.")
-//    void findMemberByEmail() {
-//        // given
-//        Member member = Member.builder()
-//                .username("tester")
-//                .email("test@test.com")
-//                .role(Role.ROLE_USER)
-//                .providerId("google_foobarfoobar")
-//                .provider(OAuth2Provider.GOOGLE)
-//                .profileImageUrl("google-user-picture-url")
-//                .build();
-//        memberRepository.save(member);
-//
-//        // when
-//        Member findMember = memberService.findMemberByEmail(member.getEmail());
-//
-//        // then
-//        assertThat(findMember).isEqualTo(member);
-//    }
-//
-//    @Test
-//    @DisplayName("유저 정보가 없으면 NotFoundException을 반환한다.")
-//    void findMemberByEmailWithNotExistingEmail() {
-//        // when / then
-//        assertThatThrownBy(() -> memberService.findMemberByEmail("not-existing@email.com"))
-//                .isInstanceOf(NotFoundException.class)
-//                .hasMessage(ErrorCode.NOT_FOUND_MEMBER.getMessage());
-//    }
-
     @Test
     @DisplayName("OAuth2 유저 정보를 받아 Member Entity를 생성한다.")
     void createOrUpdate() {
@@ -103,6 +73,26 @@ class MemberServiceTest extends IntegrationTestSupport {
         // then
         Member findMember = memberRepository.findById(member.getId()).get();
         assertThat(member).isEqualTo(findMember);
+    }
+
+    @Test
+    @DisplayName("이미 존재하는 이름의 유저 가입 시, providerId를 이름으로 설정하여 엔터티를 생성한다")
+    void updateUsernameToProviderId() {
+        // given
+        memberRepository.save(Member.builder()
+                .username("tester")
+                .provider(OAuth2Provider.KAKAO)
+                .providerId("foo")
+                .email("existing-tester@test.com")
+                .profileImageUrl("profileImage")
+                .build());
+        GoogleUser googleUser = getGoogleUser("test@test.com");
+
+        // when
+        Member member = memberService.getOrCreate(googleUser);
+
+        // then
+        assertThat(member.getUsername()).isEqualTo(googleUser.getProviderId());
     }
 
     @Test
@@ -272,10 +262,10 @@ class MemberServiceTest extends IntegrationTestSupport {
         memberRepository.save(member);
         saveMemberToContext(member);
 
-        String rawRefreshToken = jwtProvider.generateRefreshToken(member.getEmail(), new Date());
+        String rawRefreshToken = jwtProvider.generateRefreshToken(member.getUsername(), new Date());
         RefreshToken refreshToken = RefreshToken.builder()
                 .payload(rawRefreshToken)
-                .email(member.getEmail())
+                .username(member.getUsername())
                 .build();
         refreshTokenRepository.save(refreshToken);
 

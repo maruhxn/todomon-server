@@ -12,7 +12,7 @@ import com.maruhxn.todomon.core.domain.todo.domain.TodoInstance;
 import com.maruhxn.todomon.core.domain.todo.dto.request.CreateTodoReq;
 import com.maruhxn.todomon.core.domain.todo.dto.request.RepeatInfoReqItem;
 import com.maruhxn.todomon.core.domain.todo.dto.request.UpdateTodoStatusReq;
-import com.maruhxn.todomon.core.global.auth.dto.MemberDTO;
+import com.maruhxn.todomon.core.global.auth.dto.UserInfo;
 import com.maruhxn.todomon.core.global.auth.model.Role;
 import com.maruhxn.todomon.core.global.auth.model.TodomonOAuth2User;
 import com.maruhxn.todomon.core.global.auth.model.provider.OAuth2Provider;
@@ -359,7 +359,7 @@ class TodoMultiThreadTest {
 
     private static void saveMemberToContext(Member member) {
         SecurityContext context = SecurityContextHolder.createEmptyContext();
-        MemberDTO dto = MemberDTO.from(member);
+        UserInfo dto = UserInfo.from(member);
         TodomonOAuth2User todomonOAuth2User = TodomonOAuth2User.from(dto); // 사용자의 커스텀 정보 설정
         OAuth2AuthenticationToken auth = new OAuth2AuthenticationToken(
                 todomonOAuth2User,

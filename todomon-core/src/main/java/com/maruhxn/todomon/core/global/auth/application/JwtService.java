@@ -3,8 +3,8 @@ package com.maruhxn.todomon.core.global.auth.application;
 import com.maruhxn.todomon.core.domain.auth.domain.RefreshToken;
 import com.maruhxn.todomon.core.domain.member.domain.Member;
 import com.maruhxn.todomon.core.domain.member.implement.MemberReader;
-import com.maruhxn.todomon.core.global.auth.dto.MemberDTO;
 import com.maruhxn.todomon.core.global.auth.dto.TokenDto;
+import com.maruhxn.todomon.core.global.auth.dto.UserInfo;
 import com.maruhxn.todomon.core.global.auth.implement.JwtProvider;
 import com.maruhxn.todomon.core.global.auth.implement.RefreshTokenReader;
 import com.maruhxn.todomon.core.global.auth.implement.RefreshTokenWriter;
@@ -14,6 +14,7 @@ import com.maruhxn.todomon.core.global.error.exception.UnauthorizedException;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -39,13 +40,13 @@ public class JwtService {
 
     @Transactional
     public void logout(String bearerRefreshToken) {
-        String email = this.extractEmailFromRefreshToken(bearerRefreshToken);
-        refreshTokenWriter.removeAllByEmail(email);
+        String username = this.extractUsernameFromRefreshToken(bearerRefreshToken);
+        refreshTokenWriter.removeAllByUsername(username);
     }
 
-    private String extractEmailFromRefreshToken(String bearerRefreshToken) {
+    private String extractUsernameFromRefreshToken(String bearerRefreshToken) {
         String refreshToken = this.getTokenFromBearer(bearerRefreshToken);
-        return jwtProvider.getEmail(refreshToken);
+        return jwtProvider.getUsername(refreshToken);
     }
 
     public void validate(String token) {
@@ -63,30 +64,46 @@ public class JwtService {
     }
 
     @Transactional
-    public TokenDto tokenRefresh(String bearerRefreshToken, HttpServletResponse response) {
+    public TokenDto tokenRefresh(String bearerRefreshToken) {
         String refreshToken = this.getTokenFromBearer(bearerRefreshToken);
         this.validate(refreshToken);
         TodomonOAuth2User todomonOAuth2User = this.extractTodomonOAuth2User(refreshToken);
-        return this.doTokenGenerationProcess(response, todomonOAuth2User);
+        return this.doTokenGenerationProcess(todomonOAuth2User);
     }
 
     private TodomonOAuth2User extractTodomonOAuth2User(String refreshToken) {
         RefreshToken findRefreshToken = refreshTokenReader.findByPayload(refreshToken);
-        Member findMember = memberReader.findByEmail(findRefreshToken.getEmail());
-        return TodomonOAuth2User.from(MemberDTO.from(findMember));
+        Member member = memberReader.findByUsername(findRefreshToken.getUsername());
+        return TodomonOAuth2User.from(UserInfo.from(member));
     }
 
     @Transactional
-    public TokenDto doTokenGenerationProcess(HttpServletResponse response, TodomonOAuth2User principal) {
+    public TokenDto doTokenGenerationProcess(TodomonOAuth2User principal) {
         TokenDto tokenDto = jwtProvider.createJwt(principal);
         refreshTokenWriter.upsertRefreshToken(tokenDto);
-        this.setHeader(response, tokenDto);
         return tokenDto;
+    }
+
+    public void setCookie(TokenDto tokenDto, HttpServletResponse response) {
+        Cookie accessTokenCookie = new Cookie("accessToken", tokenDto.getAccessToken());
+        accessTokenCookie.setHttpOnly(true);
+        accessTokenCookie.setPath("/");
+        accessTokenCookie.setMaxAge((int) (jwtProvider.getAccessTokenExpiration() / 1000));
+
+        Cookie refreshTokenCookie = new Cookie("refreshToken", tokenDto.getRefreshToken());
+        refreshTokenCookie.setHttpOnly(true);
+        refreshTokenCookie.setPath("/");
+        refreshTokenCookie.setMaxAge((int) (jwtProvider.getRefreshTokenExpiration() / 1000));
+
+        response.addCookie(accessTokenCookie);
+        response.addCookie(refreshTokenCookie);
     }
 
     private void setHeader(HttpServletResponse response, TokenDto tokenDto) {
         response.addHeader(ACCESS_TOKEN_HEADER, BEARER_PREFIX + tokenDto.getAccessToken());
         response.addHeader(REFRESH_TOKEN_HEADER, BEARER_PREFIX + tokenDto.getRefreshToken());
+        response.addCookie(new Cookie("accessToken", tokenDto.getAccessToken()));
+        response.addCookie(new Cookie("refreshToken", tokenDto.getRefreshToken()));
     }
 
     /**

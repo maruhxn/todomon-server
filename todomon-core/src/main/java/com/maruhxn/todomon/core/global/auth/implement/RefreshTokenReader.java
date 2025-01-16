@@ -15,8 +15,8 @@ public class RefreshTokenReader {
 
     private final RefreshTokenRepository refreshTokenRepository;
 
-    public Optional<RefreshToken> findOptionalByEmail(String email) {
-        return refreshTokenRepository.findByEmail(email);
+    public Optional<RefreshToken> findOptionalByUsername(String username) {
+        return refreshTokenRepository.findByUsername(username);
     }
 
     public RefreshToken findByPayload(String payload) {

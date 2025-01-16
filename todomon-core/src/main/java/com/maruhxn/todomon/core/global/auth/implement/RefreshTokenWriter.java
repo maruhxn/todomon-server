@@ -14,7 +14,7 @@ public class RefreshTokenWriter {
     private final RefreshTokenRepository refreshTokenRepository;
 
     public void upsertRefreshToken(TokenDto tokenDto) {
-        refreshTokenReader.findOptionalByEmail(tokenDto.getEmail())
+        refreshTokenReader.findOptionalByUsername(tokenDto.getUsername())
                 .ifPresentOrElse(
                         // 있다면 새토큰 발급후 업데이트
                         token -> token.updatePayload(tokenDto.getRefreshToken()),
@@ -24,10 +24,10 @@ public class RefreshTokenWriter {
     }
 
     private void create(TokenDto tokenDto) {
-        refreshTokenRepository.save(new RefreshToken(tokenDto.getRefreshToken(), tokenDto.getEmail()));
+        refreshTokenRepository.save(new RefreshToken(tokenDto.getRefreshToken(), tokenDto.getUsername()));
     }
 
-    public void removeAllByEmail(String email) {
-        refreshTokenRepository.deleteAllByEmail(email);
+    public void removeAllByUsername(String username) {
+        refreshTokenRepository.deleteAllByUsername(username);
     }
 }

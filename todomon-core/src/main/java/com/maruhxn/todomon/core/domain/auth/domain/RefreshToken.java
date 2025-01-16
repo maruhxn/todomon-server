@@ -16,13 +16,13 @@ public class RefreshToken extends BaseEntity {
     @Column(nullable = false)
     private String payload;
 
-    @Column(nullable = false, length = 30)
-    private String email;
+    @Column(nullable = false, length = 20)
+    private String username;
 
     @Builder
-    public RefreshToken(String payload, String email) {
+    public RefreshToken(String payload, String username) {
         this.payload = payload;
-        this.email = email;
+        this.username = username;
     }
 
     public RefreshToken updatePayload(String payload) {

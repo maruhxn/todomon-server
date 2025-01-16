@@ -10,7 +10,7 @@ import java.util.Optional;
 
 public interface OrderRepository extends JpaRepository<Order, Long> {
 
-    @EntityGraph(attributePaths = {"item, member"})
+    @EntityGraph(attributePaths = {"item", "member"})
     Optional<Order> findByMerchantUid(String merchantUid);
 
     @Query("SELECT o FROM Order o JOIN FETCH Member m WHERE o.id = :id")

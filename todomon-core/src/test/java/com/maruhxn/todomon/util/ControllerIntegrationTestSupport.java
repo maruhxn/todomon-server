@@ -7,7 +7,7 @@ import com.maruhxn.todomon.core.domain.member.dao.MemberRepository;
 import com.maruhxn.todomon.core.domain.member.dao.TitleNameRepository;
 import com.maruhxn.todomon.core.domain.member.domain.Member;
 import com.maruhxn.todomon.core.domain.member.domain.TitleName;
-import com.maruhxn.todomon.core.global.auth.dto.MemberDTO;
+import com.maruhxn.todomon.core.global.auth.dto.UserInfo;
 import com.maruhxn.todomon.core.global.auth.dto.TokenDto;
 import com.maruhxn.todomon.core.global.auth.implement.JwtProvider;
 import com.maruhxn.todomon.core.global.auth.model.Role;
@@ -106,7 +106,7 @@ public abstract class ControllerIntegrationTestSupport extends RedisTestContaine
     }
 
     private TokenDto getTokenDto(Member member) {
-        MemberDTO dto = MemberDTO.from(member);
+        UserInfo dto = UserInfo.from(member);
         TodomonOAuth2User todomonOAuth2User = TodomonOAuth2User.from(dto);
         return jwtProvider.createJwt(todomonOAuth2User);
     }

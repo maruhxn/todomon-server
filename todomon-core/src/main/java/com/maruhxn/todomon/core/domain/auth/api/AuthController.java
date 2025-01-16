@@ -3,6 +3,7 @@ package com.maruhxn.todomon.core.domain.auth.api;
 import com.maruhxn.todomon.core.domain.auth.dto.UserInfoRes;
 import com.maruhxn.todomon.core.domain.member.application.MemberService;
 import com.maruhxn.todomon.core.global.auth.application.JwtService;
+import com.maruhxn.todomon.core.global.auth.dto.TokenDto;
 import com.maruhxn.todomon.core.global.auth.model.TodomonOAuth2User;
 import com.maruhxn.todomon.core.global.common.dto.response.BaseResponse;
 import com.maruhxn.todomon.core.global.common.dto.response.DataResponse;
@@ -38,7 +39,8 @@ public class AuthController {
             HttpServletResponse response,
             @RequestHeader(value = REFRESH_TOKEN_HEADER) String bearerRefreshToken
     ) {
-        jwtService.tokenRefresh(bearerRefreshToken, response);
+        TokenDto tokenDto = jwtService.tokenRefresh(bearerRefreshToken);
+        jwtService.setCookie(tokenDto, response);
         return new BaseResponse("Token Refresh 성공");
     }
 

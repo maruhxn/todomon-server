@@ -1,6 +1,6 @@
 package com.maruhxn.todomon.core.global.auth.model;
 
-import com.maruhxn.todomon.core.global.auth.dto.MemberDTO;
+import com.maruhxn.todomon.core.global.auth.dto.UserInfo;
 import com.maruhxn.todomon.core.global.auth.model.provider.OAuth2ProviderUser;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -14,22 +14,22 @@ import java.util.Map;
 public class TodomonOAuth2User implements OAuth2User {
 
     private Map<String, Object> attributes;
-    private MemberDTO memberDTO;
+    private UserInfo userInfo;
 
-    public TodomonOAuth2User(MemberDTO memberDTO) {
-        this.memberDTO = memberDTO;
+    public TodomonOAuth2User(UserInfo userInfo) {
+        this.userInfo = userInfo;
     }
 
-    private TodomonOAuth2User(MemberDTO memberDTO, OAuth2ProviderUser oAuth2ProviderUser) {
-        this.memberDTO = memberDTO;
+    private TodomonOAuth2User(UserInfo userInfo, OAuth2ProviderUser oAuth2ProviderUser) {
+        this.userInfo = userInfo;
         this.attributes = oAuth2ProviderUser.getAttributes();
     }
 
-    public static TodomonOAuth2User from(MemberDTO dto) {
+    public static TodomonOAuth2User from(UserInfo dto) {
         return new TodomonOAuth2User(dto);
     }
 
-    public static TodomonOAuth2User of(MemberDTO dto, OAuth2ProviderUser oAuth2ProviderUser) {
+    public static TodomonOAuth2User of(UserInfo dto, OAuth2ProviderUser oAuth2ProviderUser) {
         return new TodomonOAuth2User(dto, oAuth2ProviderUser);
     }
 
@@ -41,29 +41,41 @@ public class TodomonOAuth2User implements OAuth2User {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         List<GrantedAuthority> authorities = new ArrayList<>();
-        SimpleGrantedAuthority simpleGrantedAuthority = new SimpleGrantedAuthority(memberDTO.getRole());
+        SimpleGrantedAuthority simpleGrantedAuthority = new SimpleGrantedAuthority(userInfo.getRole());
         authorities.add(simpleGrantedAuthority);
         return authorities;
     }
 
     @Override
     public String getName() {
-        return this.memberDTO.getUsername();
+        return this.userInfo.getUsername();
     }
 
     public Long getId() {
-        return this.memberDTO.getId();
-    }
-
-    public String getEmail() {
-        return this.memberDTO.getEmail();
+        return this.userInfo.getId();
     }
 
     public String getRole() {
-        return this.memberDTO.getRole();
+        return this.userInfo.getRole();
+    }
+
+    public String getProfileImage() {
+        return this.userInfo.getProfileImage();
+    }
+
+    public boolean getIsSubscribed() {
+        return this.userInfo.isSubscribed();
+    }
+
+    public Long getStarPoint() {
+        return this.userInfo.getStarPoint();
+    }
+
+    public Long getFoodCnt() {
+        return this.userInfo.getFoodCnt();
     }
 
     public String getProvider() {
-        return this.memberDTO.getProvider();
+        return this.userInfo.getProvider();
     }
 }
