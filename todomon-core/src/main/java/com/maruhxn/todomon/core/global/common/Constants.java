@@ -7,8 +7,8 @@ public interface Constants {
     String REFRESH_TOKEN_HEADER = "Refresh";
 
     // Reward
-    Long REWARD_UNIT = 100L;
-    Double GAUGE_INCREASE_RATE = 0.1;
+    Integer REWARD_UNIT = 100;
+    Double GAUGE_INCREASE_RATE = 10.0;
     Double REWARD_LEVERAGE_RATE = 0.1;
 
     // Pet

@@ -496,6 +496,69 @@ class TodoServiceTest extends IntegrationTestSupport {
     }
 
     @Test
+    @DisplayName("단일 일정 완료 처리 시, 일관성 게이지는 '(비율) / 유저 레벨'만큼 찬다")
+    void completeSingleTodoAndRewardDependsOnlLevel() {
+        // given
+        member.getDiligence().levelUp(9);
+        memberRepository.save(member);
+
+        saveMemberToContext(member);
+        LocalDateTime now = LocalDate.now().atStartOfDay();
+
+        Todo todo = testTodoFactory.createSingleTodo(
+                now,
+                now.plusHours(1),
+                false,
+                member
+        );
+
+        UpdateTodoStatusReq req = UpdateTodoStatusReq.builder()
+                .isDone(true)
+                .build();
+
+        // when
+        todoService.updateStatusAndReward(todo.getId(), false, member.getId(), req);
+
+        // then
+        assertThat(todo.isDone()).isTrue();
+        assertThat(member.getDiligence().getGauge()).isEqualTo(GAUGE_INCREASE_RATE / member.getDiligence().getLevel());
+        assertThat(member.getScheduledReward()).isEqualTo(10L);
+    }
+
+    @Test
+    @DisplayName("단일 일정 완료 처리 시, 레벨업을 하는 경우 보상을 지급한다")
+    void completeSingleTodoAndRewardDependsOnlLevel2() {
+        // given
+        member.getDiligence().levelUp(9); // level 10
+        member.getDiligence().increaseGaugeByTodoCnt(99); // level 10의 경우, 100개 성공 시 레벨업
+        memberRepository.save(member);
+
+        saveMemberToContext(member);
+        LocalDateTime now = LocalDate.now().atStartOfDay();
+
+        Todo todo = testTodoFactory.createSingleTodo(
+                now,
+                now.plusHours(1),
+                false,
+                member
+        );
+
+        UpdateTodoStatusReq req = UpdateTodoStatusReq.builder()
+                .isDone(true)
+                .build();
+
+        // when
+        todoService.updateStatusAndReward(todo.getId(), false, member.getId(), req);
+
+        // then
+        assertThat(todo.isDone()).isTrue();
+        assertThat(member.getDiligence().getLevel()).isEqualTo(11);
+        assertThat(member.getDiligence().getGauge()).isEqualTo(0.0);
+        int levelUpReward = REWARD_UNIT * 11;
+        assertThat(member.getScheduledReward()).isEqualTo(10 + levelUpReward);
+    }
+
+    @Test
     @DisplayName("단일 일정 취소 처리")
     void cancelSingleTodoAndWithdraw() {
         // given
@@ -509,8 +572,8 @@ class TodoServiceTest extends IntegrationTestSupport {
                 member
         );
         todo.updateIsDone(true);
-        member.getDiligence().increaseGauge(40);
-        member.addScheduledReward(100L);
+        member.getDiligence().increaseGaugeByTodoCnt(4);
+        member.addScheduledReward(100);
 
         UpdateTodoStatusReq req = UpdateTodoStatusReq.builder()
                 .isDone(false)
@@ -521,8 +584,72 @@ class TodoServiceTest extends IntegrationTestSupport {
 
         // then
         assertThat(todo.isDone()).isFalse();
-        assertThat(member.getDiligence().getGauge()).isEqualTo(39.9);
-        assertThat(member.getScheduledReward()).isEqualTo(90L);
+        assertThat(member.getDiligence().getGauge()).isEqualTo(3 * GAUGE_INCREASE_RATE);
+        assertThat(member.getScheduledReward()).isEqualTo(90);
+    }
+
+    @Test
+    @DisplayName("단일 일정 취소 처리, 일관성 게이지는 '(비율) / 유저 레벨'만큼 감소한다")
+    void cancelSingleTodoAndWithdraw2() {
+        // given
+        member.getDiligence().levelUp(9);
+        memberRepository.save(member);
+        saveMemberToContext(member);
+        LocalDateTime now = LocalDate.now().atStartOfDay();
+
+        Todo todo = testTodoFactory.createSingleTodo(
+                now,
+                now.plusHours(1),
+                false,
+                member
+        );
+        todo.updateIsDone(true);
+        member.getDiligence().increaseGaugeByTodoCnt(4);
+        member.addScheduledReward(100);
+
+        UpdateTodoStatusReq req = UpdateTodoStatusReq.builder()
+                .isDone(false)
+                .build();
+
+        // when
+        todoService.updateStatusAndReward(todo.getId(), false, member.getId(), req);
+
+        // then
+        assertThat(todo.isDone()).isFalse();
+        assertThat(member.getDiligence().getGauge()).isEqualTo(3 * (GAUGE_INCREASE_RATE / member.getDiligence().getLevel()));
+        assertThat(member.getScheduledReward()).isEqualTo(90);
+    }
+
+    @Test
+    @DisplayName("단일 일정 취소 처리 시, 이전에 레벨업을 했었다면 이를 취소하고 보상을 회수한다")
+    void cancelSingleTodoAndWithdraw3() {
+        // given
+        member.getDiligence().levelUp(9); // level 10, gauge 0.0
+        memberRepository.save(member);
+        member.addScheduledReward((int) (1000 + (REWARD_UNIT * REWARD_LEVERAGE_RATE * 1))); // 이전에 하나를 수행하여 10레벨 달성 보상
+        saveMemberToContext(member);
+        LocalDateTime now = LocalDate.now().atStartOfDay();
+
+        Todo todo = testTodoFactory.createSingleTodo(
+                now,
+                now.plusHours(1),
+                false,
+                member
+        );
+        todo.updateIsDone(true);
+
+        UpdateTodoStatusReq req = UpdateTodoStatusReq.builder()
+                .isDone(false)
+                .build();
+
+        // when
+        todoService.updateStatusAndReward(todo.getId(), false, member.getId(), req);
+
+        // then
+        assertThat(todo.isDone()).isFalse();
+        assertThat(member.getDiligence().getLevel()).isEqualTo(9); // 레벨 10 -> 9로 감소
+        assertThat(member.getDiligence().getGauge()).isEqualTo(99); // 게이지 0.0 -> 99,0으로 감소
+        assertThat(member.getScheduledReward()).isEqualTo(0); // 10렙 보상 회수
     }
 
     @Test
@@ -627,15 +754,15 @@ class TodoServiceTest extends IntegrationTestSupport {
         TodoInstance firstInstance = todoInstances.get(0);
         firstInstance.updateIsDone(true);
         todoInstanceRepository.save(firstInstance);
-        member.getDiligence().increaseGauge(40);
-        member.addScheduledReward(100L);
+        member.getDiligence().increaseGaugeByTodoCnt(4);
+        member.addScheduledReward(100);
         // when
         todoService.updateStatusAndReward(firstInstance.getId(), true, member.getId(), req);
 
         // then
         assertThat(firstInstance.isDone()).isFalse();
-        assertThat(member.getDiligence().getGauge()).isEqualTo(39.9);
-        assertThat(member.getScheduledReward()).isEqualTo(90L);
+        assertThat(member.getDiligence().getGauge()).isEqualTo(3 * GAUGE_INCREASE_RATE);
+        assertThat(member.getScheduledReward()).isEqualTo((int) (100 - REWARD_UNIT * REWARD_LEVERAGE_RATE));
     }
 
     @Test
@@ -666,16 +793,17 @@ class TodoServiceTest extends IntegrationTestSupport {
         todoInstances.forEach(todoInstance -> todoInstance.updateIsDone(true));
         todo.updateIsDone(true);
         todoInstanceRepository.saveAll(todoInstances);
-        member.getDiligence().increaseGauge(40);
-        member.addScheduledReward(100L);
+        member.getDiligence().increaseGaugeByTodoCnt(4);
+        member.getDiligence().increaseGaugeByTodoCnt(4);
+        member.addScheduledReward(100);
         // when
         todoService.updateStatusAndReward(todoInstances.get(size - 1).getId(), true, member.getId(), req);
 
         // then
         assertThat(todo.isDone()).isFalse();
         assertThat(todoInstances.get(size - 1).isDone()).isFalse();
-        assertThat(member.getDiligence().getGauge()).isEqualTo(40 - GAUGE_INCREASE_RATE * (size + 1));
-        assertThat(member.getScheduledReward()).isEqualTo((long) (100L - REWARD_UNIT * (size + 1) * REWARD_LEVERAGE_RATE));
+        assertThat(member.getDiligence().getGauge()).isEqualTo(80 - GAUGE_INCREASE_RATE * (size + 1));
+        assertThat(member.getScheduledReward()).isEqualTo((int) (100L - REWARD_UNIT * (size + 1) * REWARD_LEVERAGE_RATE));
     }
 
     @Test

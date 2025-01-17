@@ -50,10 +50,10 @@ public class Member extends BaseEntity {
     private Long starPoint = 0L;
 
     @ColumnDefault("0")
-    private Long scheduledReward = 0L;
+    private int scheduledReward = 0;
 
     @ColumnDefault("0")
-    private Long dailyAchievementCnt = 0L;
+    private int dailyAchievementCnt = 0;
 
     @ColumnDefault("0")
     private Long foodCnt = 0L;
@@ -126,14 +126,14 @@ public class Member extends BaseEntity {
     }
 
     public void resetScheduledReward() {
-        this.scheduledReward = 0L;
+        this.scheduledReward = 0;
     }
 
-    public void addScheduledReward(long reward) {
+    public void addScheduledReward(int reward) {
         this.scheduledReward += reward;
     }
 
-    public void subtractScheduledReward(long reward) {
+    public void subtractScheduledReward(int reward) {
         this.scheduledReward -= reward;
     }
 
@@ -176,7 +176,7 @@ public class Member extends BaseEntity {
     }
 
     public void resetDailyAchievement() {
-        this.dailyAchievementCnt = 0L;
+        this.dailyAchievementCnt = 0;
     }
 
     public void updateUsername(String username) {

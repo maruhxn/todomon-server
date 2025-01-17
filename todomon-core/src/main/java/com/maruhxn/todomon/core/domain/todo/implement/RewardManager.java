@@ -8,7 +8,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-import static com.maruhxn.todomon.core.global.common.Constants.*;
+import static com.maruhxn.todomon.core.global.common.Constants.REWARD_LEVERAGE_RATE;
+import static com.maruhxn.todomon.core.global.common.Constants.REWARD_UNIT;
 
 @Component
 @RequiredArgsConstructor
@@ -16,19 +17,19 @@ public class RewardManager {
     private final TodoInstanceRepository todoInstanceRepository;
 
     // 단일 일정에 대한 보상 로직
-    public void reward(Member member, int leverage) {
+    public void reward(Member member, int todoCnt) {
         // 일간 달성 수 1 증가
-        if (leverage == 1) member.addDailyAchievementCnt(1);
+        if (todoCnt == 1) member.addDailyAchievementCnt(1);
         // 유저 일관성 게이지 업데이트
-        member.getDiligence().increaseGauge(GAUGE_INCREASE_RATE * leverage);
+        member.getDiligence().increaseGaugeByTodoCnt(todoCnt);
         // 보상 지급
-        member.addScheduledReward((long) (REWARD_UNIT * leverage * REWARD_LEVERAGE_RATE));
+        member.addScheduledReward((int) (REWARD_UNIT * todoCnt * REWARD_LEVERAGE_RATE));
     }
 
     public void withdrawReward(Member member, int leverage) {
         member.addDailyAchievementCnt(-1);
-        member.getDiligence().decreaseGauge(GAUGE_INCREASE_RATE * leverage);
-        member.subtractScheduledReward((long) (REWARD_UNIT * leverage * REWARD_LEVERAGE_RATE));
+        member.getDiligence().decreaseGaugeByTodoCnt(leverage);
+        member.subtractScheduledReward((int) (REWARD_UNIT * leverage * REWARD_LEVERAGE_RATE));
     }
 
     // 반복 일정에 대한 보상 로직
