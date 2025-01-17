@@ -64,21 +64,17 @@ public class Pet extends BaseEntity {
         this.color = color;
     }
 
-    public int increaseGaugeAndGetEvolutionGap(double gauge) {
+    public void increaseGauge(double gauge) {
         this.gauge += gauge;
 
-        int evolutionGap = 0;
         while (this.gauge >= 100) { // 게이지가 100 이상이 될 경우, 레벨이 증가한다.
             this.level++;
             this.gauge -= 100;
 
             if (this.isSatisfyEvolutionCond()) {
                 this.evolution();
-                ++evolutionGap;
             }
         }
-
-        return evolutionGap;
     }
 
     private boolean isSatisfyEvolutionCond() {
@@ -96,4 +92,12 @@ public class Pet extends BaseEntity {
     public void setOwner(Member member) {
         this.member = member;
     }
+
+    public double getRemainingGaugeForEvolution() {
+        if (evolutionCnt >= petType.getEvolutionaryCnt()) return Integer.MAX_VALUE;
+        int nextEvolutionLevel = (evolutionCnt + 1) * 30;
+        int remainingLevel = nextEvolutionLevel - this.level;
+        return remainingLevel * 100 - this.gauge;
+    }
+
 }

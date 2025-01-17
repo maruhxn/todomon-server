@@ -49,10 +49,17 @@ public class PetService {
         member.decreaseFoodCnt(foodCnt);
     }
 
-    // TODO: evolutionGap이 1보다 클 경우, 모두 도감에 등록하도록 수정해야 함..
     private void increaseGaugeAndCheckEvolution(Long foodCnt, Pet pet, Member member) {
-        int evolutionGap = pet.increaseGaugeAndGetEvolutionGap(foodCnt * PET_GAUGE_INCREASE_RATE);
-        if (evolutionGap > 0) petCollectionManager.updateCollection(member, pet);
+        double remainingGaugeIncrease = foodCnt * PET_GAUGE_INCREASE_RATE;
+        double gaugeForEvolution = pet.getRemainingGaugeForEvolution();
+        while (remainingGaugeIncrease >= gaugeForEvolution) {
+            pet.increaseGauge(gaugeForEvolution);
+            petCollectionManager.updateCollection(member, pet);
+            remainingGaugeIncrease -= gaugeForEvolution;
+            gaugeForEvolution = pet.getRemainingGaugeForEvolution();
+        }
+
+        if (remainingGaugeIncrease > 0) pet.increaseGauge(remainingGaugeIncrease);
     }
 
     @IsMyPetOrAdmin

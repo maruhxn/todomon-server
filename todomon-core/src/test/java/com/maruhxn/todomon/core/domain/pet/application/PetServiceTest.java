@@ -83,22 +83,6 @@ class PetServiceTest extends IntegrationTestSupport {
                 .containsExactly(1, 0.0, 0);
     }
 
-//    @Test
-//    @DisplayName("구독하지 않은 사용자가 펫의 이름 및 색깔을 변경하려고 할 경우, 에러를 반환한다.")
-//    void createPetFailByForbidden() {
-//        // given
-//        CreatePetReq req = CreatePetReq.builder()
-//                .name("테스트")
-//                .color("#000000")
-//                .build();
-//
-//        // when / then
-//        assertThatThrownBy(() -> petService.create(member.getId(), req))
-//                .isInstanceOf(AccessDeniedException.class)
-//                .hasMessage(ErrorCode.NOT_SUBSCRIPTION.getMessage());
-//
-//    }
-
     @Test
     @DisplayName("펫 생성 시 펫 하우스 공간에 여유가 없다면 에러를 반환한다.")
     void createPetFailCausedByNoSpace() {
@@ -157,7 +141,7 @@ class PetServiceTest extends IntegrationTestSupport {
                 .petType(PetType.getRandomPetType())
                 .rarity(Rarity.COMMON)
                 .build();
-        pet.increaseGaugeAndGetEvolutionGap(99.0);
+        pet.increaseGauge(99.0);
         member.addPet(pet);
         member.addFood(10);
         saveMemberToContext(member);
@@ -183,10 +167,11 @@ class PetServiceTest extends IntegrationTestSupport {
                 .build();
         String prevAppearance = pet.getAppearance();
         for (int i = 0; i < 28; i++) {
-            pet.increaseGaugeAndGetEvolutionGap(100.0);
+            pet.increaseGauge(100.0);
         }
+        pet.increaseGauge(80.0);
+        // 펫 Lv.29 & gauge: 80.0
 
-        pet.increaseGaugeAndGetEvolutionGap(80.0);
         member.addPet(pet);
         member.addFood(10);
         saveMemberToContext(member);
@@ -205,6 +190,35 @@ class PetServiceTest extends IntegrationTestSupport {
                 .extracting("level", "gauge", "evolutionCnt")
                 .containsExactly(30, 0.0, 1);
         assertThat(member.getCollectedPets()).hasSize(2);
+    }
+
+    @Test
+    @DisplayName("펫에게 먹이를 주어 게이지가 오를 때 - 2번 연속 진화를 하는 경우.")
+    void feedWithDoubleEvolution() {
+        // given
+        Pet pet = Pet.builder()
+                .petType(PetType.getRandomPetType())
+                .rarity(Rarity.COMMON)
+                .build();
+        // 펫 Lv.29 & gauge: 80.0
+
+        member.addPet(pet);
+        member.addFood(10000);
+        saveMemberToContext(member);
+        petRepository.save(pet);
+
+        CollectedPet collectedPet = CollectedPet.of(pet);
+        member.addCollection(collectedPet);
+        collectedPetRepository.save(collectedPet);
+
+        // when
+        petService.feed(member.getId(), pet.getId(), (long) (50 * 60));
+
+        // then
+        assertThat(pet)
+                .extracting("level", "gauge", "evolutionCnt")
+                .containsExactly(61, 0.0, 2);
+        assertThat(member.getCollectedPets()).hasSize(3);
     }
 
     @Test
