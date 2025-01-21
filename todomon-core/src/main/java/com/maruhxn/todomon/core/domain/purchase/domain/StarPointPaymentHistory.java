@@ -1,6 +1,7 @@
 package com.maruhxn.todomon.core.domain.purchase.domain;
 
 import com.maruhxn.todomon.core.domain.member.domain.Member;
+import com.maruhxn.todomon.core.domain.payment.domain.PaymentStatus;
 import com.maruhxn.todomon.core.global.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -17,9 +18,6 @@ public class StarPointPaymentHistory extends BaseEntity {
     @JoinColumn(name = "member_id", referencedColumnName = "id")
     private Member member;
 
-    @Column(nullable = false, unique = true)
-    private String merchantUid;
-
     @Column(nullable = false)
     private Long itemId;
 
@@ -30,12 +28,11 @@ public class StarPointPaymentHistory extends BaseEntity {
     private Long amount;
 
     @Enumerated(EnumType.STRING)
-    private PaymentStatus status = PaymentStatus.NOT_PAID;
+    private PaymentStatus status = PaymentStatus.OK;
 
     @Builder
-    public StarPointPaymentHistory(Member member, String merchantUid, Long itemId, Long quantity, Long amount, PaymentStatus status) {
+    public StarPointPaymentHistory(Member member, Long itemId, Long quantity, Long amount, PaymentStatus status) {
         this.member = member;
-        this.merchantUid = merchantUid;
         this.itemId = itemId;
         this.quantity = quantity;
         this.amount = amount;

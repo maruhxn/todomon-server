@@ -7,6 +7,8 @@ import com.maruhxn.todomon.core.domain.social.implement.FollowManager;
 import com.maruhxn.todomon.core.domain.social.implement.FollowReader;
 import com.maruhxn.todomon.core.domain.social.implement.FollowValidator;
 import com.maruhxn.todomon.core.global.auth.checker.IsMyFollowOrAdmin;
+import com.maruhxn.todomon.core.global.error.ErrorCode;
+import com.maruhxn.todomon.core.global.error.exception.ExistingResourceException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,6 +32,11 @@ public class FollowService {
 
         Member loginMember = memberReader.findById(followerId);
         Member followee = memberReader.findById(followeeId, "팔로우 대상 정보가 존재하지 않습니다.");
+
+        followReader.findOptionalByFollowerIdAndFolloweeId(followerId, followeeId)
+                .ifPresent(r -> {
+                    throw new ExistingResourceException(ErrorCode.ALREADY_SENT_REQUEST);
+                });
 
         followReader.findOptionalByFollowerIdAndFolloweeId(followeeId, followerId)
                 .ifPresentOrElse(

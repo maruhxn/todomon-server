@@ -18,9 +18,7 @@ public class PetCollectionManager {
     public void updateCollection(Member member, Pet pet) {
         boolean isAlreadyExist = collectedPetRepository
                 .existsByMember_IdAndRarityAndAppearance(member.getId(), pet.getRarity(), pet.getAppearance());
-        if (isAlreadyExist) return;
-
-        this.appendCollection(member, pet);
+        if (!isAlreadyExist) this.appendCollection(member, pet);
     }
 
     private void appendCollection(Member member, Pet pet) {

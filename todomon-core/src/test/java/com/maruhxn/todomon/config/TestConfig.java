@@ -1,6 +1,6 @@
 package com.maruhxn.todomon.config;
 
-import com.maruhxn.todomon.util.TestTodoFactory;
+import com.maruhxn.todomon.core.util.TestTodoFactory;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 

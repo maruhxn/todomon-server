@@ -13,7 +13,7 @@ import com.maruhxn.todomon.core.global.auth.model.Role;
 import com.maruhxn.todomon.core.global.auth.model.provider.OAuth2Provider;
 import com.maruhxn.todomon.core.global.common.dto.PageItem;
 import com.maruhxn.todomon.core.global.common.dto.request.PagingCond;
-import com.maruhxn.todomon.util.IntegrationTestSupport;
+import com.maruhxn.todomon.core.util.IntegrationTestSupport;
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

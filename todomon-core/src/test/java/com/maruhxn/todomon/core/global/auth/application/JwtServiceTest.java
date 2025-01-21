@@ -13,7 +13,7 @@ import com.maruhxn.todomon.core.global.auth.model.provider.OAuth2Provider;
 import com.maruhxn.todomon.core.global.error.ErrorCode;
 import com.maruhxn.todomon.core.global.error.exception.NotFoundException;
 import com.maruhxn.todomon.core.global.error.exception.UnauthorizedException;
-import com.maruhxn.todomon.util.IntegrationTestSupport;
+import com.maruhxn.todomon.core.util.IntegrationTestSupport;
 import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

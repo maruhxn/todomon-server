@@ -3,7 +3,7 @@ package com.maruhxn.todomon.core.domain.item.implement;
 import com.maruhxn.todomon.core.domain.item.dao.InventoryItemRepository;
 import com.maruhxn.todomon.core.domain.item.domain.InventoryItem;
 import com.maruhxn.todomon.core.global.error.ErrorCode;
-import com.maruhxn.todomon.core.global.error.exception.ForbiddenException;
+import com.maruhxn.todomon.core.global.error.exception.BadRequestException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -22,7 +22,7 @@ public class InventoryItemReader {
 
     public InventoryItem findByMemberIdAndItemName(Long memberId, String itemName) {
         return inventoryItemRepository.findByMember_IdAndItem_Name(memberId, itemName)
-                .orElseThrow(() -> new ForbiddenException(ErrorCode.FORBIDDEN, itemName + "이(가) 없습니다."));
+                .orElseThrow(() -> new BadRequestException(ErrorCode.FORBIDDEN, itemName + "이(가) 없습니다."));
     }
 
     public Optional<InventoryItem> findOptionalByMemberIdAndItemId(Long memberId, Long itemId) {

@@ -1,7 +1,6 @@
 package com.maruhxn.todomon.core.domain.item.domain;
 
 import com.maruhxn.todomon.core.domain.member.domain.Member;
-import com.maruhxn.todomon.core.domain.purchase.domain.Order;
 import com.maruhxn.todomon.core.global.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -36,11 +35,11 @@ public class InventoryItem extends BaseEntity {
         this.quantity = quantity;
     }
 
-    public static InventoryItem of(Member member, Order order) {
+    public static InventoryItem of(Member member, Item item, Long quantity) {
         return InventoryItem.builder()
                 .member(member)
-                .item(order.getItem())
-                .quantity(order.getQuantity())
+                .item(item)
+                .quantity(quantity)
                 .build();
     }
 

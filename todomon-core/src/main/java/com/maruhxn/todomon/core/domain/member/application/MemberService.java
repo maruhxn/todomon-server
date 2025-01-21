@@ -1,6 +1,5 @@
 package com.maruhxn.todomon.core.domain.member.application;
 
-import com.maruhxn.todomon.core.domain.auth.dto.UserInfoRes;
 import com.maruhxn.todomon.core.domain.member.domain.Member;
 import com.maruhxn.todomon.core.domain.member.dto.request.UpdateMemberProfileReq;
 import com.maruhxn.todomon.core.domain.member.dto.response.MemberSearchRes;
@@ -8,6 +7,7 @@ import com.maruhxn.todomon.core.domain.member.dto.response.ProfileRes;
 import com.maruhxn.todomon.core.domain.member.implement.MemberReader;
 import com.maruhxn.todomon.core.domain.member.implement.MemberWriter;
 import com.maruhxn.todomon.core.global.auth.checker.IsMeOrAdmin;
+import com.maruhxn.todomon.core.global.auth.dto.UserInfo;
 import com.maruhxn.todomon.core.global.auth.model.provider.OAuth2ProviderUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -29,8 +29,8 @@ public class MemberService {
     }
 
     @Transactional(readOnly = true)
-    public UserInfoRes getMemberInfo(Long memberId) {
-        return UserInfoRes.from(memberReader.findById(memberId));
+    public UserInfo getMemberInfo(Long memberId) {
+        return UserInfo.from(memberReader.findById(memberId));
     }
 
     @Transactional(readOnly = true)

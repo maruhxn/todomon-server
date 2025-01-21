@@ -18,6 +18,7 @@ public enum ErrorCode {
     ALREADY_SENT_STAR("⭐️은 하루에 한번만 보낼 수 있습니다."),
     PREPARE_PAYMENT_ERROR("결제 정보 사전 검증 에러"),
     POST_VALIDATE_PAYMENT_ERROR("결제 정보 사후 검증 에러"),
+    PURCHASE_ERROR("아이템 구매 중 에러 발생"),
     NOT_ENOUGH_STAR_POINT("⭐️이 부족합니다."),
     INVALID_PAYMENT_AMOUNT_ERROR("거래 금액이 일치하지 않습니다."),
     CANCEL_PAYMENT_ERROR("결제 취소 중 에러"),
@@ -51,10 +52,13 @@ public enum ErrorCode {
     EXISTING_RESOURCE("이미 존재하는 리소스입니다."),
     EXISTING_MEMBER("이미 존재하는 멤버입니다."),
     EXISTING_TITLENAME("이미 칭호가 존재합니다."),
+    ALREADY_SENT_REQUEST("이미 요청을 보냈습니다."),
 
     /* INTERNAL SERVER ERROR  500 */
     INTERNAL_ERROR("서버 오류입니다."),
-    S3_UPLOAD_ERROR("S3 파일 업로드 중 오류가 발생했습니다.");
+
+    S3_UPLOAD_ERROR("S3 파일 업로드 중 오류가 발생했습니다."),
+    REFUND_FAIL("환불에 실패했습니다. 관리자에게 문의 바랍니다.");
 
     private final String message;
 }

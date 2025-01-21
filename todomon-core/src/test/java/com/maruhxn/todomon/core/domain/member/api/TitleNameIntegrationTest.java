@@ -3,7 +3,7 @@ package com.maruhxn.todomon.core.domain.member.api;
 import com.maruhxn.todomon.core.domain.member.dao.TitleNameRepository;
 import com.maruhxn.todomon.core.domain.member.domain.TitleName;
 import com.maruhxn.todomon.core.global.error.ErrorCode;
-import com.maruhxn.todomon.util.ControllerIntegrationTestSupport;
+import com.maruhxn.todomon.core.util.ControllerIntegrationTestSupport;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -11,6 +11,7 @@ import static org.springframework.http.HttpMethod.GET;
 public enum PermitAllUrls {
 
     REFRESH("/api/auth/refresh", GET),
+    GET_ALL_PETS("/api/pets", GET),
     ACTUATOR("/actuator/**", GET);
 
     private final String url;

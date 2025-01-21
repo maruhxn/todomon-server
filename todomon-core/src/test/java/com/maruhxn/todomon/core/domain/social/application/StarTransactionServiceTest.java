@@ -16,7 +16,7 @@ import com.maruhxn.todomon.core.global.common.dto.request.PagingCond;
 import com.maruhxn.todomon.core.global.error.ErrorCode;
 import com.maruhxn.todomon.core.global.error.exception.BadRequestException;
 import com.maruhxn.todomon.core.global.error.exception.ForbiddenException;
-import com.maruhxn.todomon.util.IntegrationTestSupport;
+import com.maruhxn.todomon.core.util.IntegrationTestSupport;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -10,7 +10,7 @@ import com.maruhxn.todomon.core.domain.pet.domain.Rarity;
 import com.maruhxn.todomon.core.global.auth.model.Role;
 import com.maruhxn.todomon.core.global.auth.model.provider.OAuth2Provider;
 import com.maruhxn.todomon.core.global.error.ErrorCode;
-import com.maruhxn.todomon.util.ControllerIntegrationTestSupport;
+import com.maruhxn.todomon.core.util.ControllerIntegrationTestSupport;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

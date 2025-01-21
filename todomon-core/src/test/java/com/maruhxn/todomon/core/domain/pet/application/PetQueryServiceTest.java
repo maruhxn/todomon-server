@@ -2,7 +2,6 @@ package com.maruhxn.todomon.core.domain.pet.application;
 
 import com.maruhxn.todomon.core.domain.member.dao.MemberRepository;
 import com.maruhxn.todomon.core.domain.member.domain.Member;
-import com.maruhxn.todomon.core.domain.pet.application.PetQueryService;
 import com.maruhxn.todomon.core.domain.pet.dao.CollectedPetRepository;
 import com.maruhxn.todomon.core.domain.pet.dao.PetRepository;
 import com.maruhxn.todomon.core.domain.pet.domain.CollectedPet;
@@ -12,7 +11,7 @@ import com.maruhxn.todomon.core.domain.pet.domain.Rarity;
 import com.maruhxn.todomon.core.domain.pet.dto.response.PetDexItem;
 import com.maruhxn.todomon.core.global.auth.model.Role;
 import com.maruhxn.todomon.core.global.auth.model.provider.OAuth2Provider;
-import com.maruhxn.todomon.util.IntegrationTestSupport;
+import com.maruhxn.todomon.core.util.IntegrationTestSupport;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

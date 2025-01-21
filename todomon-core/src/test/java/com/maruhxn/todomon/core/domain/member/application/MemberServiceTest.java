@@ -21,7 +21,7 @@ import com.maruhxn.todomon.core.global.auth.model.provider.GoogleUser;
 import com.maruhxn.todomon.core.global.auth.model.provider.OAuth2Provider;
 import com.maruhxn.todomon.core.global.error.ErrorCode;
 import com.maruhxn.todomon.core.global.error.exception.ForbiddenException;
-import com.maruhxn.todomon.util.IntegrationTestSupport;
+import com.maruhxn.todomon.core.util.IntegrationTestSupport;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,9 +1,9 @@
 package com.maruhxn.todomon.core.domain.auth.api;
 
-import com.maruhxn.todomon.core.domain.auth.dto.UserInfoRes;
 import com.maruhxn.todomon.core.domain.member.application.MemberService;
 import com.maruhxn.todomon.core.global.auth.application.JwtService;
 import com.maruhxn.todomon.core.global.auth.dto.TokenDto;
+import com.maruhxn.todomon.core.global.auth.dto.UserInfo;
 import com.maruhxn.todomon.core.global.auth.model.TodomonOAuth2User;
 import com.maruhxn.todomon.core.global.common.dto.response.BaseResponse;
 import com.maruhxn.todomon.core.global.common.dto.response.DataResponse;
@@ -27,11 +27,10 @@ public class AuthController {
     private final MemberService memberService;
 
     @GetMapping
-    public DataResponse<UserInfoRes> getUserInfo(
+    public DataResponse<UserInfo> getUserInfo(
             @AuthenticationPrincipal TodomonOAuth2User todomonOAuth2User
     ) {
-        UserInfoRes userInfo = memberService.getMemberInfo(todomonOAuth2User.getId());
-        return DataResponse.of("유저 정보 반환", userInfo);
+        return DataResponse.of("유저 정보 반환", memberService.getMemberInfo(todomonOAuth2User.getId()));
     }
 
     @GetMapping("/refresh")

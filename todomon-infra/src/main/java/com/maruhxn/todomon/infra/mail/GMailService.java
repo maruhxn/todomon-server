@@ -1,6 +1,6 @@
 package com.maruhxn.todomon.infra.mail;
 
-import com.maruhxn.todomon.infra.error.MailSendException;
+import com.maruhxn.todomon.infra.mail.error.MailSendException;
 import com.maruhxn.todomon.infra.mail.dto.PaymentResourceDTO;
 import com.maruhxn.todomon.infra.mail.dto.SendNotificationBatchDTO;
 import jakarta.mail.MessagingException;

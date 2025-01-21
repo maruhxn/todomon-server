@@ -16,8 +16,6 @@ allprojects { // 모든 모듈에 적용할 gradle script
 
     repositories {
         mavenCentral()
-        // 아임포트 관련
-        maven { url 'https://jitpack.io' }
         maven {
             url "https://repo.spring.io/milestone"
             mavenContent {

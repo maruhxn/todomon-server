@@ -13,9 +13,9 @@ public class StarPointPaymentHistoryReader {
 
     private final StarPointPaymentHistoryRepository starPointPaymentHistoryRepository;
 
-    public StarPointPaymentHistory findByMemberIdAndMerchantUid(Long memberId, String merchantUid) {
+    public StarPointPaymentHistory findById(Long historyId) {
         return starPointPaymentHistoryRepository
-                .findByMember_IdAndMerchantUid(memberId, merchantUid)
+                .findById(historyId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_STAR_POINT_PAYMENT_HISTORY));
     }
 

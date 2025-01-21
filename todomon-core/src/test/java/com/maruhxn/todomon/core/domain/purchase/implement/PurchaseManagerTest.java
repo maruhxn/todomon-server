@@ -7,12 +7,10 @@ import com.maruhxn.todomon.core.domain.item.domain.ItemType;
 import com.maruhxn.todomon.core.domain.item.domain.MoneyType;
 import com.maruhxn.todomon.core.domain.member.dao.MemberRepository;
 import com.maruhxn.todomon.core.domain.member.domain.Member;
-import com.maruhxn.todomon.core.domain.purchase.dao.OrderRepository;
-import com.maruhxn.todomon.core.domain.purchase.domain.Order;
 import com.maruhxn.todomon.core.global.auth.model.Role;
 import com.maruhxn.todomon.core.global.auth.model.provider.OAuth2Provider;
 import com.maruhxn.todomon.core.global.error.exception.BadRequestException;
-import com.maruhxn.todomon.util.IntegrationTestSupport;
+import com.maruhxn.todomon.core.util.IntegrationTestSupport;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,9 +33,6 @@ class PurchaseManagerTest extends IntegrationTestSupport {
     ItemRepository itemRepository;
 
     @Autowired
-    OrderRepository orderRepository;
-
-    @Autowired
     InventoryItemRepository inventoryItemRepository;
 
     @Test
@@ -56,18 +51,8 @@ class PurchaseManagerTest extends IntegrationTestSupport {
                 .build();
         itemRepository.save(item);
 
-        Order order = Order.builder()
-                .totalPrice(200L)
-                .quantity(2L)
-                .moneyType(MoneyType.STARPOINT)
-                .merchantUid("test-000000")
-                .member(member)
-                .item(item)
-                .build();
-        orderRepository.save(order);
-
         // when
-        purchaseManager.purchase(order);
+        purchaseManager.purchase(member, item, 2L);
 
         // then
         assertThat(inventoryItemRepository.findAll())
@@ -128,18 +113,8 @@ class PurchaseManagerTest extends IntegrationTestSupport {
                 .build();
         itemRepository.save(item);
 
-        Order order = Order.builder()
-                .totalPrice(100L)
-                .quantity(1L)
-                .moneyType(MoneyType.STARPOINT)
-                .merchantUid("test-000000")
-                .member(member)
-                .item(item)
-                .build();
-        orderRepository.save(order);
-
         // when
-        purchaseManager.purchase(order);
+        purchaseManager.purchase(member, item, 1L);
 
         // then
         assertThat(member.getPets().size()).isEqualTo(1);
@@ -161,18 +136,8 @@ class PurchaseManagerTest extends IntegrationTestSupport {
                 .build();
         itemRepository.save(item);
 
-        Order order = Order.builder()
-                .totalPrice(100L)
-                .quantity(1L)
-                .moneyType(MoneyType.STARPOINT)
-                .merchantUid("test-000000")
-                .member(member)
-                .item(item)
-                .build();
-        orderRepository.save(order);
-
         // when
-        purchaseManager.purchase(order);
+        purchaseManager.purchase(member, item, 1L);
 
         // then
         assertThat(member.getPetHouseSize()).isEqualTo(4);
@@ -197,18 +162,8 @@ class PurchaseManagerTest extends IntegrationTestSupport {
                 .build();
         itemRepository.save(item);
 
-        Order order = Order.builder()
-                .totalPrice(100L)
-                .quantity(1L)
-                .moneyType(MoneyType.STARPOINT)
-                .merchantUid("test-000000")
-                .member(member)
-                .item(item)
-                .build();
-        orderRepository.save(order);
-
         // when / then
-        assertThatThrownBy(() -> purchaseManager.purchase(order))
+        assertThatThrownBy(() -> purchaseManager.purchase(member, item, 1L))
                 .hasMessage(String.format("펫 하우스는 %d칸을 초과할 수 없습니다.", MAX_PET_HOUSE_SIZE))
                 .isInstanceOf(BadRequestException.class);
     }
@@ -229,18 +184,8 @@ class PurchaseManagerTest extends IntegrationTestSupport {
                 .build();
         itemRepository.save(item);
 
-        Order order = Order.builder()
-                .totalPrice(100L)
-                .quantity(1L)
-                .moneyType(MoneyType.STARPOINT)
-                .merchantUid("test-000000")
-                .member(member)
-                .item(item)
-                .build();
-        orderRepository.save(order);
-
         // when
-        purchaseManager.purchase(order);
+        purchaseManager.purchase(member, item, 1L);
 
         // then
         assertThat(member.getFoodCnt()).isEqualTo(10);
@@ -262,18 +207,8 @@ class PurchaseManagerTest extends IntegrationTestSupport {
                 .build();
         itemRepository.save(item);
 
-        Order order = Order.builder()
-                .totalPrice(100L)
-                .quantity(1L)
-                .moneyType(MoneyType.STARPOINT)
-                .merchantUid("test-000000")
-                .member(member)
-                .item(item)
-                .build();
-        orderRepository.save(order);
-
         // when
-        purchaseManager.purchase(order);
+        purchaseManager.purchase(member, item, 1L);
 
         // then
         assertThat(member.isSubscribed()).isTrue();

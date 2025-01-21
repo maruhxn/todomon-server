@@ -51,9 +51,6 @@ dependencies {
     implementation 'com.amazonaws:aws-java-sdk-s3:1.12.691'
     testImplementation "io.findify:s3mock_2.13:0.2.6"
 
-    // iamport
-    implementation 'com.github.iamport:iamport-rest-client-java:0.2.23'
-
     testImplementation 'org.springframework.security:spring-security-test'
 }
 

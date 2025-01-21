@@ -4,7 +4,6 @@ package com.maruhxn.todomon.core.domain.purchase.dto.request;
 import com.maruhxn.todomon.core.domain.member.domain.Member;
 import com.maruhxn.todomon.core.domain.purchase.domain.StarPointPaymentHistory;
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Getter;
@@ -13,9 +12,6 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 public class PurchaseStarPointItemReq {
-
-    @NotEmpty(message = "주문 번호는 비어있을 수 없습니다.")
-    private String merchant_uid;
 
     @NotNull(message = "아이템 아이디는 비어있을 수 없습니다.")
     private Long itemId;
@@ -29,8 +25,7 @@ public class PurchaseStarPointItemReq {
     private Long amount;
 
     @Builder
-    public PurchaseStarPointItemReq(String merchant_uid, Long itemId, Long quantity, Long amount) {
-        this.merchant_uid = merchant_uid;
+    public PurchaseStarPointItemReq(Long itemId, Long quantity, Long amount) {
         this.itemId = itemId;
         this.quantity = quantity;
         this.amount = amount;
@@ -38,7 +33,6 @@ public class PurchaseStarPointItemReq {
 
     public StarPointPaymentHistory toEntity(Member member) {
         return StarPointPaymentHistory.builder()
-                .merchantUid(this.getMerchant_uid())
                 .itemId(this.getItemId())
                 .quantity(this.getQuantity())
                 .amount(this.getAmount())
