@@ -23,6 +23,7 @@ public enum ErrorCode {
     INVALID_PAYMENT_AMOUNT_ERROR("거래 금액이 일치하지 않습니다."),
     CANCEL_PAYMENT_ERROR("결제 취소 중 에러"),
     FOLLOW_ONESELF("자기 자신에 대한 요청은 할 수 없습니다."),
+    UNKNOWN_PAYMENT_STATUS("알 수 없는 이벤트 상태입니다."),
 
     /* UNAUTHORIZED 401 */
     UNAUTHORIZED("로그인이 필요한 서비스입니다."),
@@ -58,7 +59,8 @@ public enum ErrorCode {
     INTERNAL_ERROR("서버 오류입니다."),
 
     S3_UPLOAD_ERROR("S3 파일 업로드 중 오류가 발생했습니다."),
-    REFUND_FAIL("환불에 실패했습니다. 관리자에게 문의 바랍니다.");
+    REFUND_FAIL("환불에 실패했습니다. 관리자에게 문의 바랍니다."),
+    ;
 
     private final String message;
 }

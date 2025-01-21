@@ -45,10 +45,11 @@ public class TodomonPayment {
         this.amount = amount;
     }
 
-    public static TodomonPayment of(Member member, String impUid) {
+    public static TodomonPayment of(Order order, String impUid) {
         return TodomonPayment.builder()
-                .member(member)
+                .member(order.getMember())
                 .impUid(impUid)
+                .amount(order.getTotalPrice())
                 .build();
     }
 

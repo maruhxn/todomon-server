@@ -6,7 +6,7 @@ import com.maruhxn.todomon.core.domain.member.domain.Member;
 import com.maruhxn.todomon.core.domain.member.implement.MemberReader;
 import com.maruhxn.todomon.core.domain.payment.domain.Order;
 import com.maruhxn.todomon.core.domain.payment.domain.TodomonPayment;
-import com.maruhxn.todomon.core.domain.payment.dto.request.PaymentReq;
+import com.maruhxn.todomon.core.domain.payment.dto.request.WebhookPayload;
 import com.maruhxn.todomon.core.domain.payment.dto.request.PreparePaymentReq;
 import com.maruhxn.todomon.core.global.error.exception.InternalServerException;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +34,7 @@ public class RollbackManager {
     }
 
     @Transactional(noRollbackFor = InternalServerException.class)
-    public void completeStageRollback(TodomonPayment todomonPayment, PaymentReq req) {
+    public void completeStageRollback(TodomonPayment todomonPayment, WebhookPayload req) {
         Order order = orderReader.findByMerchantUid(req.getMerchant_uid());
         order.setPayment(todomonPayment);
         order.getPayment().updateStatus(CANCELED);

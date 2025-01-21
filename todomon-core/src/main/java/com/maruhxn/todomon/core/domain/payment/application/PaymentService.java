@@ -1,20 +1,21 @@
 package com.maruhxn.todomon.core.domain.payment.application;
 
 import com.maruhxn.todomon.core.domain.item.domain.Item;
+import com.maruhxn.todomon.core.domain.item.domain.ItemType;
 import com.maruhxn.todomon.core.domain.item.implement.ItemReader;
 import com.maruhxn.todomon.core.domain.member.domain.Member;
 import com.maruhxn.todomon.core.domain.member.implement.MemberReader;
-import com.maruhxn.todomon.core.domain.payment.dao.TodomonPaymentRepository;
 import com.maruhxn.todomon.core.domain.payment.domain.Order;
 import com.maruhxn.todomon.core.domain.payment.domain.OrderStatus;
 import com.maruhxn.todomon.core.domain.payment.domain.PaymentStatus;
 import com.maruhxn.todomon.core.domain.payment.domain.TodomonPayment;
-import com.maruhxn.todomon.core.domain.payment.dto.request.PaymentReq;
 import com.maruhxn.todomon.core.domain.payment.dto.request.PreparePaymentReq;
+import com.maruhxn.todomon.core.domain.payment.dto.request.WebhookPayload;
 import com.maruhxn.todomon.core.domain.payment.implement.OrderReader;
 import com.maruhxn.todomon.core.domain.payment.implement.OrderWriter;
 import com.maruhxn.todomon.core.domain.payment.implement.RefundProvider;
 import com.maruhxn.todomon.core.domain.payment.implement.RollbackManager;
+import com.maruhxn.todomon.core.domain.payment.implement.PaidOrderProducer;
 import com.maruhxn.todomon.core.domain.purchase.implement.PurchaseManager;
 import com.maruhxn.todomon.core.global.error.ErrorCode;
 import com.maruhxn.todomon.core.global.error.exception.BadRequestException;
@@ -45,7 +46,7 @@ public class PaymentService {
     private final PaymentProvider paymentProvider;
     private final PurchaseManager purchaseManager;
     private final RefundProvider refundProvider;
-    private final TodomonPaymentRepository todomonPaymentRepository;
+    private final PaidOrderProducer paidOrderProducer;
 
 
     private void checkIsPremiumItemAndMemberSubscription(Item item, Member member) {
@@ -77,30 +78,40 @@ public class PaymentService {
     }
 
     @Transactional
-    public void completePayment(Long memberId, PaymentReq req) {
+    public void completePayment(WebhookPayload req) {
+        this.validateWebhookStatus(req);
+
+        log.info("결제 완료 이벤트 처리");
+
         Order order = orderReader.findByMerchantUid(req.getMerchant_uid());
         Member member = order.getMember();
-        this.validateMember(memberId, member);
         Item item = order.getItem();
         this.checkIsPremiumItemAndMemberSubscription(item, member);
-        TodomonPayment todomonPayment = TodomonPayment.of(order.getMember(), req.getImp_uid());
+        TodomonPayment todomonPayment = TodomonPayment.of(order, req.getImp_uid());
         order.setPayment(todomonPayment);
 
         try {
             paymentProvider.complete(req.getImp_uid(), BigDecimal.valueOf(order.getTotalPrice()));
             order.updateStatus(OrderStatus.PAID);
             log.info("결제 성공! 멤버 아이디: {}, 주문 아이디: {}", order.getMember().getId(), order.getMerchantUid());
+            paidOrderProducer.send(member.getId(), req.getMerchant_uid());
         } catch (Exception e) {
-            log.error("사후 검증 실패! 멤버 아이디: {}, 주문 아이디: {}, 이유: {}", memberId, req.getMerchant_uid(), e.getMessage());
+            log.error("사후 검증 실패! 멤버 아이디: {}, 주문 아이디: {}, 이유: {}", member.getId(), req.getMerchant_uid(), e.getMessage());
             rollbackManager.completeStageRollback(todomonPayment, req);
             throw new InternalServerException(ErrorCode.POST_VALIDATE_PAYMENT_ERROR, e.getMessage());
+        }
+    }
+
+    private void validateWebhookStatus(WebhookPayload req) {
+        String status = req.getStatus();
+        if (!"paid".equals(status)) {
+            throw new BadRequestException(ErrorCode.UNKNOWN_PAYMENT_STATUS);
         }
     }
 
     @Transactional
     public PaymentResourceDTO purchaseItem(Long memberId, String merchantUid) {
         Order order = orderReader.findByMerchantUid(merchantUid);
-        this.validateMember(memberId, order.getMember());
 
         try {
             purchaseManager.purchase(order.getMember(), order.getItem(), order.getQuantity());
@@ -119,6 +130,10 @@ public class PaymentService {
         Order order = orderReader.findByMerchantUid(merchantUid);
         Member member = order.getMember();
         this.validateMember(memberId, member);
+
+        if (order.getItem().getItemType().equals(ItemType.IMMEDIATE_EFFECT)) {
+            // 상태 복원 로직..
+        }
 
         refundProvider.refund(order);
         TodomonPayment todomonPayment = order.getPayment();

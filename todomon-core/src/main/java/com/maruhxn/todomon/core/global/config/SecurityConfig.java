@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authorization.AuthorizationDecision;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -44,6 +45,14 @@ public class SecurityConfig {
     private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
     private final JwtLogoutSuccessHandler jwtLogoutSuccessHandler;
 
+
+    // 결제 웹훅 요청 시 허용된 IP 목록
+    private static final List<String> ALLOWED_IPS = List.of(
+            "52.78.100.19",
+            "52.78.48.223",
+            "52.78.5.241"
+    );
+
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
         return (web) ->
@@ -68,8 +77,12 @@ public class SecurityConfig {
                         sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authorizeHttpRequests(authz -> {
-                    authz.requestMatchers("/").permitAll();
-                    authz.requestMatchers(PathRequest.toH2Console()).permitAll();
+                    authz
+                            .requestMatchers("/api/payment/complete").access((authentication, request) -> {
+                                String clientIp = request.getRequest().getHeader("X-Forwarded-For");
+                                return new AuthorizationDecision(ALLOWED_IPS.contains(clientIp));
+                            })
+                            .requestMatchers(PathRequest.toH2Console()).permitAll();
                     Arrays.stream(PermitAllUrls.values()).forEach(url -> {
                         authz.requestMatchers(url.getMethod(), url.getUrl()).permitAll();
                     });

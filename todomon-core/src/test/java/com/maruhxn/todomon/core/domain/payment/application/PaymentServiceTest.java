@@ -14,12 +14,9 @@ import com.maruhxn.todomon.core.domain.payment.domain.Order;
 import com.maruhxn.todomon.core.domain.payment.domain.OrderStatus;
 import com.maruhxn.todomon.core.domain.payment.domain.PaymentStatus;
 import com.maruhxn.todomon.core.domain.payment.domain.TodomonPayment;
-import com.maruhxn.todomon.core.domain.payment.dto.request.PaymentReq;
 import com.maruhxn.todomon.core.domain.payment.dto.request.PreparePaymentReq;
-import com.maruhxn.todomon.core.domain.payment.implement.OrderReader;
-import com.maruhxn.todomon.core.domain.payment.implement.OrderWriter;
-import com.maruhxn.todomon.core.domain.payment.implement.RefundProvider;
-import com.maruhxn.todomon.core.domain.payment.implement.RollbackManager;
+import com.maruhxn.todomon.core.domain.payment.dto.request.WebhookPayload;
+import com.maruhxn.todomon.core.domain.payment.implement.*;
 import com.maruhxn.todomon.core.domain.purchase.implement.PurchaseManager;
 import com.maruhxn.todomon.core.global.auth.model.Role;
 import com.maruhxn.todomon.core.global.auth.model.provider.OAuth2Provider;
@@ -83,6 +80,9 @@ class PaymentServiceTest extends IntegrationTestSupport {
 
     @MockBean
     private PurchaseManager purchaseManager;
+
+    @MockBean
+    private PaidOrderProducer paidOrderProducer;
 
     private Member member;
     private Item item;
@@ -189,15 +189,18 @@ class PaymentServiceTest extends IntegrationTestSupport {
         orderWriter.create(item, member, preparePaymentReq);
 
         String impUid = "impUid123";
-        PaymentReq req = PaymentReq.builder()
+        WebhookPayload req = WebhookPayload.builder()
                 .merchant_uid(merchantUid)
                 .imp_uid(impUid)
+                .status("paid")
+                .cancellation_id("")
                 .build();
 
+        willDoNothing().given(paidOrderProducer).send(member.getId(), merchantUid);
         willDoNothing().given(paymentProvider).complete(impUid, preparePaymentReq.getAmount());
 
         // when
-        paymentService.completePayment(member.getId(), req);
+        paymentService.completePayment(req);
 
         // then
         then(paymentProvider).should(times(1)).complete(impUid, preparePaymentReq.getAmount());
@@ -222,16 +225,19 @@ class PaymentServiceTest extends IntegrationTestSupport {
         orderWriter.create(item, member, preparePaymentReq);
 
         String impUid = "impUid123";
-        PaymentReq req = PaymentReq.builder()
+        WebhookPayload req = WebhookPayload.builder()
                 .merchant_uid(merchantUid)
                 .imp_uid(impUid)
+                .status("paid")
+                .cancellation_id("")
                 .build();
 
+        willDoNothing().given(paidOrderProducer).send(member.getId(), merchantUid);
         InvalidPaymentAmountException invalidPaymentAmountException = new InvalidPaymentAmountException();
         willThrow(invalidPaymentAmountException).given(paymentProvider).complete(any(), any());
 
         // when
-        assertThatThrownBy(() -> paymentService.completePayment(member.getId(), req))
+        assertThatThrownBy(() -> paymentService.completePayment(req))
                 .isInstanceOf(InternalServerException.class)
                 .hasMessage(invalidPaymentAmountException.getMessage());
 
@@ -258,17 +264,20 @@ class PaymentServiceTest extends IntegrationTestSupport {
         Order order = orderWriter.create(item, member, preparePaymentReq);
 
         String impUid = "impUid123";
-        PaymentReq req = PaymentReq.builder()
+        WebhookPayload req = WebhookPayload.builder()
                 .merchant_uid(merchantUid)
                 .imp_uid(impUid)
+                .status("paid")
+                .cancellation_id("")
                 .build();
 
+        willDoNothing().given(paidOrderProducer).send(member.getId(), merchantUid);
         InvalidPaymentAmountException invalidPaymentAmountException = new InvalidPaymentAmountException();
         willThrow(invalidPaymentAmountException).given(paymentProvider).complete(any(), any());
         willThrow(new IOException("환불 중 에러 발생")).given(paymentProvider).refund(impUid);
 
         // when
-        assertThatThrownBy(() -> paymentService.completePayment(member.getId(), req))
+        assertThatThrownBy(() -> paymentService.completePayment(req))
                 .isInstanceOf(InternalServerException.class)
                 .hasMessage("환불 중 에러 발생");
 
@@ -295,7 +304,7 @@ class PaymentServiceTest extends IntegrationTestSupport {
 
         Order order = orderWriter.create(item, member, preparePaymentReq);
         String impUid = "impUid123";
-        TodomonPayment todomonPayment = todomonPaymentRepository.save(TodomonPayment.of(member, impUid));
+        TodomonPayment todomonPayment = todomonPaymentRepository.save(TodomonPayment.of(order, impUid));
         order.setPayment(todomonPayment);
         order.updateStatus(OrderStatus.PAID);
 
@@ -321,7 +330,7 @@ class PaymentServiceTest extends IntegrationTestSupport {
 
         Order order = orderWriter.create(item, member, preparePaymentReq);
         String impUid = "impUid123";
-        TodomonPayment todomonPayment = todomonPaymentRepository.save(TodomonPayment.of(member, impUid));
+        TodomonPayment todomonPayment = todomonPaymentRepository.save(TodomonPayment.of(order, impUid));
         order.setPayment(todomonPayment);
         order.updateStatus(OrderStatus.PAID);
 
@@ -354,7 +363,7 @@ class PaymentServiceTest extends IntegrationTestSupport {
 
         String impUid = "impUid123";
 
-        TodomonPayment todomonPayment = todomonPaymentRepository.save(TodomonPayment.of(member, impUid));
+        TodomonPayment todomonPayment = todomonPaymentRepository.save(TodomonPayment.of(order, impUid));
         order.setPayment(todomonPayment);
         orderRepository.save(order);
 
@@ -386,7 +395,7 @@ class PaymentServiceTest extends IntegrationTestSupport {
 
         String impUid = "impUid123";
 
-        TodomonPayment todomonPayment = todomonPaymentRepository.save(TodomonPayment.of(member, impUid));
+        TodomonPayment todomonPayment = todomonPaymentRepository.save(TodomonPayment.of(order, impUid));
         order.setPayment(todomonPayment);
         orderRepository.save(order);
 
