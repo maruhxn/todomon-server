@@ -1,7 +1,6 @@
 package com.maruhxn.todomon.core.domain.payment.application;
 
 import com.maruhxn.todomon.core.domain.item.domain.Item;
-import com.maruhxn.todomon.core.domain.item.domain.ItemType;
 import com.maruhxn.todomon.core.domain.item.implement.ItemReader;
 import com.maruhxn.todomon.core.domain.member.domain.Member;
 import com.maruhxn.todomon.core.domain.member.implement.MemberReader;
@@ -11,11 +10,7 @@ import com.maruhxn.todomon.core.domain.payment.domain.PaymentStatus;
 import com.maruhxn.todomon.core.domain.payment.domain.TodomonPayment;
 import com.maruhxn.todomon.core.domain.payment.dto.request.PreparePaymentReq;
 import com.maruhxn.todomon.core.domain.payment.dto.request.WebhookPayload;
-import com.maruhxn.todomon.core.domain.payment.implement.OrderReader;
-import com.maruhxn.todomon.core.domain.payment.implement.OrderWriter;
-import com.maruhxn.todomon.core.domain.payment.implement.RefundProvider;
-import com.maruhxn.todomon.core.domain.payment.implement.RollbackManager;
-import com.maruhxn.todomon.core.domain.payment.implement.PaidOrderProducer;
+import com.maruhxn.todomon.core.domain.payment.implement.*;
 import com.maruhxn.todomon.core.domain.purchase.implement.PurchaseManager;
 import com.maruhxn.todomon.core.global.error.ErrorCode;
 import com.maruhxn.todomon.core.global.error.exception.BadRequestException;
@@ -131,8 +126,8 @@ public class PaymentService {
         Member member = order.getMember();
         this.validateMember(memberId, member);
 
-        if (order.getItem().getItemType().equals(ItemType.IMMEDIATE_EFFECT)) {
-            // 상태 복원 로직..
+        if (order.getItem().getName().equals("유료 플랜 구독권")) {
+            member.updateIsSubscribed(false);
         }
 
         refundProvider.refund(order);

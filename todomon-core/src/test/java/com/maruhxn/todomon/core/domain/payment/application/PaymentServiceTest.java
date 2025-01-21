@@ -351,6 +351,7 @@ class PaymentServiceTest extends IntegrationTestSupport {
     @DisplayName("환불 성공")
     void cancelPayment_Success() throws IOException {
         // given
+        member.updateIsSubscribed(true);
         Order order = Order.builder()
                 .item(item)
                 .member(member)
@@ -377,6 +378,7 @@ class PaymentServiceTest extends IntegrationTestSupport {
         Order findOrder = orderRepository.findByMerchantUid(merchantUid).get();
         assertThat(findOrder.getOrderStatus()).isEqualTo(OrderStatus.CANCELED);
         assertThat(todomonPayment.getStatus()).isEqualTo(PaymentStatus.REFUNDED);
+        assertThat(findOrder.getMember().isSubscribed()).isFalse();
     }
 
     @Test
