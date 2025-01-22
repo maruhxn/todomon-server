@@ -10,12 +10,14 @@ import com.maruhxn.todomon.core.global.auth.checker.IsMyFollowOrAdmin;
 import com.maruhxn.todomon.core.global.error.ErrorCode;
 import com.maruhxn.todomon.core.global.error.exception.ExistingResourceException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import static com.maruhxn.todomon.core.domain.social.domain.FollowRequestStatus.ACCEPTED;
 import static com.maruhxn.todomon.core.domain.social.domain.FollowRequestStatus.REJECTED;
 
+@Slf4j
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -35,22 +37,30 @@ public class FollowService {
 
         followReader.findOptionalByFollowerIdAndFolloweeId(followerId, followeeId)
                 .ifPresent(r -> {
+                    log.warn("중복 팔로우 요청 === 팔로워 아이디: {}, 팔로우 대상 아이디: {}", followerId, followeeId);
                     throw new ExistingResourceException(ErrorCode.ALREADY_SENT_REQUEST);
                 });
 
         followReader.findOptionalByFollowerIdAndFolloweeId(followeeId, followerId)
                 .ifPresentOrElse(
                         receivedFollow -> {
+                            // 이미 받은 팔로우가 있다면 맞팔로우
+                            log.info("맞팔로우 === 팔로워 아이디: {}, 팔로우 대상 아이디: {}", followerId, followeeId);
                             if (receivedFollow.isPending()) receivedFollow.updateStatus(ACCEPTED);
                             followManager.matFollow(loginMember, followee);
-                        }, // 이미 받은 팔로우가 있다면 맞팔로우
-                        () -> followManager.sendFollowRequest(loginMember, followee)  // 받은 팔로우가 없다면 팔로우 요청 보내기
+                        },
+                        () -> {
+                            // 받은 팔로우가 없다면 팔로우 요청 보내기
+                            log.info("팔로우 요청 전송 === 팔로워 아이디: {}, 팔로우 대상 아이디: {}", followerId, followeeId);
+                            followManager.sendFollowRequest(loginMember, followee);
+                        }
                 );
     }
 
     // 팔로우 요청에 대해 응답한다.
     @IsMyFollowOrAdmin
     public void respondToFollowRequest(Long followId, boolean isAccepted) {
+        log.info("팔로우 요청 응답 === 팔로우 아이디: {}, 응답 정보: {}", followId, isAccepted);
         Follow follow = followReader.findById(followId);
         follow.updateStatus(isAccepted ? ACCEPTED : REJECTED);
     }
@@ -65,11 +75,13 @@ public class FollowService {
 
     // 팔로우를 취소한다.
     public void unfollow(Long memberId, Long followeeId) {
+        log.info("팔로우 취소 === 유저 아이디: {}, 취소 대상 아이디: {}", memberId, followeeId);
         this.findAndDeleteFollow(memberId, followeeId);
     }
 
     // 나를 팔로우하고 있는 팔로워를 삭제한다.
     public void removeFollower(Long memberId, Long followerId) {
+        log.info("팔로워 삭제 === 유저 아이디: {}, 삭제 대상 아이디: {}", memberId, followerId);
         this.findAndDeleteFollow(followerId, memberId);
     }
 

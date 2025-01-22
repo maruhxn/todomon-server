@@ -33,16 +33,17 @@ public class PaidOrderProducer {
         try {
             messageStr = objectMapper.writeValueAsString(message);
         } catch (JsonProcessingException e) {
+            log.error("메시지 전환 실패 === 이유: {}", e.getMessage());
             throw new InternalServerException(ErrorCode.INTERNAL_ERROR, "메시지 전환 실패");
         }
 
         CompletableFuture<SendResult<String, String>> future = kafkaTemplate.send(PAID_ORDER_TOPIC, messageStr);
         future.whenComplete(((result, ex) -> {
             if (ex != null) {
-                ex.printStackTrace();
-                log.error(ex.getMessage());
+                StackTraceElement stackTraceElement = ex.getStackTrace()[0];
+                log.error("메시지 적재 실패 === 메시지: {}, 이유: {}", ex.getMessage(), stackTraceElement);
             } else {
-                log.info("메시지 적재 완료: {}", result.getRecordMetadata().offset());
+                log.info("메시지 적재 성공 === 오프셋: {}", result.getRecordMetadata().offset());
             }
         }));
     }

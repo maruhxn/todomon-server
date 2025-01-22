@@ -28,7 +28,7 @@ public class RefundProvider {
             TodomonPayment todomonPayment = order.getPayment();
             todomonPayment.updateStatus(PaymentStatus.REFUND_FAILED);
             mailService.sendEmail(order.getMember().getEmail(), "환불에 실패했습니다. 관리자에게 문의바랍니다.");
-            log.error("환불 실패! 주문 아이디: {}, 이유: {}", order.getMerchantUid(), e.getMessage());
+            log.error("환불 실패 === 유저 아이디: {}, 주문 아이디: {}, 이유: {}", order.getMember().getId(), order.getMerchantUid(), e.getMessage());
             throw new InternalServerException(ErrorCode.REFUND_FAIL, e.getMessage());
         }
     }

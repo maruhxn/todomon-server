@@ -5,8 +5,10 @@ import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import org.springframework.web.multipart.MultipartFile;
 
+@ToString
 @Getter
 @NoArgsConstructor
 @AtLeastOneFieldNotNull(message = "수정할 데이터를 전달해야 합니다.")

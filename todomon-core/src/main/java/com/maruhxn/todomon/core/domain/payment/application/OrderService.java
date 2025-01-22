@@ -5,9 +5,11 @@ import com.maruhxn.todomon.core.domain.payment.implement.OrderReader;
 import com.maruhxn.todomon.core.global.common.dto.PageItem;
 import com.maruhxn.todomon.core.global.common.dto.request.PagingCond;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class OrderService {
@@ -16,6 +18,7 @@ public class OrderService {
 
     @Transactional(readOnly = true)
     public PageItem<OrderItem> getMyOrders(Long memberId, PagingCond pagingCond) {
+        log.debug("주문 내역 조회 === 유저 아이디: {}, 페이지: {}", memberId, pagingCond.getPageNumber());
         return PageItem.from(orderReader.findOrdersWithPaging(memberId, pagingCond));
     }
 }

@@ -52,6 +52,7 @@ public class PaymentService {
 
     @Transactional
     public void preparePayment(Long memberId, PreparePaymentReq req) {
+        log.info("결제 요청 === 멤버 아이디: {}, 주문 아이디: {}", memberId, req.getMerchant_uid());
         Member member = memberReader.findById(memberId);
         Item item = itemReader.findItemById(req.getItemId());
         this.checkIsPremiumItemAndMemberSubscription(item, member);
@@ -59,10 +60,11 @@ public class PaymentService {
         try {
             paymentProvider.prepare(req.getMerchant_uid(), req.getAmount());
             orderWriter.create(item, member, req);
-            log.info("결제 요청! 멤버 아이디: {}, 주문 아이디: {}", memberId, req.getMerchant_uid());
+            log.info("사전 검증 성공 === 멤버 아이디: {}, 주문 아이디: {}", memberId, req.getMerchant_uid());
         } catch (Exception e) {
-            log.error("사전 검증 실패! 멤버 아이디: {}, 주문 아이디: {}, 이유: {}", memberId, req.getMerchant_uid(), e.getMessage());
+            log.error("사전 검증 실패 === 멤버 아이디: {}, 주문 아이디: {}, 이유: {}", memberId, req.getMerchant_uid(), e.getMessage());
             rollbackManager.prepareStageRollback(memberId, req);
+            log.error("사전 검증 실패 로직 수행 성공 === 멤버 아이디: {}, 주문 아이디: {}", memberId, req.getMerchant_uid());
             throw new InternalServerException(ErrorCode.PREPARE_PAYMENT_ERROR, e.getMessage());
         }
     }
@@ -74,9 +76,10 @@ public class PaymentService {
 
     @Transactional
     public void completePayment(WebhookPayload req) {
-        this.validateWebhookStatus(req);
+        log.info("웹훅 수신 === {}", req);
+        if (!"paid".equals(req.getStatus())) return;
 
-        log.info("결제 완료 이벤트 처리");
+        log.info("결제 완료 이벤트 처리 요청 === 주문 아이디: {}, 결제 아이디: {}", req.getMerchant_uid(), req.getImp_uid());
 
         Order order = orderReader.findByMerchantUid(req.getMerchant_uid());
         Member member = order.getMember();
@@ -88,45 +91,43 @@ public class PaymentService {
         try {
             paymentProvider.complete(req.getImp_uid(), BigDecimal.valueOf(order.getTotalPrice()));
             order.updateStatus(OrderStatus.PAID);
-            log.info("결제 성공! 멤버 아이디: {}, 주문 아이디: {}", order.getMember().getId(), order.getMerchantUid());
+            log.info("사후 검증 성공 === 멤버 아이디: {}, 주문 아이디: {}", order.getMember().getId(), order.getMerchantUid());
             paidOrderProducer.send(member.getId(), req.getMerchant_uid());
         } catch (Exception e) {
-            log.error("사후 검증 실패! 멤버 아이디: {}, 주문 아이디: {}, 이유: {}", member.getId(), req.getMerchant_uid(), e.getMessage());
+            log.error("사후 검증 실패 === 멤버 아이디: {}, 주문 아이디: {}, 이유: {}", member.getId(), req.getMerchant_uid(), e.getMessage());
             rollbackManager.completeStageRollback(todomonPayment, req);
+            log.error("사후 검증 실패 로직 수행 성공 === 멤버 아이디: {}, 주문 아이디: {}", member.getId(), req.getMerchant_uid());
             throw new InternalServerException(ErrorCode.POST_VALIDATE_PAYMENT_ERROR, e.getMessage());
-        }
-    }
-
-    private void validateWebhookStatus(WebhookPayload req) {
-        String status = req.getStatus();
-        if (!"paid".equals(status)) {
-            throw new BadRequestException(ErrorCode.UNKNOWN_PAYMENT_STATUS);
         }
     }
 
     @Transactional
     public PaymentResourceDTO purchaseItem(Long memberId, String merchantUid) {
+        log.info("프리미엄 아이템 구매 처리 요청 수신 === 유저 아이디: {}, 주문 아이디: {}", memberId, merchantUid);
         Order order = orderReader.findByMerchantUid(merchantUid);
 
         try {
             purchaseManager.purchase(order.getMember(), order.getItem(), order.getQuantity());
             order.updateStatus(OK);
-            log.info("아이템 구매 성공! 멤버 아이디: {}, 주문 아이디: {}", memberId, merchantUid);
+            log.info("프리미엄 아이템 구매 성공 === 멤버 아이디: {}, 주문 아이디: {}", memberId, merchantUid);
             return this.createPaymentResourceDTO(order);
         } catch (Exception e) {
-            log.error("아이템 구매 실패! 멤버 아이디: {}, 주문 아이디: {}, 이유: {}", memberId, merchantUid, e.getMessage());
+            log.error("프리미엄 아이템 구매 실패 === 멤버 아이디: {}, 주문 아이디: {}, 이유: {}", memberId, merchantUid, e.getMessage());
             rollbackManager.purchaseStageRollback(merchantUid);
+            log.error("프리미엄 아이템 구매 실패 로직 수행 성공 === 멤버 아이디: {}, 주문 아이디: {}", memberId, merchantUid);
             throw new InternalServerException(ErrorCode.PURCHASE_ERROR, e.getMessage());
         }
     }
 
     @Transactional
     public PaymentResourceDTO cancelPayment(Long memberId, String merchantUid) {
+        log.info("환불 처리 요청 수신 === 유저 아이디: {}, 주문 아이디: {}", memberId, merchantUid);
         Order order = orderReader.findByMerchantUid(merchantUid);
         Member member = order.getMember();
         this.validateMember(memberId, member);
 
         if (order.getItem().getName().equals("유료 플랜 구독권")) {
+            log.info("구독 취소 === 유저 아이디: {}, 주문 아이디: {}", memberId, merchantUid);
             member.updateIsSubscribed(false);
         }
 
@@ -134,7 +135,7 @@ public class PaymentService {
         TodomonPayment todomonPayment = order.getPayment();
         order.updateStatus(OrderStatus.CANCELED);
         todomonPayment.updateStatus(PaymentStatus.REFUNDED);
-        log.info("결제 취소! 멤버 아이디: {}, 주문 아이디: {}", order.getMember().getId(), order.getMerchantUid());
+        log.info("환불 성공 === 멤버 아이디: {}, 주문 아이디: {}", order.getMember().getId(), order.getMerchantUid());
         return this.createPaymentResourceDTO(order);
     }
 
