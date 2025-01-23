@@ -17,28 +17,53 @@ public class LoggingFilter implements Filter {
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         if (request instanceof HttpServletRequest httpServletRequest) {
-            CachedBodyHttpServletRequest wrappedRequest = new CachedBodyHttpServletRequest(httpServletRequest);
             HttpServletResponse httpResponse = (HttpServletResponse) response;
 
-            // 요청 정보 수집
-            String requestPath = wrappedRequest.getRequestURI();
-            String method = wrappedRequest.getMethod();
-            String queryParams = wrappedRequest.getQueryString();
-            String requestBody = wrappedRequest.getReader().lines().reduce("", String::concat);
-            String clientIp = wrappedRequest.getRemoteAddr();
+            if (this.checkIsMultipartRequest(httpServletRequest)) {
+                this.logMultipartRequest(httpServletRequest);
+                chain.doFilter(request, response); // 원본 요청 그대로 전달
+            } else {
+                CachedBodyHttpServletRequest wrappedRequest = new CachedBodyHttpServletRequest(httpServletRequest);
+                this.logRegularRequest(wrappedRequest);
+                chain.doFilter(wrappedRequest, response);
+            }
 
-            log.debug("Incoming Request: Path={}, Method={}, QueryParams={}, ClientIP={}, Body={}",
-                    requestPath, method, queryParams, clientIp, requestBody);
-
-            // 필터 체인 실행
-            chain.doFilter(wrappedRequest, response);
-
-            // 응답 정보 수집
-            int status = httpResponse.getStatus();
-            log.debug("Response: Path={}, Status={}", requestPath, status);
+            // 응답 로그 기록
+            this.logResponse(httpResponse);
         } else {
             chain.doFilter(request, response);
         }
+    }
+
+    private void logResponse(HttpServletResponse httpResponse) {
+        int status = httpResponse.getStatus();
+        log.debug("Response: Status={}", status);
+    }
+
+    private boolean checkIsMultipartRequest(HttpServletRequest httpServletRequest) {
+        return httpServletRequest.getContentType() != null
+                && httpServletRequest.getContentType().startsWith("multipart/form-data");
+    }
+
+    private void logRegularRequest(CachedBodyHttpServletRequest request) throws IOException {
+        String requestPath = request.getRequestURI();
+        String method = request.getMethod();
+        String queryParams = request.getQueryString();
+        String requestBody = request.getReader().lines().reduce("", String::concat);
+        String clientIp = request.getRemoteAddr();
+
+        log.debug("Incoming Request: Path={}, Method={}, QueryParams={}, ClientIP={}, Body={}",
+                requestPath, method, queryParams, clientIp, requestBody);
+    }
+
+    private void logMultipartRequest(HttpServletRequest request) {
+        String requestPath = request.getRequestURI();
+        String method = request.getMethod();
+        String queryParams = request.getQueryString();
+        String clientIp = request.getRemoteAddr();
+
+        log.debug("Incoming Multipart Request: Path={}, Method={}, QueryParams={}, ClientIP={}",
+                requestPath, method, queryParams, clientIp);
     }
 
     private static class CachedBodyHttpServletRequest extends HttpServletRequestWrapper {

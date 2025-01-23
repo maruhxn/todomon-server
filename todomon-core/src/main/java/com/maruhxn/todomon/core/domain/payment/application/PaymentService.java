@@ -47,6 +47,8 @@ public class PaymentService {
     private void checkIsPremiumItemAndMemberSubscription(Item item, Member member) {
         if (item.getIsPremium() && !member.isSubscribed()) {
             throw new ForbiddenException(ErrorCode.NOT_SUBSCRIPTION);
+        } else if (item.getName().equals("유료 플랜 구독권") && member.isSubscribed()) {
+            throw new BadRequestException(ErrorCode.ALREADY_SUBSCRIPTION);
         }
     }
 
