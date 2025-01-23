@@ -54,7 +54,6 @@ public class MemberController {
     public void withdraw(
             @PathVariable("memberId") Long memberId
     ) {
-        log.info("회원 탈퇴 | memberId={}", memberId);
         memberService.withdraw(memberId);
     }
 }

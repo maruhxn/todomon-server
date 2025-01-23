@@ -1,17 +1,19 @@
 package com.maruhxn.todomon.core.domain.todo.implement;
 
-import com.maruhxn.todomon.core.domain.todo.implement.strategy.RepeatInfoStrategy;
 import com.maruhxn.todomon.core.domain.todo.dao.TodoInstanceRepository;
 import com.maruhxn.todomon.core.domain.todo.domain.RepeatInfo;
 import com.maruhxn.todomon.core.domain.todo.domain.Todo;
 import com.maruhxn.todomon.core.domain.todo.domain.TodoInstance;
 import com.maruhxn.todomon.core.domain.todo.dto.request.UpdateTodoReq;
+import com.maruhxn.todomon.core.domain.todo.implement.strategy.RepeatInfoStrategy;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class TodoInstanceCreator {

@@ -4,13 +4,11 @@ import com.maruhxn.todomon.core.global.util.validation.AtLeastOneFieldNotNull;
 import com.maruhxn.todomon.core.global.util.validation.ValidDateRange;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Size;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
+@ToString
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @ValidDateRange

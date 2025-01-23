@@ -17,14 +17,14 @@ import io.jsonwebtoken.UnsupportedJwtException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import static com.maruhxn.todomon.core.global.auth.implement.JwtProvider.BEARER_PREFIX;
-import static com.maruhxn.todomon.core.global.common.Constants.ACCESS_TOKEN_HEADER;
-import static com.maruhxn.todomon.core.global.common.Constants.REFRESH_TOKEN_HEADER;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class JwtService {
@@ -41,6 +41,7 @@ public class JwtService {
     @Transactional
     public void logout(String bearerRefreshToken) {
         String username = this.extractUsernameFromRefreshToken(bearerRefreshToken);
+        log.debug("로그아웃 === 유저명: {}", username);
         refreshTokenWriter.removeAllByUsername(username);
     }
 
@@ -68,6 +69,7 @@ public class JwtService {
         String refreshToken = this.getTokenFromBearer(bearerRefreshToken);
         this.validate(refreshToken);
         TodomonOAuth2User todomonOAuth2User = this.extractTodomonOAuth2User(refreshToken);
+        log.debug("토큰 갱신 === 유저: {}", todomonOAuth2User);
         return this.doTokenGenerationProcess(todomonOAuth2User);
     }
 
@@ -97,13 +99,6 @@ public class JwtService {
 
         response.addCookie(accessTokenCookie);
         response.addCookie(refreshTokenCookie);
-    }
-
-    private void setHeader(HttpServletResponse response, TokenDto tokenDto) {
-        response.addHeader(ACCESS_TOKEN_HEADER, BEARER_PREFIX + tokenDto.getAccessToken());
-        response.addHeader(REFRESH_TOKEN_HEADER, BEARER_PREFIX + tokenDto.getRefreshToken());
-        response.addCookie(new Cookie("accessToken", tokenDto.getAccessToken()));
-        response.addCookie(new Cookie("refreshToken", tokenDto.getRefreshToken()));
     }
 
     /**

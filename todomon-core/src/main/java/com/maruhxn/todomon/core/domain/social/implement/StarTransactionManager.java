@@ -10,6 +10,7 @@ import com.maruhxn.todomon.core.global.error.ErrorCode;
 import com.maruhxn.todomon.core.global.error.exception.BadRequestException;
 import com.maruhxn.todomon.core.global.error.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
@@ -18,6 +19,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class StarTransactionManager {
@@ -35,8 +37,10 @@ public class StarTransactionManager {
     // 24시간 내로 이미 보낸 적이 있는지 확인
     public void checkIsAlreadySent(Long senderId, Long receiverId, LocalDateTime now) {
         if (starTransactionQueryRepository
-                .existsStarsCreatedWithinLast24Hours(senderId, receiverId, now.minusHours(24), now))
+                .existsStarsCreatedWithinLast24Hours(senderId, receiverId, now.minusHours(24), now)) {
+            log.info("중복 ⭐️전송으로 실패 === 발신자: {}, 수신자: {}", senderId, receiverId);
             throw new BadRequestException(ErrorCode.ALREADY_SENT_STAR);
+        }
     }
 
     public StarTransaction findByIdAndReceiverId(Long id, Long receiverId) {

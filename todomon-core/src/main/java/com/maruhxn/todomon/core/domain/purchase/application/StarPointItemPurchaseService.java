@@ -19,10 +19,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Objects;
 
+@Slf4j
 @Service
 @Transactional
 @RequiredArgsConstructor
-@Slf4j
 public class StarPointItemPurchaseService {
 
     private final MemberReader memberReader;
@@ -31,6 +31,7 @@ public class StarPointItemPurchaseService {
     private final ItemReader itemReader;
 
     public void requestToPurchaseStarPointItem(Long memberId, PurchaseStarPointItemReq req) {
+        log.info("⭐아이템 구매 === 유저 아이디: {}, 요청 정보: {}", memberId, req);
         try {
             Member member = memberReader.findById(memberId);
             Item item = itemReader.findItemById(req.getItemId());
@@ -46,9 +47,12 @@ public class StarPointItemPurchaseService {
 
             this.checkIsPremiumItemAndMemberSubscription(item, member);
             starPointPurchaseHistoryAppender.create(req.toEntity(member));
+            log.info("⭐아이템 구매 이력 생성 === 유저 아이디: {}, 요청 정보: {}", memberId, req);
             purchaseManager.purchase(member, item, req.getQuantity());
+            log.info("⭐아이템 구매 성공 === 유저 아이디: {}, 요청 정보: {}", memberId, req);
             member.subtractStarPoint(req.getAmount());
         } catch (Exception e) {
+            log.error("⭐아이템 구매 실패 === 유저 아이디: {}, 요청 정보: {}, 이유: {}", memberId, req, e.getMessage());
             throw new InternalServerException(ErrorCode.PURCHASE_ERROR, e.getMessage());
         }
     }

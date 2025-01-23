@@ -4,11 +4,9 @@ import com.maruhxn.todomon.core.domain.item.domain.ItemType;
 import com.maruhxn.todomon.core.domain.item.domain.MoneyType;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
+@ToString
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class UpdateItemRequest {

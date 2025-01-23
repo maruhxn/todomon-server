@@ -1,11 +1,9 @@
 package com.maruhxn.todomon.core.domain.todo.dto.request;
 
 import jakarta.validation.constraints.NotNull;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
+@ToString
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class UpdateTodoStatusReq {

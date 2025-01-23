@@ -5,11 +5,9 @@ import com.maruhxn.todomon.core.domain.item.dto.request.ItemEffectReq;
 import com.maruhxn.todomon.core.domain.member.domain.TitleName;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
+@ToString
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @JsonTypeName("upsertTitleName")
